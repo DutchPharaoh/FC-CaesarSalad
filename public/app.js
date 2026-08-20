@@ -463,6 +463,7 @@ document.getElementById("unlock-save").addEventListener("click", async () => {
       showToast("Wachtwoord onjuist");
       return;
     }
+    if (res.status !== 404) { showToast(`Kon niet verifiëren (fout ${res.status}) — controleer of ADMIN_PASSWORD is ingesteld op de server`); return; }
     setAdminToken(password);
     applyLockState();
     closeUnlockModal();
