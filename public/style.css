@@ -316,11 +316,50 @@ body.is-unlocked td.row-actions.admin-only { display: flex; }
 }
 .row-actions button:hover { color: var(--purple-700); }
 
+/* Houdt de identificerende eerste kolom(men) in beeld bij horizontaal scrollen. */
+.stats-table th:first-child,
+.stats-table td:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: var(--card);
+  box-shadow: 4px 0 6px -4px rgba(42,33,24,0.18);
+}
+.stats-table thead th:first-child {
+  background: var(--marble-dim);
+  z-index: 2;
+}
+
+.standings-table th:first-child,
+.standings-table td:first-child,
+.standings-table th:nth-child(2),
+.standings-table td:nth-child(2) {
+  position: sticky;
+  z-index: 1;
+  background: var(--card);
+}
+.standings-table th:first-child,
+.standings-table td:first-child { left: 0; }
+.standings-table th:nth-child(2),
+.standings-table td:nth-child(2) {
+  left: 44px;
+  box-shadow: 4px 0 6px -4px rgba(42,33,24,0.18);
+}
+.standings-table thead th:first-child,
+.standings-table thead th:nth-child(2) {
+  background: var(--marble-dim);
+  z-index: 2;
+}
+
 /* ---------- Standings ---------- */
 
 .standings-table tr.is-own-team td {
   background: rgba(184,134,59,0.12);
   font-weight: 700;
+}
+.standings-table tr.is-own-team td:first-child,
+.standings-table tr.is-own-team td:nth-child(2) {
+  background: #F3EADA;
 }
 .standings-table td.pos {
   color: var(--ink-soft);
