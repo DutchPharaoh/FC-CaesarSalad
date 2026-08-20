@@ -1,0 +1,543 @@
+:root {
+  /* Keizerlijk purper, verweerd marmer, gedempt laurier-goud, terracotta —
+     ingetogen Romeinse paletkeuze i.p.v. felle "sport-app" kleuren. */
+  --purple-900: #2E1F35;
+  --purple-700: #4B2E56;
+  --purple-500: #6B4C74;
+  --marble: #F4EEE1;
+  --marble-dim: #EAE1CC;
+  --ink: #2A2118;
+  --ink-soft: #6B5F4E;
+  --gold: #B8863B;
+  --gold-deep: #8F6526;
+  --terracotta: #9C4A32;
+  --stone: #AFA48F;
+  --line: #DDD2B8;
+  --card: #FBF8F0;
+  --radius: 6px;
+  --shadow: 0 1px 2px rgba(42,33,24,0.07), 0 8px 24px -12px rgba(42,33,24,0.22);
+  font-size: 16px;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--marble);
+  color: var(--ink);
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3 {
+  font-family: "Cinzel", "Inter", serif;
+  margin: 0;
+  letter-spacing: 0.01em;
+}
+
+button, input, select {
+  font-family: inherit;
+}
+
+/* ---------- Topbar ---------- */
+
+.topbar {
+  background: var(--purple-900);
+  border-bottom: 3px solid var(--gold);
+  box-shadow: 0 4px 0 -1px rgba(42,33,24,0.15);
+}
+.topbar__inner {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.brand__logo {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+  border: 2px solid var(--gold);
+}
+.brand__name {
+  font-family: "Cinzel", serif;
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: var(--marble);
+  letter-spacing: 0.02em;
+}
+.tabs {
+  display: flex;
+  gap: 4px;
+}
+.tab {
+  background: transparent;
+  border: none;
+  color: rgba(244,238,225,0.65);
+  font-weight: 600;
+  font-size: 0.92rem;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.tab:hover { color: var(--marble); }
+.tab.is-active {
+  background: var(--gold);
+  color: var(--purple-900);
+}
+
+.lock-btn {
+  background: rgba(244,238,225,0.08);
+  border: 1px solid rgba(244,238,225,0.18);
+  color: var(--marble);
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  font-size: 0.95rem;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.lock-btn:hover { background: rgba(244,238,225,0.16); }
+
+.admin-only { display: none; }
+body.is-unlocked .admin-only { display: revert; }
+body.is-unlocked td.row-actions.admin-only { display: flex; }
+
+.modal__hint {
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  margin: 0 0 14px;
+  line-height: 1.4;
+}
+
+/* ---------- Layout ---------- */
+
+.app {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 32px 20px 80px;
+}
+.view { display: none; }
+.view.is-active { display: block; animation: fade-in 0.2s ease; }
+@keyframes fade-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+.view__header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+.view__header h1 { font-size: 1.5rem; font-weight: 600; }
+.view__sub { margin: 4px 0 0; color: var(--ink-soft); font-size: 0.92rem; }
+
+.section-title {
+  font-family: "Cinzel", serif;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  margin: 32px 0 12px;
+}
+.section-title--tight { margin: 20px 0 10px; }
+
+/* ---------- Buttons ---------- */
+
+.btn {
+  border: none;
+  border-radius: 8px;
+  padding: 10px 18px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: transform 0.1s, filter 0.1s;
+}
+.btn:active { transform: scale(0.97); }
+.btn--primary { background: var(--purple-700); color: var(--marble); }
+.btn--primary:hover { filter: brightness(1.12); }
+.btn--ghost { background: transparent; color: var(--ink-soft); border: 1px solid var(--line); }
+.btn--ghost:hover { background: var(--marble-dim); }
+.btn--danger { background: transparent; color: var(--terracotta); border: 1px solid rgba(156,74,50,0.35); }
+.btn--danger:hover { background: rgba(156,74,50,0.08); }
+.icon-btn {
+  background: transparent;
+  border: none;
+  font-size: 1.1rem;
+  color: var(--ink-soft);
+  cursor: pointer;
+  line-height: 1;
+  padding: 4px;
+}
+
+/* ---------- Match tickets ---------- */
+
+.match-group { margin-bottom: 28px; }
+.match-group__title {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ink-soft);
+  margin-bottom: 10px;
+}
+.ticket-list { display: flex; flex-direction: column; gap: 10px; }
+
+.ticket {
+  display: grid;
+  grid-template-columns: 6px 1fr auto;
+  align-items: stretch;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  overflow: hidden;
+  transition: transform 0.12s;
+}
+.ticket:hover { transform: translateY(-1px); }
+.ticket__bar { background: var(--gold); }
+.ticket.is-win .ticket__bar { background: var(--gold); }
+.ticket.is-draw .ticket__bar { background: var(--stone); }
+.ticket.is-loss .ticket__bar { background: var(--terracotta); }
+.ticket.is-cancelled .ticket__bar { background: var(--ink-soft); }
+
+.ticket__main {
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.ticket__date {
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.ticket__opponent {
+  font-family: "Cinzel", serif;
+  font-weight: 600;
+  font-size: 1rem;
+  letter-spacing: 0.01em;
+}
+.ticket__meta {
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+}
+
+.ticket__score {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 20px;
+  border-left: 1px dashed var(--line);
+  font-family: "Cinzel", serif;
+  font-weight: 700;
+  font-size: 1.3rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--purple-900);
+  min-width: 76px;
+}
+.ticket__score--pending {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.empty-state {
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+  padding: 18px 0;
+}
+
+/* ---------- Player table ---------- */
+
+.player-table-wrap {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+.player-table { width: 100%; border-collapse: collapse; }
+.player-table th {
+  text-align: left;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-soft);
+  padding: 10px 14px;
+  background: var(--marble-dim);
+  border-bottom: 1px solid var(--line);
+}
+.player-table td {
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--marble-dim);
+  font-size: 0.92rem;
+}
+.player-table tr:last-child td { border-bottom: none; }
+.player-table .num, .player-table th.num { text-align: center; }
+.col-num { width: 44px; }
+.col-actions { width: 70px; }
+.jersey-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  background: var(--purple-700);
+  color: var(--marble);
+  font-weight: 700;
+  font-size: 0.76rem;
+  font-family: "Cinzel", serif;
+}
+.row-actions { display: flex; gap: 6px; justify-content: flex-end; }
+.row-actions button {
+  background: none; border: none; cursor: pointer;
+  color: var(--ink-soft); font-size: 0.95rem;
+  padding: 2px 4px;
+}
+.row-actions button:hover { color: var(--purple-700); }
+
+/* ---------- Standings ---------- */
+
+.standings-table tr.is-own-team td {
+  background: rgba(184,134,59,0.12);
+  font-weight: 700;
+}
+.standings-table td.pos {
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+}
+.standings-table .num { font-variant-numeric: tabular-nums; }
+.standings-table td:nth-child(9) {
+  font-weight: 700;
+  color: var(--purple-700);
+}
+
+.team-chip-list {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  margin-bottom: 12px;
+}
+.team-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 6px 6px 6px 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+.team-chip.is-own {
+  border-color: var(--gold-deep);
+  background: rgba(184,134,59,0.12);
+}
+.team-chip button {
+  background: none; border: none; cursor: pointer;
+  color: var(--ink-soft); font-size: 0.9rem;
+  border-radius: 50%;
+  width: 20px; height: 20px;
+  display: flex; align-items: center; justify-content: center;
+}
+.team-chip button:hover { background: var(--marble-dim); color: var(--terracotta); }
+
+.quick-add-form {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+}
+.quick-add-form input[type="text"] {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 9px 10px;
+  font-size: 0.92rem;
+  flex: 1;
+  min-width: 160px;
+}
+.checkbox-field {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 0.85rem; font-weight: 600; color: var(--ink-soft);
+}
+
+.results-list { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+.result-row {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 0.9rem;
+}
+.result-row.is-clickable { cursor: pointer; }
+.result-row.is-clickable:hover { background: var(--marble-dim); }
+.result-row[data-synced="true"] {
+  border-style: dashed;
+  background: rgba(107,76,116,0.06);
+}
+body.is-unlocked .row-actions.admin-only { display: flex; }
+.result-row__date {
+  color: var(--ink-soft);
+  font-size: 0.78rem;
+  min-width: 76px;
+}
+.result-row__score {
+  font-family: "Cinzel", serif;
+  font-weight: 600;
+}
+
+/* ---------- Scoreboard (team record) ---------- */
+.scoreboard {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+  background: var(--purple-900);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+.scoreboard__stat {
+  padding: 16px 10px;
+  text-align: center;
+  border-right: 1px solid rgba(244,238,225,0.1);
+}
+.scoreboard__stat:last-child { border-right: none; }
+.scoreboard__value {
+  font-family: "Cinzel", serif;
+  font-weight: 700;
+  font-size: 1.5rem;
+  color: var(--gold);
+  font-variant-numeric: tabular-nums;
+}
+.scoreboard__label {
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(244,238,225,0.65);
+  margin-top: 2px;
+}
+
+/* ---------- Modal ---------- */
+
+.modal-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(42,33,24,0.5);
+  display: flex; align-items: flex-end;
+  justify-content: center;
+  z-index: 50;
+  padding: 0;
+}
+
+/* Zorgt dat het HTML `hidden`-attribuut altijd wint van andere display-regels
+   (voorkomt dat elementen per ongeluk toch zichtbaar blijven/worden). */
+[hidden] {
+  display: none !important;
+}
+@media (min-width: 640px) {
+  .modal-backdrop { align-items: center; padding: 20px; }
+}
+.modal {
+  background: var(--card);
+  width: 100%;
+  max-width: 560px;
+  max-height: 92vh;
+  border-radius: 14px 14px 0 0;
+  display: flex; flex-direction: column;
+  overflow: hidden;
+  border-top: 3px solid var(--gold);
+}
+@media (min-width: 640px) {
+  .modal { border-radius: 10px; border-top: 3px solid var(--gold); }
+}
+.modal--small { max-width: 420px; }
+.modal__header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--line);
+}
+.modal__header h2 { font-size: 1.15rem; }
+.modal__body {
+  padding: 18px 20px;
+  overflow-y: auto;
+}
+.modal__footer {
+  padding: 14px 20px;
+  border-top: 1px solid var(--line);
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 10px;
+}
+.modal__footer-right { display: flex; gap: 8px; }
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+.field { display: flex; flex-direction: column; gap: 5px; font-size: 0.82rem; font-weight: 600; color: var(--ink-soft); }
+.field input, .field select {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 9px 10px;
+  font-size: 0.92rem;
+  color: var(--ink);
+  background: var(--marble);
+}
+.field input:focus, .field select:focus {
+  outline: 2px solid var(--purple-500);
+  outline-offset: 1px;
+}
+.field input:disabled, .field select:disabled,
+.stats-input-table input:disabled {
+  background: var(--marble-dim);
+  color: var(--ink-soft);
+  cursor: default;
+}
+.score-field { grid-column: span 1; }
+
+.stats-input-table input {
+  width: 56px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 5px 6px;
+  text-align: center;
+  font-size: 0.88rem;
+}
+
+/* ---------- Toast ---------- */
+
+.toast {
+  position: fixed;
+  bottom: 20px; left: 50%;
+  transform: translateX(-50%);
+  background: var(--purple-900);
+  color: var(--marble);
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  box-shadow: var(--shadow);
+  z-index: 100;
+  border-bottom: 2px solid var(--gold);
+}
+
+@media (max-width: 560px) {
+  .form-grid { grid-template-columns: 1fr; }
+  .ticket__opponent { font-size: 0.92rem; }
+}
+
+:focus-visible { outline: 2px solid var(--purple-500); outline-offset: 2px; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}

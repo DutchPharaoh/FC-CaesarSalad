@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FC Caesar Salad — Programma, spelers &amp; statistieken</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar__inner">
+    <div class="brand">
+      <img src="logo.jpeg" alt="FC Caesar Salad logo" class="brand__logo">
+      <span class="brand__name">FC Caesar Salad</span>
+    </div>
+    <nav class="tabs" role="tablist" aria-label="Hoofdnavigatie">
+      <button class="tab is-active" data-tab="wedstrijden" role="tab" aria-selected="true">Programma &amp; uitslagen</button>
+      <button class="tab" data-tab="statistieken" role="tab" aria-selected="false">Selectie &amp; statistieken</button>
+      <button class="tab" data-tab="stand" role="tab" aria-selected="false">Stand</button>
+    </nav>
+    <button class="lock-btn" id="btn-lock" title="Bewerken ontgrendelen">
+      <span id="lock-icon">🔒</span>
+    </button>
+  </div>
+</header>
+
+<main class="app">
+
+  <!-- WEDSTRIJDEN -->
+  <section class="view is-active" id="view-wedstrijden">
+    <div class="view__header">
+      <div>
+        <h1>Programma &amp; uitslagen</h1>
+        <p class="view__sub">Schema en uitslagen van FC Caesar Salad.</p>
+      </div>
+      <button class="btn btn--primary admin-only" id="btn-new-match">+ Wedstrijd</button>
+    </div>
+
+    <div class="match-group">
+      <h2 class="match-group__title">Aankomend</h2>
+      <div class="ticket-list" id="list-upcoming"></div>
+      <p class="empty-state" id="empty-upcoming" hidden>Nog geen wedstrijden gepland.</p>
+    </div>
+
+    <div class="match-group">
+      <h2 class="match-group__title">Gespeeld</h2>
+      <div class="ticket-list" id="list-played"></div>
+      <p class="empty-state" id="empty-played" hidden>Nog geen uitslagen ingevoerd.</p>
+    </div>
+  </section>
+
+  <!-- SELECTIE & STATISTIEKEN -->
+  <section class="view" id="view-statistieken">
+    <div class="view__header">
+      <div>
+        <h1>Selectie &amp; statistieken</h1>
+        <p class="view__sub">Spelers, teamvorm en statistieken van het seizoen.</p>
+      </div>
+      <button class="btn btn--primary admin-only" id="btn-new-player">+ Speler</button>
+    </div>
+
+    <div class="scoreboard" id="team-record"></div>
+
+    <h2 class="section-title">Selectie &amp; statistieken</h2>
+    <div class="player-table-wrap">
+      <table class="player-table stats-table">
+        <thead>
+          <tr>
+            <th>Speler</th>
+            <th class="num">GS</th>
+            <th class="num">Doelp.</th>
+            <th class="num">Assists</th>
+            <th class="num">🟨</th>
+            <th class="num">🟥</th>
+            <th class="num">⭐ MVP</th>
+            <th class="col-actions admin-only"></th>
+          </tr>
+        </thead>
+        <tbody id="leaderboard-rows"></tbody>
+      </table>
+      <p class="empty-state" id="empty-stats" hidden>Nog geen spelers toegevoegd.</p>
+    </div>
+  </section>
+
+  <!-- STAND -->
+  <section class="view" id="view-stand">
+    <div class="view__header">
+      <div>
+        <h1>Stand</h1>
+        <p class="view__sub">Competitietabel van jullie poule.</p>
+      </div>
+    </div>
+
+    <div class="player-table-wrap">
+      <table class="player-table standings-table">
+        <thead>
+          <tr>
+            <th class="col-num">#</th>
+            <th>Team</th>
+            <th class="num">GS</th>
+            <th class="num">W</th>
+            <th class="num">G</th>
+            <th class="num">V</th>
+            <th class="num">DV</th>
+            <th class="num">DT</th>
+            <th class="num">DS</th>
+            <th class="num">Pt</th>
+          </tr>
+        </thead>
+        <tbody id="standings-rows"></tbody>
+      </table>
+      <p class="empty-state" id="empty-standings" hidden>Nog geen teams of uitslagen ingevoerd.</p>
+    </div>
+
+    <div class="admin-only">
+      <h2 class="section-title">Teams beheren</h2>
+      <div class="team-chip-list" id="team-chip-list"></div>
+      <form id="team-quick-add" class="quick-add-form">
+        <input type="text" id="new-team-name" placeholder="Naam van team">
+        <label class="checkbox-field">
+          <input type="checkbox" id="new-team-own"> Ons team
+        </label>
+        <button type="submit" class="btn btn--ghost">+ Team</button>
+      </form>
+    </div>
+
+    <div class="view__header" style="margin-top: 28px;">
+      <h2 class="section-title" style="margin: 0;">Uitslagen</h2>
+      <button class="btn btn--primary admin-only" id="btn-new-result">+ Uitslag</button>
+    </div>
+    <div class="results-list" id="results-list"></div>
+    <p class="empty-state" id="empty-results" hidden>Nog geen uitslagen ingevoerd.</p>
+  </section>
+</main>
+
+<!-- MODAL: wedstrijd toevoegen/bewerken -->
+<div class="modal-backdrop" id="match-modal" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="match-modal-title">
+    <div class="modal__header">
+      <h2 id="match-modal-title">Wedstrijd</h2>
+      <button class="icon-btn" id="match-modal-close" aria-label="Sluiten">✕</button>
+    </div>
+    <div class="modal__body">
+      <form id="match-form" class="form-grid">
+        <input type="hidden" id="match-id">
+        <label class="field">
+          <span>Datum &amp; tijd</span>
+          <input type="datetime-local" id="match-date" required>
+        </label>
+        <label class="field">
+          <span>Tegenstander</span>
+          <input type="text" id="match-opponent" required placeholder="Bijv. FC Almere" list="opponent-list" autocomplete="off">
+          <datalist id="opponent-list"></datalist>
+        </label>
+        <label class="field">
+          <span>Status</span>
+          <select id="match-status">
+            <option value="gepland">Gepland</option>
+            <option value="gespeeld">Gespeeld</option>
+            <option value="afgelast">Afgelast</option>
+          </select>
+        </label>
+        <label class="field score-field" id="field-goals-for">
+          <span>Doelpunten voor</span>
+          <input type="number" min="0" id="match-goals-for">
+        </label>
+        <label class="field score-field" id="field-goals-against">
+          <span>Doelpunten tegen</span>
+          <input type="number" min="0" id="match-goals-against">
+        </label>
+        <label class="field" id="field-mvp" style="grid-column: 1 / -1;">
+          <span>⭐ MVP van de wedstrijd</span>
+          <select id="match-mvp">
+            <option value="">— Geen MVP gekozen —</option>
+          </select>
+        </label>
+        <label class="field" id="field-own-goals" style="grid-column: 1 / -1;">
+          <span>Eigen doelpunten tegenstander (tellen mee voor ons)</span>
+          <input type="number" min="0" id="match-own-goals" value="0">
+        </label>
+      </form>
+
+      <div id="match-stats-block" hidden>
+        <h3 class="section-title section-title--tight">Statistieken per speler</h3>
+        <div class="player-table-wrap">
+          <table class="player-table stats-input-table">
+            <thead>
+              <tr>
+                <th>Speler</th>
+                <th class="num">Aanwezig</th>
+                <th class="num">Doelp.</th>
+                <th class="num">Assists</th>
+                <th class="num">🟨</th>
+                <th class="num">🟥</th>
+              </tr>
+            </thead>
+            <tbody id="match-stats-rows"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="modal__footer">
+      <button class="btn btn--danger" id="match-delete" hidden>Verwijderen</button>
+      <div class="modal__footer-right">
+        <button class="btn btn--ghost" id="match-cancel">Annuleren</button>
+        <button class="btn btn--primary" id="match-save">Opslaan</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: speler toevoegen/bewerken -->
+<div class="modal-backdrop" id="player-modal" hidden>
+  <div class="modal modal--small" role="dialog" aria-modal="true" aria-labelledby="player-modal-title">
+    <div class="modal__header">
+      <h2 id="player-modal-title">Speler</h2>
+      <button class="icon-btn" id="player-modal-close" aria-label="Sluiten">✕</button>
+    </div>
+    <div class="modal__body">
+      <form id="player-form" class="form-grid">
+        <input type="hidden" id="player-id">
+        <label class="field" style="grid-column: 1 / -1;">
+          <span>Naam</span>
+          <input type="text" id="player-name" required placeholder="Voor- en achternaam">
+        </label>
+      </form>
+    </div>
+    <div class="modal__footer">
+      <button class="btn btn--danger" id="player-delete" hidden>Verwijderen</button>
+      <div class="modal__footer-right">
+        <button class="btn btn--ghost" id="player-cancel">Annuleren</button>
+        <button class="btn btn--primary" id="player-save">Opslaan</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: ontgrendelen -->
+<div class="modal-backdrop" id="unlock-modal" hidden>
+  <div class="modal modal--small" role="dialog" aria-modal="true" aria-labelledby="unlock-modal-title">
+    <div class="modal__header">
+      <h2 id="unlock-modal-title">Bewerken ontgrendelen</h2>
+      <button class="icon-btn" id="unlock-modal-close" aria-label="Sluiten">✕</button>
+    </div>
+    <div class="modal__body">
+      <p class="modal__hint" id="unlock-hint">Vul het wachtwoord in om spelers, wedstrijden en statistieken te kunnen bewerken. Anderen kunnen de app blijven bekijken zonder wachtwoord.</p>
+      <form id="unlock-form" class="form-grid">
+        <label class="field" id="field-unlock-password" style="grid-column: 1 / -1;">
+          <span>Wachtwoord</span>
+          <input type="password" id="unlock-password" autocomplete="current-password">
+        </label>
+      </form>
+    </div>
+    <div class="modal__footer">
+      <button class="btn btn--ghost" id="unlock-lock-again" hidden>Vergrendelen</button>
+      <div class="modal__footer-right" id="unlock-actions">
+        <button class="btn btn--ghost" id="unlock-cancel">Annuleren</button>
+        <button class="btn btn--primary" id="unlock-save">Ontgrendelen</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: uitslag toevoegen/bewerken -->
+<div class="modal-backdrop" id="result-modal" hidden>
+  <div class="modal modal--small" role="dialog" aria-modal="true" aria-labelledby="result-modal-title">
+    <div class="modal__header">
+      <h2 id="result-modal-title">Uitslag</h2>
+      <button class="icon-btn" id="result-modal-close" aria-label="Sluiten">✕</button>
+    </div>
+    <div class="modal__body">
+      <form id="result-form" class="form-grid">
+        <input type="hidden" id="result-id">
+        <label class="field" style="grid-column: 1 / -1;">
+          <span>Datum (optioneel)</span>
+          <input type="date" id="result-date">
+        </label>
+        <label class="field">
+          <span>Thuisteam</span>
+          <select id="result-home-team"></select>
+        </label>
+        <label class="field">
+          <span>Doelpunten thuis</span>
+          <input type="number" min="0" id="result-home-goals">
+        </label>
+        <label class="field">
+          <span>Uitteam</span>
+          <select id="result-away-team"></select>
+        </label>
+        <label class="field">
+          <span>Doelpunten uit</span>
+          <input type="number" min="0" id="result-away-goals">
+        </label>
+      </form>
+    </div>
+    <div class="modal__footer">
+      <button class="btn btn--danger" id="result-delete" hidden>Verwijderen</button>
+      <div class="modal__footer-right">
+        <button class="btn btn--ghost" id="result-cancel">Annuleren</button>
+        <button class="btn btn--primary" id="result-save">Opslaan</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" hidden></div>
+
+<script src="app.js"></script>
+</body>
+</html>

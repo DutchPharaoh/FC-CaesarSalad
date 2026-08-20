@@ -1,0 +1,84 @@
+import { requireAdmin, json } from "./_shared.js";
+
+export async function onRequestGet({ request, env }) {
+  const url = new URL(request.url);
+  const matchId = url.searchParams.get("match_id");
+  const summary = url.searchParams.get("summary");
+
+  if (summary === "true") {
+    const leaderboard = await env.DB.prepare(
+      `SELECT
+         p.id, p.name,
+         COALESCE(SUM(s.goals), 0) AS goals,
+         COALESCE(SUM(s.assists), 0) AS assists,
+         COALESCE(SUM(s.yellow_cards), 0) AS yellow_cards,
+         COALESCE(SUM(s.red_cards), 0) AS red_cards,
+         COUNT(s.match_id) AS matches_played,
+         (SELECT COUNT(*) FROM matches m WHERE m.mvp_player_id = p.id) AS mvp_count
+       FROM players p
+       LEFT JOIN player_stats s ON s.player_id = p.id
+       GROUP BY p.id
+       ORDER BY mvp_count DESC, goals DESC, assists DESC, p.name ASC`
+    ).all();
+
+    const record = await env.DB.prepare(
+      `SELECT
+         COUNT(*) FILTER (WHERE status = 'gespeeld') AS played,
+         COUNT(*) FILTER (WHERE status = 'gespeeld' AND goals_for > goals_against) AS wins,
+         COUNT(*) FILTER (WHERE status = 'gespeeld' AND goals_for = goals_against) AS draws,
+         COUNT(*) FILTER (WHERE status = 'gespeeld' AND goals_for < goals_against) AS losses,
+         COALESCE(SUM(goals_for) FILTER (WHERE status = 'gespeeld'), 0) AS goals_for,
+         COALESCE(SUM(goals_against) FILTER (WHERE status = 'gespeeld'), 0) AS goals_against
+       FROM matches`
+    ).first();
+
+    return json(200, { leaderboard: leaderboard.results, record });
+  }
+
+  if (matchId) {
+    const { results } = await env.DB.prepare(
+      `SELECT s.*, p.name
+       FROM player_stats s
+       JOIN players p ON p.id = s.player_id
+       WHERE s.match_id = ?
+       ORDER BY p.name ASC`
+    ).bind(matchId).all();
+    return json(200, results);
+  }
+
+  return json(400, { error: "match_id of summary=true is verplicht" });
+}
+
+export async function onRequestPost({ request, env }) {
+  const auth = requireAdmin(request, env);
+  if (!auth.ok) return json(auth.status, { error: auth.error });
+
+  const body = await request.json();
+  const { match_id, player_id, goals, assists, yellow_cards, red_cards } = body;
+  if (!match_id || !player_id) return json(400, { error: "match_id en player_id zijn verplicht" });
+
+  const row = await env.DB.prepare(
+    `INSERT INTO player_stats (match_id, player_id, goals, assists, yellow_cards, red_cards)
+     VALUES (?, ?, ?, ?, ?, ?)
+     ON CONFLICT (match_id, player_id) DO UPDATE SET
+       goals = excluded.goals,
+       assists = excluded.assists,
+       yellow_cards = excluded.yellow_cards,
+       red_cards = excluded.red_cards
+     RETURNING *`
+  ).bind(match_id, player_id, goals || 0, assists || 0, yellow_cards || 0, red_cards || 0).first();
+
+  return json(200, row);
+}
+
+export async function onRequestDelete({ request, env }) {
+  const auth = requireAdmin(request, env);
+  if (!auth.ok) return json(auth.status, { error: auth.error });
+
+  const url = new URL(request.url);
+  const id = url.searchParams.get("id");
+  if (!id) return json(400, { error: "id ontbreekt" });
+
+  await env.DB.prepare("DELETE FROM player_stats WHERE id = ?").bind(id).run();
+  return json(200, { deleted: true });
+}
