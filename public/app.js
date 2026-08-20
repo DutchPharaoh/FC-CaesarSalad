@@ -709,7 +709,18 @@ function renderStandings(table) {
       <td class="num">${t.points}</td>
     </tr>
   `).join("");
+
+  syncStandingsStickyOffset();
 }
+
+function syncStandingsStickyOffset() {
+  const standingsTable = document.querySelector(".standings-table");
+  const firstHeaderCell = standingsTable?.querySelector("thead th:first-child");
+  if (!standingsTable || !firstHeaderCell) return;
+  standingsTable.style.setProperty("--pos-col-width", `${firstHeaderCell.getBoundingClientRect().width}px`);
+}
+
+window.addEventListener("resize", syncStandingsStickyOffset);
 
 /* ---------- Init ---------- */
 
