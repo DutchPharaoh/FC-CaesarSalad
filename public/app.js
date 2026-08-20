@@ -244,6 +244,7 @@ async function openMatchModal(match = null) {
   document.getElementById("match-status").onchange = toggleStatsBlock;
   document.getElementById("match-mvp").value = match?.mvp_player_id || "";
   document.getElementById("match-own-goals").value = match?.opponent_own_goals ?? 0;
+  document.getElementById("match-unknown-goals").value = match?.unknown_goals ?? 0;
 
   if (match) {
     currentMatchStats = await api(`/stats?match_id=${match.id}`);
@@ -319,6 +320,7 @@ document.getElementById("match-save").addEventListener("click", async () => {
     goals_against: isPlayed && document.getElementById("match-goals-against").value !== "" ? Number(document.getElementById("match-goals-against").value) : null,
     mvp_player_id: isPlayed && document.getElementById("match-mvp").value ? Number(document.getElementById("match-mvp").value) : null,
     opponent_own_goals: isPlayed ? Number(document.getElementById("match-own-goals").value || 0) : 0,
+    unknown_goals: isPlayed ? Number(document.getElementById("match-unknown-goals").value || 0) : 0,
   };
 
   if (isPlayed && payload.goals_for != null) {
@@ -326,9 +328,9 @@ document.getElementById("match-save").addEventListener("click", async () => {
     document.querySelectorAll("#match-stats-rows tr").forEach((row) => {
       playerGoals += Number(row.querySelector(".s-goals").value || 0);
     });
-    const sumGoals = playerGoals + payload.opponent_own_goals;
+    const sumGoals = playerGoals + payload.opponent_own_goals + payload.unknown_goals;
     if (sumGoals !== payload.goals_for) {
-      showToast(`Doelpunten spelers + eigen doelpunten tegenstander (${sumGoals}) komt niet overeen met doelpunten voor (${payload.goals_for})`);
+      showToast(`Doelpunten spelers + eigen doelpunten tegenstander + onbekend (${sumGoals}) komt niet overeen met doelpunten voor (${payload.goals_for})`);
       return;
     }
   }

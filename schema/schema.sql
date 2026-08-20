@@ -34,6 +34,7 @@ CREATE TABLE matches (
   goals_for INTEGER,
   goals_against INTEGER,
   opponent_own_goals INTEGER NOT NULL DEFAULT 0,
+  unknown_goals INTEGER NOT NULL DEFAULT 0,
   mvp_player_id INTEGER REFERENCES players(id) ON DELETE SET NULL,
   league_result_id INTEGER REFERENCES league_results(id) ON DELETE SET NULL,
   created_at TEXT NOT NULL DEFAULT (datetime('now'))

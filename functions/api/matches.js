@@ -79,17 +79,17 @@ export async function onRequestPost({ request, env }) {
   if (!auth.ok) return json(auth.status, { error: auth.error });
 
   const body = await request.json();
-  const { match_date, opponent, status, goals_for, goals_against, mvp_player_id, opponent_own_goals } = body;
+  const { match_date, opponent, status, goals_for, goals_against, mvp_player_id, opponent_own_goals, unknown_goals } = body;
   if (!match_date || !opponent || !opponent.trim()) {
     return json(400, { error: "Datum en tegenstander zijn verplicht" });
   }
 
   const match = await env.DB.prepare(
-    `INSERT INTO matches (match_date, opponent, status, goals_for, goals_against, mvp_player_id, opponent_own_goals)
-     VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING *`
+    `INSERT INTO matches (match_date, opponent, status, goals_for, goals_against, mvp_player_id, opponent_own_goals, unknown_goals)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING *`
   ).bind(
     match_date, opponent.trim(), status || "gepland",
-    goals_for ?? null, goals_against ?? null, mvp_player_id ?? null, opponent_own_goals ?? 0
+    goals_for ?? null, goals_against ?? null, mvp_player_id ?? null, opponent_own_goals ?? 0, unknown_goals ?? 0
   ).first();
 
   await syncLeagueResult(env, match);
@@ -106,7 +106,7 @@ export async function onRequestPut({ request, env }) {
   if (!id) return json(400, { error: "id ontbreekt" });
 
   const body = await request.json();
-  const { match_date, opponent, status, goals_for, goals_against, mvp_player_id, opponent_own_goals } = body;
+  const { match_date, opponent, status, goals_for, goals_against, mvp_player_id, opponent_own_goals, unknown_goals } = body;
 
   const match = await env.DB.prepare(
     `UPDATE matches
@@ -116,12 +116,13 @@ export async function onRequestPut({ request, env }) {
          goals_for = ?,
          goals_against = ?,
          mvp_player_id = ?,
-         opponent_own_goals = ?
+         opponent_own_goals = ?,
+         unknown_goals = ?
      WHERE id = ?
      RETURNING *`
   ).bind(
     match_date ?? null, opponent ?? null, status ?? null,
-    goals_for ?? null, goals_against ?? null, mvp_player_id ?? null, opponent_own_goals ?? 0,
+    goals_for ?? null, goals_against ?? null, mvp_player_id ?? null, opponent_own_goals ?? 0, unknown_goals ?? 0,
     id
   ).first();
 
