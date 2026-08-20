@@ -90,12 +90,30 @@ function escapeHtml(str) {
 /* ---------- Player modal ---------- */
 
 const playerModal = document.getElementById("player-modal");
+const playerNameRows = document.getElementById("player-name-rows");
+const playerAddRowBtn = document.getElementById("player-add-row");
+
+function addPlayerNameRow(value = "") {
+  const row = document.createElement("div");
+  row.className = "player-name-row";
+  row.style.cssText = "display: flex; gap: 8px; align-items: center;";
+  row.innerHTML = `
+    <input type="text" class="player-name-input" required placeholder="Voor- en achternaam" style="flex: 1;" value="${escapeHtml(value)}">
+    <button type="button" class="icon-btn player-name-remove" aria-label="Rij verwijderen">✕</button>
+  `;
+  row.querySelector(".player-name-remove").addEventListener("click", () => {
+    if (playerNameRows.children.length > 1) row.remove();
+  });
+  playerNameRows.appendChild(row);
+}
 
 function openPlayerModal(player = null) {
-  document.getElementById("player-modal-title").textContent = player ? "Speler bewerken" : "Speler toevoegen";
+  document.getElementById("player-modal-title").textContent = player ? "Speler bewerken" : "Speler(s) toevoegen";
   document.getElementById("player-id").value = player?.id || "";
-  document.getElementById("player-name").value = player?.name || "";
+  playerNameRows.innerHTML = "";
+  addPlayerNameRow(player?.name || "");
   document.getElementById("player-delete").hidden = !player;
+  playerAddRowBtn.hidden = !!player;
   playerModal.hidden = false;
 }
 function closePlayerModal() { playerModal.hidden = true; }
@@ -103,18 +121,25 @@ function closePlayerModal() { playerModal.hidden = true; }
 document.getElementById("btn-new-player").addEventListener("click", () => openPlayerModal());
 document.getElementById("player-modal-close").addEventListener("click", closePlayerModal);
 document.getElementById("player-cancel").addEventListener("click", closePlayerModal);
+playerAddRowBtn.addEventListener("click", () => addPlayerNameRow());
 
 document.getElementById("player-save").addEventListener("click", async () => {
   const id = document.getElementById("player-id").value;
-  const name = document.getElementById("player-name").value.trim();
-  if (!name) { showToast("Vul een naam in"); return; }
-  const payload = { name };
+  const names = [...playerNameRows.querySelectorAll(".player-name-input")]
+    .map((input) => input.value.trim())
+    .filter((name) => name.length > 0);
+  if (names.length === 0) { showToast("Vul minstens één naam in"); return; }
   try {
-    if (id) await api(`/players?id=${id}`, { method: "PUT", body: JSON.stringify(payload) });
-    else await api("/players", { method: "POST", body: JSON.stringify(payload) });
+    if (id) {
+      await api(`/players?id=${id}`, { method: "PUT", body: JSON.stringify({ name: names[0] }) });
+    } else {
+      for (const name of names) {
+        await api("/players", { method: "POST", body: JSON.stringify({ name }) });
+      }
+    }
     closePlayerModal();
     await Promise.all([loadPlayers(), loadStats()]);
-    showToast("Speler opgeslagen");
+    showToast(names.length > 1 ? `${names.length} spelers opgeslagen` : "Speler opgeslagen");
   } catch (e) { showToast(e.message); }
 });
 

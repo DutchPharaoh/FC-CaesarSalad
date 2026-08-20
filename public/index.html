@@ -223,11 +223,9 @@
     <div class="modal__body">
       <form id="player-form" class="form-grid">
         <input type="hidden" id="player-id">
-        <label class="field" style="grid-column: 1 / -1;">
-          <span>Naam</span>
-          <input type="text" id="player-name" required placeholder="Voor- en achternaam">
-        </label>
+        <div id="player-name-rows" style="grid-column: 1 / -1; display: flex; flex-direction: column; gap: 8px;"></div>
       </form>
+      <button type="button" class="btn btn--ghost" id="player-add-row" style="margin-top: 10px;">+ Nog een speler</button>
     </div>
     <div class="modal__footer">
       <button class="btn btn--danger" id="player-delete" hidden>Verwijderen</button>
