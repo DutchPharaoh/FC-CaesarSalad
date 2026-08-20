@@ -330,22 +330,14 @@ body.is-unlocked td.row-actions.admin-only { display: flex; }
   z-index: 2;
 }
 
-.standings-table th:first-child,
-.standings-table td:first-child,
 .standings-table th:nth-child(2),
 .standings-table td:nth-child(2) {
   position: sticky;
+  left: 0;
   z-index: 1;
   background: var(--card);
-}
-.standings-table th:first-child,
-.standings-table td:first-child { left: 0; }
-.standings-table th:nth-child(2),
-.standings-table td:nth-child(2) {
-  left: 44px;
   box-shadow: 4px 0 6px -4px rgba(42,33,24,0.18);
 }
-.standings-table thead th:first-child,
 .standings-table thead th:nth-child(2) {
   background: var(--marble-dim);
   z-index: 2;
@@ -357,7 +349,6 @@ body.is-unlocked td.row-actions.admin-only { display: flex; }
   background: rgba(184,134,59,0.12);
   font-weight: 700;
 }
-.standings-table tr.is-own-team td:first-child,
 .standings-table tr.is-own-team td:nth-child(2) {
   background: #F3EADA;
 }
