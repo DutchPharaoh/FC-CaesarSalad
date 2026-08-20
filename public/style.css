@@ -271,10 +271,12 @@ body.is-unlocked td.row-actions.admin-only { display: flex; }
   background: var(--card);
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
   box-shadow: var(--shadow);
 }
-.player-table { width: 100%; border-collapse: collapse; }
+.player-table { width: 100%; min-width: 480px; border-collapse: collapse; }
 .player-table th {
   text-align: left;
   font-size: 0.72rem;
