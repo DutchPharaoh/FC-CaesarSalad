@@ -5,4 +5,4 @@ pages_build_output_dir = "public"
 [[d1_databases]]
 binding = "DB"
 database_name = "fc-caesar-salad-db"
-database_id = "VERVANG_MET_JE_EIGEN_DATABASE_ID"
+database_id = "0832d6dc-c1f9-4ada-9609-099a19b29974"
