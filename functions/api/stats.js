@@ -18,7 +18,7 @@ export async function onRequestGet({ request, env }) {
        FROM players p
        LEFT JOIN player_stats s ON s.player_id = p.id
        GROUP BY p.id
-       ORDER BY mvp_count DESC, goals DESC, assists DESC, p.name ASC`
+       ORDER BY goals DESC, mvp_count DESC, p.name ASC`
     ).all();
 
     const record = await env.DB.prepare(

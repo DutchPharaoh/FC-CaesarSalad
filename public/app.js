@@ -174,7 +174,7 @@ function renderTicketList(listId, emptyId, list) {
       <div class="ticket__bar"></div>
       <div class="ticket__main">
         <span class="ticket__date">${fmtDate(m.match_date)}</span>
-        <span class="ticket__opponent">${escapeHtml(m.opponent)}</span>
+        <span class="ticket__opponent">vs. ${escapeHtml(m.opponent)}</span>
         ${mvp ? `<span class="ticket__meta">⭐ MVP: ${escapeHtml(mvp.name)}</span>` : ""}
       </div>
       <div class="ticket__score">${scoreHtml}</div>
@@ -265,7 +265,6 @@ function renderMatchStatsRows() {
       <td>${escapeHtml(p.name)}</td>
       <td class="num"><input type="checkbox" class="s-played" ${existing ? "checked" : ""}></td>
       <td class="num"><input type="number" min="0" class="s-goals" value="${existing?.goals ?? 0}"></td>
-      <td class="num"><input type="number" min="0" class="s-assists" value="${existing?.assists ?? 0}"></td>
       <td class="num"><input type="number" min="0" class="s-yellow" value="${existing?.yellow_cards ?? 0}"></td>
       <td class="num"><input type="number" min="0" class="s-red" value="${existing?.red_cards ?? 0}"></td>
     `;
@@ -299,18 +298,12 @@ document.getElementById("match-save").addEventListener("click", async () => {
 
   if (isPlayed && payload.goals_for != null) {
     let playerGoals = 0;
-    let sumAssists = 0;
     document.querySelectorAll("#match-stats-rows tr").forEach((row) => {
       playerGoals += Number(row.querySelector(".s-goals").value || 0);
-      sumAssists += Number(row.querySelector(".s-assists").value || 0);
     });
     const sumGoals = playerGoals + payload.opponent_own_goals;
     if (sumGoals !== payload.goals_for) {
       showToast(`Doelpunten spelers + eigen doelpunten tegenstander (${sumGoals}) komt niet overeen met doelpunten voor (${payload.goals_for})`);
-      return;
-    }
-    if (sumAssists > playerGoals) {
-      showToast(`Aantal assists (${sumAssists}) kan niet hoger zijn dan doelpunten door spelers (${playerGoals})`);
       return;
     }
   }
@@ -332,13 +325,12 @@ document.getElementById("match-save").addEventListener("click", async () => {
         const statId = row.dataset.statId;
         const present = row.querySelector(".s-played").checked;
         const goals = Number(row.querySelector(".s-goals").value || 0);
-        const assists = Number(row.querySelector(".s-assists").value || 0);
         const yellow = Number(row.querySelector(".s-yellow").value || 0);
         const red = Number(row.querySelector(".s-red").value || 0);
-        if (present || goals || assists || yellow || red) {
+        if (present || goals || yellow || red) {
           await api("/stats", {
             method: "POST",
-            body: JSON.stringify({ match_id: matchId, player_id: Number(playerId), goals, assists, yellow_cards: yellow, red_cards: red }),
+            body: JSON.stringify({ match_id: matchId, player_id: Number(playerId), goals, yellow_cards: yellow, red_cards: red }),
           });
         } else if (statId) {
           // Niet aangevinkt als aanwezig en geen statistieken -> bestaande rij verwijderen
@@ -400,7 +392,6 @@ function renderLeaderboard(rows) {
       <td>${escapeHtml(r.name)}</td>
       <td class="num">${r.matches_played}</td>
       <td class="num">${r.goals}</td>
-      <td class="num">${r.assists}</td>
       <td class="num">${r.yellow_cards}</td>
       <td class="num">${r.red_cards}</td>
       <td class="num">${r.mvp_count > 0 ? r.mvp_count : "—"}</td>
