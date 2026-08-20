@@ -571,15 +571,24 @@ function renderResultsList() {
   const el = document.getElementById("results-list");
   const empty = document.getElementById("empty-results");
   empty.hidden = results.length > 0;
-  el.innerHTML = results.map((r) => `
+
+  let lastGroupKey = undefined;
+  el.innerHTML = results.map((r) => {
+    const groupKey = r.match_date || "";
+    const groupHtml = groupKey !== lastGroupKey
+      ? `<h3 class="results-round__title">${r.match_date ? new Date(r.match_date).toLocaleDateString("nl-NL", { day: "numeric", month: "long" }) : "Datum onbekend"}</h3>`
+      : "";
+    lastGroupKey = groupKey;
+    return `
+    ${groupHtml}
     <div class="result-row ${r.synced_match_id ? "is-clickable" : ""}" data-id="${r.id}" data-synced="${r.synced_match_id ? "true" : "false"}">
-      <span class="result-row__date">${r.match_date ? new Date(r.match_date).toLocaleDateString("nl-NL", { day: "numeric", month: "short" }) : "—"}</span>
-      <span class="result-row__score">${r.synced_match_id ? "🔗 " : ""}${escapeHtml(r.home_team_name)} ${r.home_goals} – ${r.away_goals} ${escapeHtml(r.away_team_name)}</span>
+      <span class="result-row__score">${escapeHtml(r.home_team_name)} ${r.home_goals} – ${r.away_goals} ${escapeHtml(r.away_team_name)}</span>
       <span class="row-actions admin-only">
         ${!r.synced_match_id ? `<button data-action="edit" data-id="${r.id}" title="Bewerken">✏️</button><button data-action="delete" data-id="${r.id}" title="Verwijderen">🗑️</button>` : ""}
       </span>
     </div>
-  `).join("");
+  `;
+  }).join("");
 
   el.querySelectorAll('.result-row[data-synced="true"]').forEach((row) => {
     row.addEventListener("click", () => {

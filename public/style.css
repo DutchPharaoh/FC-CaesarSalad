@@ -11,6 +11,7 @@
   --gold: #B8863B;
   --gold-deep: #8F6526;
   --terracotta: #9C4A32;
+  --green: #4C7A3D;
   --stone: #AFA48F;
   --line: #DDD2B8;
   --card: #FBF8F0;
@@ -207,7 +208,7 @@ body.is-unlocked td.row-actions.admin-only { display: flex; }
 }
 .ticket:hover { transform: translateY(-1px); }
 .ticket__bar { background: var(--gold); }
-.ticket.is-win .ticket__bar { background: var(--gold); }
+.ticket.is-win .ticket__bar { background: var(--green); }
 .ticket.is-draw .ticket__bar { background: var(--stone); }
 .ticket.is-loss .ticket__bar { background: var(--terracotta); }
 .ticket.is-cancelled .ticket__bar { background: var(--ink-soft); }
@@ -324,7 +325,7 @@ body.is-unlocked td.row-actions.admin-only { display: flex; }
   font-variant-numeric: tabular-nums;
 }
 .standings-table .num { font-variant-numeric: tabular-nums; }
-.standings-table td:nth-child(9) {
+.standings-table td:nth-child(10) {
   font-weight: 700;
   color: var(--purple-700);
 }
@@ -372,6 +373,18 @@ body.is-unlocked td.row-actions.admin-only { display: flex; }
 }
 
 .results-list { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+.results-round__title {
+  font-family: "Cinzel", serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-soft);
+  margin: 18px 0 2px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+}
+.results-round__title:first-child { margin-top: 0; padding-top: 0; border-top: none; }
 .result-row {
   display: flex; align-items: center; justify-content: space-between;
   gap: 12px;
@@ -388,11 +401,6 @@ body.is-unlocked td.row-actions.admin-only { display: flex; }
   background: rgba(107,76,116,0.06);
 }
 body.is-unlocked .row-actions.admin-only { display: flex; }
-.result-row__date {
-  color: var(--ink-soft);
-  font-size: 0.78rem;
-  min-width: 76px;
-}
 .result-row__score {
   font-family: "Cinzel", serif;
   font-weight: 600;
