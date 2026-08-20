@@ -1,0 +1,13 @@
+{
+  "name": "fc-caesar-salad",
+  "version": "1.0.0",
+  "description": "Statistieken-app van FC Caesar Salad: programma, uitslagen, selectie, statistieken en stand.",
+  "private": true,
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  },
+  "scripts": {
+    "dev": "wrangler pages dev public",
+    "deploy": "wrangler pages deploy public"
+  }
+}

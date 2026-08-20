@@ -1,0 +1,8 @@
+name = "fc-caesar-salad"
+compatibility_date = "2026-08-01"
+pages_build_output_dir = "public"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "fc-caesar-salad-db"
+database_id = "VERVANG_MET_JE_EIGEN_DATABASE_ID"
