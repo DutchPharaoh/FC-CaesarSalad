@@ -141,6 +141,8 @@ button, input, select {
   border-radius: 4px;
 }
 .btn--small { padding: 6px 10px; font-size: 0.8rem; }
+.competition-bar .icon-btn { color: var(--marble); opacity: 0.75; }
+.competition-bar .icon-btn:hover { opacity: 1; }
 
 .standings-group + .standings-group { margin-top: 24px; }
 
@@ -405,6 +407,83 @@ body.is-unlocked td.row-actions.admin-only { display: flex; }
 .standings-table td:nth-child(10) {
   font-weight: 700;
   color: var(--purple-700);
+}
+
+/* ---------- Knockout-bracket ---------- */
+
+.bracket-wrap {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow-x: auto;
+  padding: 20px 16px;
+  margin-bottom: 24px;
+}
+.bracket {
+  position: relative;
+  display: flex;
+  gap: 44px;
+  width: max-content;
+  min-width: 100%;
+}
+.bracket-round {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 20px;
+  width: 168px;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+}
+.bracket-round__title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-soft);
+  text-align: center;
+}
+.bracket-round .bracket-match {
+  background: var(--marble);
+  padding: 8px 10px;
+  font-size: 0.82rem;
+  align-items: flex-start;
+}
+.bracket-match__team {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 3px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  min-width: 0;
+}
+.bracket-match__team span:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+.bracket-match__team span:last-child {
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+.bracket-match__team.is-winner {
+  font-weight: 700;
+  color: var(--purple-700);
+}
+.bracket-lines {
+  position: absolute;
+  top: 0;
+  left: 0;
+  overflow: visible;
+  pointer-events: none;
+  z-index: 0;
+}
+.bracket-lines path {
+  fill: none;
+  stroke: var(--stone);
+  stroke-width: 1.5;
 }
 
 .team-chip-list {

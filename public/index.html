@@ -31,6 +31,7 @@
   <div class="competition-bar">
     <select id="competition-select" aria-label="Actieve competitie"></select>
     <span class="competition-bar__type" id="competition-type-badge"></span>
+    <button class="icon-btn admin-only" id="btn-edit-competition" title="Competitie bewerken/verwijderen">✏️</button>
     <button class="btn btn--ghost btn--small admin-only" id="btn-new-competition">+ Competitie</button>
   </div>
 </header>
@@ -103,6 +104,13 @@
 
     <div id="standings-groups"></div>
     <p class="empty-state" id="empty-standings" hidden>Nog geen teams of uitslagen ingevoerd.</p>
+
+    <div class="view__header" style="margin-top: 28px;" id="bracket-header" hidden>
+      <h2 class="section-title" style="margin: 0;">Knockout</h2>
+    </div>
+    <div class="bracket-wrap" id="bracket-wrap" hidden>
+      <div class="bracket" id="bracket"></div>
+    </div>
 
     <div class="admin-only">
       <h2 class="section-title">Teams beheren</h2>

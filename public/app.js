@@ -143,6 +143,11 @@ function openCompetitionModal(comp = null) {
 function closeCompetitionModal() { competitionModal.hidden = true; }
 
 document.getElementById("btn-new-competition").addEventListener("click", () => openCompetitionModal());
+document.getElementById("btn-edit-competition").addEventListener("click", () => {
+  const comp = currentCompetition();
+  if (!comp) { showToast("Geen competitie geselecteerd"); return; }
+  openCompetitionModal(comp);
+});
 document.getElementById("competition-modal-close").addEventListener("click", closeCompetitionModal);
 document.getElementById("competition-cancel").addEventListener("click", closeCompetitionModal);
 
@@ -162,7 +167,7 @@ document.getElementById("competition-save").addEventListener("click", async () =
     }
     closeCompetitionModal();
     await loadCompetitions(id ? undefined : saved.id);
-    await Promise.all([loadMatches(), loadStandView()]);
+    await Promise.all([loadMatches(), loadStandView(), loadStats()]);
     showToast("Competitie opgeslagen");
   } catch (e) { showToast(e.message); }
 });
@@ -176,7 +181,7 @@ document.getElementById("competition-delete").addEventListener("click", async ()
     await api(`/competitions?id=${id}`, { method: "DELETE" });
     closeCompetitionModal();
     await loadCompetitions();
-    await Promise.all([loadMatches(), loadStandView()]);
+    await Promise.all([loadMatches(), loadStandView(), loadStats()]);
     showToast("Competitie verwijderd");
   } catch (e) { showToast(e.message); }
 });
@@ -726,9 +731,10 @@ document.getElementById("team-quick-add").addEventListener("submit", async (e) =
 });
 
 async function loadResults() {
-  if (!currentCompetitionId) { results = []; renderResultsList(); return; }
+  if (!currentCompetitionId) { results = []; renderResultsList(); renderBracket(); return; }
   results = await api(`/results?competition_id=${currentCompetitionId}`);
   renderResultsList();
+  renderBracket();
   populateGroupNameList();
 }
 
@@ -748,38 +754,10 @@ function roundSortIndex(name) {
   return idx === -1 ? ROUND_ORDER.length : idx;
 }
 
-function renderResultsList() {
-  const el = document.getElementById("results-list");
-  const empty = document.getElementById("empty-results");
-  empty.hidden = results.length > 0;
-
-  // Groepsfase/competitie-uitslagen blijven gegroepeerd per datum; knockout-
-  // uitslagen worden hieronder apart gegroepeerd per ronde (eenvoudige
-  // lijst i.p.v. datum, want de volgorde van de ronde is wat telt).
-  const regular = results.filter((r) => r.phase !== "knockout");
-  const knockout = results.filter((r) => r.phase === "knockout")
-    .sort((a, b) => roundSortIndex(a.round_name) - roundSortIndex(b.round_name) || a.id - b.id);
-
-  let lastGroupKey;
-  const regularHtml = regular.map((r) => {
-    const groupKey = r.match_date || "";
-    const groupHtml = groupKey !== lastGroupKey
-      ? `<h3 class="results-round__title">${r.match_date ? new Date(r.match_date).toLocaleDateString("nl-NL", { day: "numeric", month: "long" }) : "Datum onbekend"}</h3>`
-      : "";
-    lastGroupKey = groupKey;
-    return groupHtml + renderResultRow(r);
-  }).join("");
-
-  let lastRound;
-  const knockoutHtml = knockout.map((r) => {
-    const roundKey = r.round_name || "Overig";
-    const groupHtml = roundKey !== lastRound ? `<h3 class="results-round__title">${escapeHtml(roundKey)}</h3>` : "";
-    lastRound = roundKey;
-    return groupHtml + renderResultRow(r);
-  }).join("");
-
-  el.innerHTML = regularHtml + knockoutHtml;
-
+// Wijst klik/edit/delete-acties toe aan gerenderde .result-row(-achtige)
+// elementen. Wordt hergebruikt door zowel de platte uitslagenlijst als de
+// knockout-bracket-cards.
+function wireResultRowActions(el) {
   el.querySelectorAll('.result-row[data-synced="true"]').forEach((row) => {
     row.addEventListener("click", () => {
       const r = results.find((x) => x.id === Number(row.dataset.id));
@@ -802,8 +780,141 @@ function renderResultsList() {
       if (r) deleteResult(r);
     });
   });
+}
+
+function renderResultsList() {
+  const el = document.getElementById("results-list");
+  const empty = document.getElementById("empty-results");
+  // Knockout-uitslagen staan in de bracket hieronder, niet in deze lijst.
+  const regular = results.filter((r) => r.phase !== "knockout");
+  empty.hidden = regular.length > 0;
+
+  let lastGroupKey;
+  el.innerHTML = regular.map((r) => {
+    const groupKey = r.match_date || "";
+    const groupHtml = groupKey !== lastGroupKey
+      ? `<h3 class="results-round__title">${r.match_date ? new Date(r.match_date).toLocaleDateString("nl-NL", { day: "numeric", month: "long" }) : "Datum onbekend"}</h3>`
+      : "";
+    lastGroupKey = groupKey;
+    return groupHtml + renderResultRow(r);
+  }).join("");
+
+  wireResultRowActions(el);
   applyLockState();
 }
+
+/* ---------- Knockout-bracket ---------- */
+
+// Neemt aan dat uitslagen binnen een ronde in bracket-volgorde zijn
+// ingevoerd (bijv. eerst kwartfinale 1 t/m 4), zodat paren (0,1), (2,3), ...
+// logisch doorstromen naar de volgende ronde. "Troostfinale" (3e/4e plaats)
+// hoort niet in de winnaarsboom en krijgt daarom geen connectorlijnen.
+function renderBracket() {
+  const wrap = document.getElementById("bracket-wrap");
+  const header = document.getElementById("bracket-header");
+  const container = document.getElementById("bracket");
+  container.innerHTML = "";
+
+  const knockout = results.filter((r) => r.phase === "knockout");
+  if (knockout.length === 0) {
+    wrap.hidden = true;
+    header.hidden = true;
+    return;
+  }
+  wrap.hidden = false;
+  header.hidden = false;
+
+  const rounds = new Map();
+  for (const r of knockout) {
+    const key = r.round_name || "Overig";
+    if (!rounds.has(key)) rounds.set(key, []);
+    rounds.get(key).push(r);
+  }
+  for (const list of rounds.values()) list.sort((a, b) => a.id - b.id);
+
+  const roundNames = [...rounds.keys()].sort((a, b) => roundSortIndex(a) - roundSortIndex(b));
+
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("class", "bracket-lines");
+  container.appendChild(svg);
+
+  const roundEls = roundNames.map((name) => {
+    const roundEl = document.createElement("div");
+    roundEl.className = "bracket-round";
+    const title = document.createElement("div");
+    title.className = "bracket-round__title";
+    title.textContent = name;
+    roundEl.appendChild(title);
+
+    const matchEls = rounds.get(name).map((r) => {
+      const homeWin = r.home_goals > r.away_goals;
+      const awayWin = r.away_goals > r.home_goals;
+      const matchEl = document.createElement("div");
+      matchEl.className = `result-row bracket-match ${r.synced_match_id ? "is-clickable" : ""}`;
+      matchEl.dataset.id = r.id;
+      matchEl.dataset.synced = r.synced_match_id ? "true" : "false";
+      matchEl.innerHTML = `
+        <div>
+          <div class="bracket-match__team ${homeWin ? "is-winner" : ""}"><span>${escapeHtml(r.home_team_name)}</span><span>${r.home_goals}</span></div>
+          <div class="bracket-match__team ${awayWin ? "is-winner" : ""}"><span>${escapeHtml(r.away_team_name)}</span><span>${r.away_goals}</span></div>
+        </div>
+        <span class="row-actions admin-only">
+          ${!r.synced_match_id ? `<button data-action="edit" data-id="${r.id}" title="Bewerken">✏️</button><button data-action="delete" data-id="${r.id}" title="Verwijderen">🗑️</button>` : ""}
+        </span>
+      `;
+      roundEl.appendChild(matchEl);
+      return matchEl;
+    });
+    container.appendChild(roundEl);
+    return matchEls;
+  });
+
+  wireResultRowActions(container);
+  applyLockState();
+
+  requestAnimationFrame(() => drawBracketConnectors(container, svg, roundNames, roundEls));
+}
+
+function drawBracketConnectors(container, svg, roundNames, roundEls) {
+  const containerRect = container.getBoundingClientRect();
+  svg.setAttribute("width", container.scrollWidth);
+  svg.setAttribute("height", container.scrollHeight);
+
+  // Troostfinale (3e/4e plaats) hoort niet in de winnaarsboom: die kolom
+  // wordt overgeslagen bij het bepalen van "aangrenzend", zodat de halve
+  // finale gewoon doorverbindt naar de finale.
+  const treeRounds = roundNames
+    .map((name, i) => i)
+    .filter((i) => roundNames[i] !== "Troostfinale");
+
+  let paths = "";
+  for (let k = 0; k < treeRounds.length - 1; k++) {
+    const current = roundEls[treeRounds[k]];
+    const next = roundEls[treeRounds[k + 1]];
+    if (current.length !== next.length * 2) continue; // alleen tekenen bij een nette bracket-verhouding
+
+    for (let j = 0; j < next.length; j++) {
+      const a = current[j * 2].getBoundingClientRect();
+      const b = current[j * 2 + 1].getBoundingClientRect();
+      const target = next[j].getBoundingClientRect();
+
+      const ax = a.right - containerRect.left, ay = a.top + a.height / 2 - containerRect.top;
+      const bx = b.right - containerRect.left, by = b.top + b.height / 2 - containerRect.top;
+      const midX = ax + 22;
+      const midY = (ay + by) / 2;
+      const targetX = target.left - containerRect.left;
+
+      paths += `<path d="M${ax},${ay} H${midX} V${by}" />`;
+      paths += `<path d="M${bx},${by} H${midX}" />`;
+      paths += `<path d="M${midX},${midY} H${targetX}" />`;
+    }
+  }
+  svg.innerHTML = paths;
+}
+
+window.addEventListener("resize", () => {
+  if (!document.getElementById("bracket-wrap").hidden) renderBracket();
+});
 
 const resultModal = document.getElementById("result-modal");
 
