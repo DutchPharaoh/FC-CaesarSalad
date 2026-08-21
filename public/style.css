@@ -648,7 +648,11 @@ body.is-unlocked .row-actions.admin-only { display: flex; }
   grid-template-columns: 1fr 1fr;
   gap: 14px;
 }
-.field { display: flex; flex-direction: column; gap: 5px; font-size: 0.82rem; font-weight: 600; color: var(--ink-soft); }
+.field {
+  display: flex; flex-direction: column; gap: 5px;
+  font-size: 0.82rem; font-weight: 600; color: var(--ink-soft);
+  min-width: 0; /* voorkomt dat een lang placeholder (bijv. bij competitienaam) de grid-kolom breder duwt dan de modal */
+}
 .field input, .field select {
   border: 1px solid var(--line);
   border-radius: 6px;
