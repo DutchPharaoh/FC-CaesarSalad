@@ -696,7 +696,8 @@ document.getElementById("unlock-save").addEventListener("click", async () => {
     applyLockState();
     closeUnlockModal();
     showToast("Ontgrendeld — je kan nu bewerken");
-    loadSignups();
+    if (document.querySelector(".tab.is-active")?.dataset.tab === "aanmelden") loadSignups();
+    else checkSignupBadge();
   } catch (e) {
     showToast("Kon niet verifiëren: " + e.message);
   }
@@ -1165,12 +1166,48 @@ document.getElementById("signup-form").addEventListener("submit", async (e) => {
   }
 });
 
+const SIGNUP_SEEN_ID_KEY = "teamstats_signup_seen_id";
+
+function getSignupSeenId() {
+  return Number(localStorage.getItem(SIGNUP_SEEN_ID_KEY) || 0);
+}
+
+function updateSignupBadge(rows) {
+  const seenId = getSignupSeenId();
+  const unseen = rows.filter((r) => r.id > seenId).length;
+  const badge = document.getElementById("signup-badge");
+  badge.textContent = unseen > 9 ? "9+" : String(unseen);
+  badge.hidden = unseen === 0;
+}
+
+// Ververst alleen het belletje (voor als de aanmeldingen nog niet echt
+// bekeken zijn), zonder ze als "gezien" te markeren.
+async function checkSignupBadge() {
+  if (!isUnlocked()) return;
+  try {
+    updateSignupBadge(await api("/signup"));
+  } catch { /* geen kritieke actie, stil negeren */ }
+}
+
+// Wordt aangeroepen zodra de aanmeldingen daadwerkelijk bekeken worden
+// (tabblad "Aanmelden"): rendert de tabel en markeert alles als gezien.
 async function loadSignups() {
   if (!isUnlocked()) return;
   try {
     const rows = await api("/signup");
     renderSignupRows(rows);
+    const maxId = rows.reduce((max, r) => Math.max(max, r.id), 0);
+    localStorage.setItem(SIGNUP_SEEN_ID_KEY, String(maxId));
+    updateSignupBadge(rows);
   } catch (e) { showToast(e.message); }
+}
+
+function fmtSignupDate(sqliteTimestamp) {
+  // SQLite's datetime('now') levert "YYYY-MM-DD HH:MM:SS" in UTC; zonder
+  // "T"/"Z" zou new Date(...) dit als lokale tijd kunnen interpreteren.
+  const d = new Date(sqliteTimestamp.replace(" ", "T") + "Z");
+  return d.toLocaleDateString("nl-NL", { day: "numeric", month: "short" }) +
+    " · " + d.toLocaleTimeString("nl-NL", { hour: "2-digit", minute: "2-digit" });
 }
 
 function renderSignupRows(rows) {
@@ -1181,6 +1218,7 @@ function renderSignupRows(rows) {
     <tr data-id="${r.id}">
       <td>${escapeHtml(r.name)}</td>
       <td>${escapeHtml(r.unit)}</td>
+      <td>${fmtSignupDate(r.created_at)}</td>
       <td class="row-actions admin-only">
         <button data-action="delete" title="Verwijderen">🗑️</button>
       </td>
@@ -1209,6 +1247,7 @@ function renderSignupRows(rows) {
     await loadCompetitions();
     await loadPlayers();
     await loadMatches();
+    checkSignupBadge();
   } catch (e) {
     showToast("Kon data niet laden: " + e.message);
   }

@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=2">
+<link rel="stylesheet" href="style.css?v=3">
 <link rel="icon" type="image/jpeg" href="logo.jpeg">
 <link rel="apple-touch-icon" href="logo.jpeg">
 </head>
@@ -23,7 +23,7 @@
       <button class="tab is-active" data-tab="wedstrijden" role="tab" aria-selected="true">Programma &amp; uitslagen</button>
       <button class="tab" data-tab="statistieken" role="tab" aria-selected="false">Selectie &amp; statistieken</button>
       <button class="tab" data-tab="stand" role="tab" aria-selected="false">Stand</button>
-      <button class="tab" data-tab="aanmelden" role="tab" aria-selected="false">Aanmelden</button>
+      <button class="tab" data-tab="aanmelden" role="tab" aria-selected="false">Aanmelden<span class="tab-badge admin-only" id="signup-badge" hidden></span></button>
     </nav>
     <button class="lock-btn" id="btn-lock" title="Bewerken ontgrendelen">
       <span id="lock-icon">🔒</span>
@@ -168,6 +168,7 @@
             <tr>
               <th>Naam</th>
               <th>Unit</th>
+              <th>Datum</th>
               <th class="col-actions"></th>
             </tr>
           </thead>
@@ -436,6 +437,6 @@
 
 <div class="toast" id="toast" hidden></div>
 
-<script src="app.js?v=5"></script>
+<script src="app.js?v=6"></script>
 </body>
 </html>

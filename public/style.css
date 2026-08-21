@@ -97,6 +97,21 @@ button, input, select {
   background: var(--gold);
   color: var(--purple-900);
 }
+.tab-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  margin-left: 6px;
+  border-radius: 999px;
+  background: var(--terracotta);
+  color: var(--marble);
+  font-size: 0.7rem;
+  font-weight: 700;
+  vertical-align: middle;
+}
 
 .lock-btn {
   background: rgba(244,238,225,0.08);
@@ -702,6 +717,8 @@ body.is-unlocked .row-actions.admin-only { display: flex; }
 @media (max-width: 560px) {
   .form-grid { grid-template-columns: 1fr; }
   .ticket__opponent { font-size: 0.92rem; }
+  .tabs { flex-wrap: wrap; gap: 2px; }
+  .tab { padding: 8px 10px; font-size: 0.85rem; }
 }
 
 :focus-visible { outline: 2px solid var(--purple-500); outline-offset: 2px; }
