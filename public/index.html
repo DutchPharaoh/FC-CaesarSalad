@@ -212,7 +212,7 @@
             <thead>
               <tr>
                 <th>Speler</th>
-                <th class="num">Aanwezig</th>
+                <th class="num" id="col-present">Aanwezig</th>
                 <th class="num">Doelp.</th>
                 <th class="num">🟨</th>
                 <th class="num">🟥</th>
@@ -221,6 +221,7 @@
             <tbody id="match-stats-rows"></tbody>
           </table>
         </div>
+        <p class="empty-state" id="empty-match-stats" hidden>Nog geen statistieken ingevoerd voor deze wedstrijd.</p>
       </div>
     </div>
     <div class="modal__footer">
@@ -393,6 +394,6 @@
 
 <div class="toast" id="toast" hidden></div>
 
-<script src="app.js?v=2"></script>
+<script src="app.js?v=3"></script>
 </body>
 </html>

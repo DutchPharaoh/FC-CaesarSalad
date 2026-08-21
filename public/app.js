@@ -393,6 +393,17 @@ async function openMatchModal(match = null) {
   document.getElementById("match-own-goals").value = match?.opponent_own_goals ?? 0;
   document.getElementById("match-unknown-goals").value = match?.unknown_goals ?? 0;
 
+  // Bezoeker (niet ontgrendeld) krijgt een compactere popup: eigen/onbekende
+  // doelpunten alleen tonen als ze daadwerkelijk gevuld zijn.
+  if (!unlocked) {
+    if (Number(document.getElementById("match-own-goals").value || 0) === 0) {
+      document.getElementById("field-own-goals").hidden = true;
+    }
+    if (Number(document.getElementById("match-unknown-goals").value || 0) === 0) {
+      document.getElementById("field-unknown-goals").hidden = true;
+    }
+  }
+
   if (match) {
     currentMatchStats = await api(`/stats?match_id=${match.id}`);
   } else {
@@ -435,21 +446,36 @@ function renderMvpOptions() {
 
 function renderMatchStatsRows() {
   const tbody = document.getElementById("match-stats-rows");
+  const empty = document.getElementById("empty-match-stats");
+  const unlocked = isUnlocked();
   tbody.innerHTML = "";
-  for (const p of players.filter((p) => p.active !== false)) {
+
+  // Bezoeker ziet alleen wie daadwerkelijk aanwezig was, en de
+  // "Aanwezig"-kolom zelf is dan overbodig (staat sowieso altijd aan).
+  document.getElementById("col-present").hidden = !unlocked;
+
+  const roster = players.filter((p) => p.active !== false)
+    .filter((p) => unlocked || currentMatchStats.some((s) => s.player_id === p.id));
+
+  for (const p of roster) {
     const existing = currentMatchStats.find((s) => s.player_id === p.id);
     const tr = document.createElement("tr");
     tr.dataset.playerId = p.id;
     tr.dataset.statId = existing?.id ?? "";
     tr.innerHTML = `
       <td>${escapeHtml(p.name)}</td>
-      <td class="num"><input type="checkbox" class="s-played" ${existing ? "checked" : ""}></td>
+      <td class="num" ${unlocked ? "" : "hidden"}><input type="checkbox" class="s-played" ${existing ? "checked" : ""}></td>
       <td class="num"><input type="number" min="0" class="s-goals" value="${existing?.goals ?? 0}"></td>
       <td class="num"><input type="number" min="0" class="s-yellow" value="${existing?.yellow_cards ?? 0}"></td>
       <td class="num"><input type="number" min="0" class="s-red" value="${existing?.red_cards ?? 0}"></td>
     `;
+    tr.querySelector(".s-goals").addEventListener("input", (e) => {
+      if (Number(e.target.value || 0) > 0) tr.querySelector(".s-played").checked = true;
+    });
     tbody.appendChild(tr);
   }
+
+  empty.hidden = roster.length > 0;
 }
 
 function closeMatchModal() { matchModal.hidden = true; }
