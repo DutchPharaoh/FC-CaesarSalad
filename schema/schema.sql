@@ -67,6 +67,15 @@ CREATE TABLE matches (
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
+-- Aanmeldingen via de publieke "Aanmelden"-pagina: naam + unit, alleen
+-- zichtbaar in de app als je ontgrendeld bent.
+CREATE TABLE signups (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  unit TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
 CREATE TABLE player_stats (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   match_id INTEGER NOT NULL REFERENCES matches(id) ON DELETE CASCADE,

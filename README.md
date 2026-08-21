@@ -63,19 +63,7 @@ Na de eerste deploy (mag ook falen op dit punt, dat is prima):
 2. Voeg toe: naam `ADMIN_PASSWORD`, waarde naar keuze
 3. Herdeploy opnieuw zodat de variabele actief wordt
 
-### 6. Zet e-mail voor het aanmeldformulier aan (optioneel)
-
-De pagina "Aanmelden" stuurt bij inschrijven een mailtje naar k.saad@garansys.nl via [Resend](https://resend.com).
-
-1. Maak een gratis Resend-account aan **met k.saad@garansys.nl als accountmail** (nodig, want zonder een eigen geverifieerd domein mag Resend's test-afzender `onboarding@resend.dev` alleen naar het eigen accountmailadres afleveren)
-2. Maak een API-key aan (Dashboard → API Keys)
-3. Ga in Cloudflare naar je Pages-project → **Settings** → **Environment variables**
-4. Voeg toe: naam `RESEND_API_KEY`, waarde = de API-key
-5. Herdeploy opnieuw zodat de variabele actief wordt
-
-Zonder deze stap geeft het aanmeldformulier een duidelijke foutmelding i.p.v. een mail te versturen.
-
-### 7. Klaar
+### 6. Klaar
 
 Je site draait op `https://fc-caesar-salad.pages.dev` (of de naam die je bij het aanmaken hebt gekozen). Open de site, klik op het hangslotje 🔒 rechtsboven, vul je wachtwoord in, en voeg FC Caesar Salad toe als team bij Stand (of laat de app dat automatisch doen zodra je de eerste gespeelde wedstrijd invoert).
 
@@ -86,7 +74,7 @@ npm install
 wrangler d1 execute fc-caesar-salad-db --local --file=schema/schema.sql
 wrangler pages dev public
 ```
-Dit draait de site + functions + een lokale D1-database op je eigen computer, meestal op `http://localhost:8788`. Voor lokale testen met het wachtwoord-slot en/of het aanmeldformulier: maak een bestand `.dev.vars` aan in de projectroot met daarin `ADMIN_PASSWORD=jouwwachtwoord` en/of `RESEND_API_KEY=jouwkey`.
+Dit draait de site + functions + een lokale D1-database op je eigen computer, meestal op `http://localhost:8788`. Voor lokale testen met het wachtwoord-slot: maak een bestand `.dev.vars` aan in de projectroot met daarin `ADMIN_PASSWORD=jouwwachtwoord`.
 
 ## Nieuwe wijzigingen later doorvoeren
 

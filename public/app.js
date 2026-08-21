@@ -52,9 +52,7 @@ function showToast(msg) {
 }
 
 async function api(path, options = {}) {
-  const method = options.method || "GET";
-  const headers = { "Content-Type": "application/json", ...(options.headers || {}) };
-  if (method !== "GET") headers["X-Admin-Token"] = getAdminToken();
+  const headers = { "Content-Type": "application/json", "X-Admin-Token": getAdminToken(), ...(options.headers || {}) };
 
   const res = await fetch(`${API}${path}`, { ...options, headers });
   if (!res.ok) {
@@ -209,6 +207,7 @@ document.querySelectorAll(".tab").forEach((btn) => {
     document.getElementById(`view-${btn.dataset.tab}`).classList.add("is-active");
     if (btn.dataset.tab === "statistieken") loadStats();
     if (btn.dataset.tab === "stand") loadStandView();
+    if (btn.dataset.tab === "aanmelden") loadSignups();
   });
 });
 
@@ -697,6 +696,7 @@ document.getElementById("unlock-save").addEventListener("click", async () => {
     applyLockState();
     closeUnlockModal();
     showToast("Ontgrendeld — je kan nu bewerken");
+    loadSignups();
   } catch (e) {
     showToast("Kon niet verifiëren: " + e.message);
   }
@@ -1157,12 +1157,49 @@ document.getElementById("signup-form").addEventListener("submit", async (e) => {
     await api("/signup", { method: "POST", body: JSON.stringify({ name, unit }) });
     document.getElementById("signup-form").reset();
     showToast("Bedankt voor je aanmelding!");
+    await loadSignups();
   } catch (err) {
     showToast(err.message);
   } finally {
     btn.disabled = false;
   }
 });
+
+async function loadSignups() {
+  if (!isUnlocked()) return;
+  try {
+    const rows = await api("/signup");
+    renderSignupRows(rows);
+  } catch (e) { showToast(e.message); }
+}
+
+function renderSignupRows(rows) {
+  const tbody = document.getElementById("signup-rows");
+  const empty = document.getElementById("empty-signups");
+  empty.hidden = rows.length > 0;
+  tbody.innerHTML = rows.map((r) => `
+    <tr data-id="${r.id}">
+      <td>${escapeHtml(r.name)}</td>
+      <td>${escapeHtml(r.unit)}</td>
+      <td class="row-actions admin-only">
+        <button data-action="delete" title="Verwijderen">🗑️</button>
+      </td>
+    </tr>
+  `).join("");
+
+  tbody.querySelectorAll('[data-action="delete"]').forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const id = btn.closest("tr").dataset.id;
+      if (!confirm("Deze aanmelding verwijderen?")) return;
+      try {
+        await api(`/signup?id=${id}`, { method: "DELETE" });
+        await loadSignups();
+        showToast("Aanmelding verwijderd");
+      } catch (err) { showToast(err.message); }
+    });
+  });
+  applyLockState();
+}
 
 /* ---------- Init ---------- */
 
