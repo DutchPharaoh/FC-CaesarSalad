@@ -532,6 +532,12 @@ document.getElementById("match-save").addEventListener("click", async () => {
           await api(`/stats?id=${statId}`, { method: "DELETE" });
         }
       }
+    } else {
+      // Wedstrijd is (weer) gepland/afgelast: eerder ingevoerde statistieken
+      // horen dan niet meer mee te tellen.
+      for (const stat of currentMatchStats) {
+        await api(`/stats?id=${stat.id}`, { method: "DELETE" });
+      }
     }
 
     closeMatchModal();
