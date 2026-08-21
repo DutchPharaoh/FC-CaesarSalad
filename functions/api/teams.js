@@ -1,9 +1,13 @@
 import { requireAdmin, json } from "./_shared.js";
 
-export async function onRequestGet({ env }) {
+export async function onRequestGet({ request, env }) {
+  const url = new URL(request.url);
+  const competitionId = url.searchParams.get("competition_id");
+  if (!competitionId) return json(400, { error: "competition_id is verplicht" });
+
   const { results } = await env.DB.prepare(
-    "SELECT * FROM teams ORDER BY is_own_team DESC, name ASC"
-  ).all();
+    "SELECT * FROM teams WHERE competition_id = ? ORDER BY is_own_team DESC, name ASC"
+  ).bind(competitionId).all();
   return json(200, results.map((t) => ({ ...t, is_own_team: !!t.is_own_team })));
 }
 
@@ -14,11 +18,12 @@ export async function onRequestPost({ request, env }) {
   const body = await request.json();
   const name = (body.name || "").trim();
   if (!name) return json(400, { error: "Teamnaam is verplicht" });
+  if (!body.competition_id) return json(400, { error: "competition_id is verplicht" });
 
   try {
     const row = await env.DB.prepare(
-      "INSERT INTO teams (name, is_own_team) VALUES (?, ?) RETURNING *"
-    ).bind(name, body.is_own_team ? 1 : 0).first();
+      "INSERT INTO teams (name, is_own_team, competition_id) VALUES (?, ?, ?) RETURNING *"
+    ).bind(name, body.is_own_team ? 1 : 0, body.competition_id).first();
     return json(201, { ...row, is_own_team: !!row.is_own_team });
   } catch (err) {
     if (String(err.message || "").includes("UNIQUE")) {
@@ -60,12 +65,16 @@ export async function onRequestDelete({ request, env }) {
   if (!id) return json(400, { error: "id ontbreekt" });
 
   // Verwijder eerst de eigen wedstrijden die via een uitslag aan dit team
-  // gekoppeld waren, vóórdat het team zelf verdwijnt.
+  // gekoppeld waren, dan de uitslagen zelf (geen DB-cascade hiervoor, zie
+  // schema.sql), en pas dan het team.
   await env.DB.prepare(
     `DELETE FROM matches
      WHERE league_result_id IN (
        SELECT id FROM league_results WHERE home_team_id = ? OR away_team_id = ?
      )`
+  ).bind(id, id).run();
+  await env.DB.prepare(
+    "DELETE FROM league_results WHERE home_team_id = ? OR away_team_id = ?"
   ).bind(id, id).run();
 
   await env.DB.prepare("DELETE FROM teams WHERE id = ?").bind(id).run();

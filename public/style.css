@@ -111,6 +111,39 @@ button, input, select {
 }
 .lock-btn:hover { background: rgba(244,238,225,0.16); }
 
+.competition-bar {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 0 20px 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.competition-bar select {
+  background: rgba(244,238,225,0.08);
+  color: var(--marble);
+  border: 1px solid rgba(244,238,225,0.25);
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  max-width: 240px;
+}
+.competition-bar__type {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--gold);
+  background: rgba(184,134,59,0.16);
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+.btn--small { padding: 6px 10px; font-size: 0.8rem; }
+
+.standings-group + .standings-group { margin-top: 24px; }
+
 .admin-only { display: none; }
 body.is-unlocked .admin-only { display: revert; }
 body.is-unlocked td.row-actions.admin-only { display: flex; }

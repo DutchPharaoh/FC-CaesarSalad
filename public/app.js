@@ -1,10 +1,22 @@
 const API = "/api";
 const TOKEN_KEY = "teamstats_admin_token";
+const COMPETITION_KEY = "teamstats_competition_id";
+const ROUND_ORDER = ["Achtste finale", "Kwartfinale", "Halve finale", "Troostfinale", "Finale"];
 
 let players = [];
 let matches = [];
 let teams = [];
 let results = [];
+let competitions = [];
+let currentCompetitionId = null;
+let teamsLoadedForCompetition = null;
+
+function currentCompetition() {
+  return competitions.find((c) => c.id === currentCompetitionId);
+}
+function isTournament() {
+  return currentCompetition()?.type === "toernooi";
+}
 
 /* ---------- Auth (bewerken vs. alleen bekijken) ---------- */
 
@@ -62,6 +74,112 @@ function fmtDate(iso) {
   return d.toLocaleDateString("nl-NL", { weekday: "short", day: "numeric", month: "short" }) +
     " · " + d.toLocaleTimeString("nl-NL", { hour: "2-digit", minute: "2-digit" });
 }
+
+/* ---------- Competities ---------- */
+
+async function loadCompetitions(preferId) {
+  competitions = await api("/competitions");
+
+  if (competitions.length === 0) {
+    currentCompetitionId = null;
+    renderCompetitionSelect();
+    updateCompetitionContext();
+    return;
+  }
+
+  const stored = Number(localStorage.getItem(COMPETITION_KEY));
+  const preferred = preferId ?? stored;
+  currentCompetitionId = competitions.some((c) => c.id === preferred) ? preferred : competitions[0].id;
+  localStorage.setItem(COMPETITION_KEY, String(currentCompetitionId));
+
+  renderCompetitionSelect();
+  updateCompetitionContext();
+}
+
+function renderCompetitionSelect() {
+  const select = document.getElementById("competition-select");
+  if (competitions.length === 0) {
+    select.innerHTML = '<option value="">— Geen competities —</option>';
+    return;
+  }
+  select.innerHTML = competitions.map((c) => `
+    <option value="${c.id}">${escapeHtml(c.name)}${c.status === "afgesloten" ? " (afgesloten)" : ""}</option>
+  `).join("");
+  select.value = currentCompetitionId;
+}
+
+function updateCompetitionContext() {
+  const comp = currentCompetition();
+  const badge = document.getElementById("competition-type-badge");
+  badge.textContent = comp ? (comp.type === "toernooi" ? "Toernooi" : "Competitie") : "";
+
+  const wedstrijdenSub = document.getElementById("wedstrijden-sub");
+  const standSub = document.getElementById("stand-sub");
+  wedstrijdenSub.textContent = comp ? `Schema en uitslagen van FC Caesar Salad — ${comp.name}.` : "Maak eerst een competitie aan.";
+  standSub.textContent = comp ? `Stand van ${comp.name}.` : "Maak eerst een competitie aan.";
+}
+
+document.getElementById("competition-select").addEventListener("change", async (e) => {
+  currentCompetitionId = Number(e.target.value);
+  localStorage.setItem(COMPETITION_KEY, String(currentCompetitionId));
+  teamsLoadedForCompetition = null;
+  updateCompetitionContext();
+  await loadMatches();
+  const activeTab = document.querySelector(".tab.is-active")?.dataset.tab;
+  if (activeTab === "stand") await loadStandView();
+});
+
+const competitionModal = document.getElementById("competition-modal");
+
+function openCompetitionModal(comp = null) {
+  document.getElementById("competition-modal-title").textContent = comp ? "Competitie bewerken" : "Competitie toevoegen";
+  document.getElementById("competition-id").value = comp?.id || "";
+  document.getElementById("competition-name").value = comp?.name || "";
+  document.getElementById("competition-type").value = comp?.type || "competitie";
+  document.getElementById("competition-status").value = comp?.status || "actief";
+  document.getElementById("competition-delete").hidden = !comp;
+  competitionModal.hidden = false;
+}
+function closeCompetitionModal() { competitionModal.hidden = true; }
+
+document.getElementById("btn-new-competition").addEventListener("click", () => openCompetitionModal());
+document.getElementById("competition-modal-close").addEventListener("click", closeCompetitionModal);
+document.getElementById("competition-cancel").addEventListener("click", closeCompetitionModal);
+
+document.getElementById("competition-save").addEventListener("click", async () => {
+  const id = document.getElementById("competition-id").value;
+  const name = document.getElementById("competition-name").value.trim();
+  const type = document.getElementById("competition-type").value;
+  const status = document.getElementById("competition-status").value;
+  if (!name) { showToast("Vul een naam in"); return; }
+
+  try {
+    let saved;
+    if (id) {
+      saved = await api(`/competitions?id=${id}`, { method: "PUT", body: JSON.stringify({ name, type, status }) });
+    } else {
+      saved = await api("/competitions", { method: "POST", body: JSON.stringify({ name, type, status }) });
+    }
+    closeCompetitionModal();
+    await loadCompetitions(id ? undefined : saved.id);
+    await Promise.all([loadMatches(), loadStandView()]);
+    showToast("Competitie opgeslagen");
+  } catch (e) { showToast(e.message); }
+});
+
+document.getElementById("competition-delete").addEventListener("click", async () => {
+  const id = document.getElementById("competition-id").value;
+  const comp = competitions.find((c) => String(c.id) === String(id));
+  if (!comp) return;
+  if (!confirm(`"${comp.name}" verwijderen? Alle teams, wedstrijden en uitslagen van deze competitie verdwijnen.`)) return;
+  try {
+    await api(`/competitions?id=${id}`, { method: "DELETE" });
+    closeCompetitionModal();
+    await loadCompetitions();
+    await Promise.all([loadMatches(), loadStandView()]);
+    showToast("Competitie verwijderd");
+  } catch (e) { showToast(e.message); }
+});
 
 /* ---------- Tabs ---------- */
 
@@ -162,8 +280,10 @@ async function deletePlayer(player, fromModal = false) {
 /* ---------- Load & render: matches ---------- */
 
 async function loadMatches() {
-  matches = await api("/matches");
+  if (!currentCompetitionId) { matches = []; renderMatches(); return; }
+  matches = await api(`/matches?competition_id=${currentCompetitionId}`);
   renderMatches();
+  populateGroupNameList();
 }
 
 function renderMatches() {
@@ -237,7 +357,17 @@ async function openMatchModal(match = null) {
 
   document.querySelectorAll("#match-form input, #match-form select").forEach((el) => { el.disabled = !unlocked; });
 
-  if (teams.length === 0) await loadTeams();
+  const tournament = isTournament();
+  document.getElementById("match-phase-block").hidden = !tournament;
+  if (tournament) {
+    document.getElementById("match-phase").value = match?.phase === "knockout" ? "knockout" : "groep";
+    document.getElementById("match-group").value = match?.group_name || "";
+    document.getElementById("match-round").value = match?.round_name || "";
+    document.getElementById("match-phase").onchange = toggleMatchPhaseFields;
+    toggleMatchPhaseFields();
+  }
+
+  if (teamsLoadedForCompetition !== currentCompetitionId) await loadTeams();
   populateOpponentDatalist();
 
   await toggleStatsBlock();
@@ -255,6 +385,12 @@ async function openMatchModal(match = null) {
   document.querySelectorAll("#match-stats-rows input").forEach((el) => { el.disabled = !unlocked; });
 
   matchModal.hidden = false;
+}
+
+function toggleMatchPhaseFields() {
+  const phase = document.getElementById("match-phase").value;
+  document.getElementById("field-match-group").hidden = phase !== "groep";
+  document.getElementById("field-match-round").hidden = phase !== "knockout";
 }
 
 async function toggleStatsBlock() {
@@ -301,7 +437,10 @@ function renderMatchStatsRows() {
 function closeMatchModal() { matchModal.hidden = true; }
 document.getElementById("match-modal-close").addEventListener("click", closeMatchModal);
 document.getElementById("match-cancel").addEventListener("click", closeMatchModal);
-document.getElementById("btn-new-match").addEventListener("click", () => openMatchModal());
+document.getElementById("btn-new-match").addEventListener("click", () => {
+  if (!currentCompetitionId) { showToast("Maak eerst een competitie aan"); return; }
+  openMatchModal();
+});
 
 document.getElementById("match-save").addEventListener("click", async () => {
   const id = document.getElementById("match-id").value;
@@ -321,7 +460,18 @@ document.getElementById("match-save").addEventListener("click", async () => {
     mvp_player_id: isPlayed && document.getElementById("match-mvp").value ? Number(document.getElementById("match-mvp").value) : null,
     opponent_own_goals: isPlayed ? Number(document.getElementById("match-own-goals").value || 0) : 0,
     unknown_goals: isPlayed ? Number(document.getElementById("match-unknown-goals").value || 0) : 0,
+    competition_id: currentCompetitionId,
   };
+
+  if (isTournament()) {
+    payload.phase = document.getElementById("match-phase").value;
+    payload.group_name = payload.phase === "groep" ? (document.getElementById("match-group").value.trim() || null) : null;
+    payload.round_name = payload.phase === "knockout" ? (document.getElementById("match-round").value.trim() || null) : null;
+  } else {
+    payload.phase = "competitie";
+    payload.group_name = null;
+    payload.round_name = null;
+  }
 
   if (isPlayed && payload.goals_for != null) {
     let playerGoals = 0;
@@ -501,7 +651,9 @@ async function loadStandView() {
 }
 
 async function loadTeams() {
-  teams = await api("/teams");
+  if (!currentCompetitionId) { teams = []; renderTeamChips(); populateTeamSelects(); return; }
+  teams = await api(`/teams?competition_id=${currentCompetitionId}`);
+  teamsLoadedForCompetition = currentCompetitionId;
   renderTeamChips();
   populateTeamSelects();
 }
@@ -536,6 +688,16 @@ function populateOpponentDatalist() {
     .join("");
 }
 
+function populateGroupNameList() {
+  const names = new Set([
+    ...matches.map((m) => m.group_name).filter(Boolean),
+    ...results.map((r) => r.group_name).filter(Boolean),
+  ]);
+  document.getElementById("group-name-list").innerHTML = [...names]
+    .map((g) => `<option value="${escapeHtml(g)}">`)
+    .join("");
+}
+
 async function deleteTeam(id) {
   const team = teams.find((t) => t.id === id);
   if (!team) return;
@@ -553,8 +715,9 @@ document.getElementById("team-quick-add").addEventListener("submit", async (e) =
   const ownInput = document.getElementById("new-team-own");
   const name = nameInput.value.trim();
   if (!name) { showToast("Vul een teamnaam in"); return; }
+  if (!currentCompetitionId) { showToast("Maak eerst een competitie aan"); return; }
   try {
-    await api("/teams", { method: "POST", body: JSON.stringify({ name, is_own_team: ownInput.checked }) });
+    await api("/teams", { method: "POST", body: JSON.stringify({ name, is_own_team: ownInput.checked, competition_id: currentCompetitionId }) });
     nameInput.value = "";
     ownInput.checked = false;
     await loadStandView();
@@ -563,24 +726,14 @@ document.getElementById("team-quick-add").addEventListener("submit", async (e) =
 });
 
 async function loadResults() {
-  results = await api("/results");
+  if (!currentCompetitionId) { results = []; renderResultsList(); return; }
+  results = await api(`/results?competition_id=${currentCompetitionId}`);
   renderResultsList();
+  populateGroupNameList();
 }
 
-function renderResultsList() {
-  const el = document.getElementById("results-list");
-  const empty = document.getElementById("empty-results");
-  empty.hidden = results.length > 0;
-
-  let lastGroupKey = undefined;
-  el.innerHTML = results.map((r) => {
-    const groupKey = r.match_date || "";
-    const groupHtml = groupKey !== lastGroupKey
-      ? `<h3 class="results-round__title">${r.match_date ? new Date(r.match_date).toLocaleDateString("nl-NL", { day: "numeric", month: "long" }) : "Datum onbekend"}</h3>`
-      : "";
-    lastGroupKey = groupKey;
-    return `
-    ${groupHtml}
+function renderResultRow(r) {
+  return `
     <div class="result-row ${r.synced_match_id ? "is-clickable" : ""}" data-id="${r.id}" data-synced="${r.synced_match_id ? "true" : "false"}">
       <span class="result-row__score">${escapeHtml(r.home_team_name)} ${r.home_goals} – ${r.away_goals} ${escapeHtml(r.away_team_name)}</span>
       <span class="row-actions admin-only">
@@ -588,7 +741,44 @@ function renderResultsList() {
       </span>
     </div>
   `;
+}
+
+function roundSortIndex(name) {
+  const idx = ROUND_ORDER.indexOf(name || "");
+  return idx === -1 ? ROUND_ORDER.length : idx;
+}
+
+function renderResultsList() {
+  const el = document.getElementById("results-list");
+  const empty = document.getElementById("empty-results");
+  empty.hidden = results.length > 0;
+
+  // Groepsfase/competitie-uitslagen blijven gegroepeerd per datum; knockout-
+  // uitslagen worden hieronder apart gegroepeerd per ronde (eenvoudige
+  // lijst i.p.v. datum, want de volgorde van de ronde is wat telt).
+  const regular = results.filter((r) => r.phase !== "knockout");
+  const knockout = results.filter((r) => r.phase === "knockout")
+    .sort((a, b) => roundSortIndex(a.round_name) - roundSortIndex(b.round_name) || a.id - b.id);
+
+  let lastGroupKey;
+  const regularHtml = regular.map((r) => {
+    const groupKey = r.match_date || "";
+    const groupHtml = groupKey !== lastGroupKey
+      ? `<h3 class="results-round__title">${r.match_date ? new Date(r.match_date).toLocaleDateString("nl-NL", { day: "numeric", month: "long" }) : "Datum onbekend"}</h3>`
+      : "";
+    lastGroupKey = groupKey;
+    return groupHtml + renderResultRow(r);
   }).join("");
+
+  let lastRound;
+  const knockoutHtml = knockout.map((r) => {
+    const roundKey = r.round_name || "Overig";
+    const groupHtml = roundKey !== lastRound ? `<h3 class="results-round__title">${escapeHtml(roundKey)}</h3>` : "";
+    lastRound = roundKey;
+    return groupHtml + renderResultRow(r);
+  }).join("");
+
+  el.innerHTML = regularHtml + knockoutHtml;
 
   el.querySelectorAll('.result-row[data-synced="true"]').forEach((row) => {
     row.addEventListener("click", () => {
@@ -632,11 +822,29 @@ function openResultModal(result = null) {
   document.getElementById("result-delete").hidden = !result || !unlocked;
   document.getElementById("result-save").hidden = !unlocked;
   document.querySelectorAll("#result-form input, #result-form select").forEach((el) => { el.disabled = !unlocked; });
+
+  const tournament = isTournament();
+  document.getElementById("result-phase-block").hidden = !tournament;
+  if (tournament) {
+    document.getElementById("result-phase").value = result?.phase === "knockout" ? "knockout" : "groep";
+    document.getElementById("result-group").value = result?.group_name || "";
+    document.getElementById("result-round").value = result?.round_name || "";
+    document.getElementById("result-phase").onchange = toggleResultPhaseFields;
+    toggleResultPhaseFields();
+  }
+
   resultModal.hidden = false;
 }
 function closeResultModal() { resultModal.hidden = true; }
 
+function toggleResultPhaseFields() {
+  const phase = document.getElementById("result-phase").value;
+  document.getElementById("field-result-group").hidden = phase !== "groep";
+  document.getElementById("field-result-round").hidden = phase !== "knockout";
+}
+
 document.getElementById("btn-new-result").addEventListener("click", () => {
+  if (!currentCompetitionId) { showToast("Maak eerst een competitie aan"); return; }
   const otherTeams = teams.filter((t) => !t.is_own_team);
   if (otherTeams.length < 2) { showToast("Voeg eerst minstens twee andere teams toe (FC Caesar Salad hoeft niet — dat gaat automatisch via 'Programma & uitslagen')"); return; }
   openResultModal();
@@ -659,7 +867,18 @@ document.getElementById("result-save").addEventListener("click", async () => {
     home_team_id, away_team_id,
     home_goals: Number(home_goals),
     away_goals: Number(away_goals),
+    competition_id: currentCompetitionId,
   };
+
+  if (isTournament()) {
+    payload.phase = document.getElementById("result-phase").value;
+    payload.group_name = payload.phase === "groep" ? (document.getElementById("result-group").value.trim() || null) : null;
+    payload.round_name = payload.phase === "knockout" ? (document.getElementById("result-round").value.trim() || null) : null;
+  } else {
+    payload.phase = "competitie";
+    payload.group_name = null;
+    payload.round_name = null;
+  }
 
   try {
     if (id) await api(`/results?id=${id}`, { method: "PUT", body: JSON.stringify(payload) });
@@ -687,37 +906,72 @@ document.getElementById("result-delete").addEventListener("click", () => {
 });
 
 async function loadStandingsTable() {
-  const table = await api("/results?standings=true");
-  renderStandings(table);
+  if (!currentCompetitionId) { renderStandingsGroups([]); return; }
+  const groups = await api(`/results?standings=true&competition_id=${currentCompetitionId}`);
+  renderStandingsGroups(groups);
 }
 
-function renderStandings(table) {
-  const tbody = document.getElementById("standings-rows");
+function renderStandingsTable(rows) {
+  return `
+    <table class="player-table standings-table">
+      <thead>
+        <tr>
+          <th class="col-num">#</th>
+          <th>Team</th>
+          <th class="num">GS</th>
+          <th class="num">W</th>
+          <th class="num">G</th>
+          <th class="num">V</th>
+          <th class="num">DV</th>
+          <th class="num">DT</th>
+          <th class="num">DS</th>
+          <th class="num">Pt</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${rows.map((t, i) => `
+          <tr class="${t.is_own_team ? "is-own-team" : ""}">
+            <td class="pos">${i + 1}</td>
+            <td>${escapeHtml(t.name)}</td>
+            <td class="num">${t.played}</td>
+            <td class="num">${t.wins}</td>
+            <td class="num">${t.draws}</td>
+            <td class="num">${t.losses}</td>
+            <td class="num">${t.goals_for}</td>
+            <td class="num">${t.goals_against}</td>
+            <td class="num">${t.goal_diff > 0 ? "+" : ""}${t.goal_diff}</td>
+            <td class="num">${t.points}</td>
+          </tr>
+        `).join("")}
+      </tbody>
+    </table>
+  `;
+}
+
+// Bij een competitie is er één (ongegroepeerde) tabel; bij een toernooi met
+// groepsfase krijgt elke groep zijn eigen tabel met een eigen kopje.
+function renderStandingsGroups(groups) {
+  const container = document.getElementById("standings-groups");
   const empty = document.getElementById("empty-standings");
-  empty.hidden = table.length > 0;
-  tbody.innerHTML = table.map((t, i) => `
-    <tr class="${t.is_own_team ? "is-own-team" : ""}">
-      <td class="pos">${i + 1}</td>
-      <td>${escapeHtml(t.name)}</td>
-      <td class="num">${t.played}</td>
-      <td class="num">${t.wins}</td>
-      <td class="num">${t.draws}</td>
-      <td class="num">${t.losses}</td>
-      <td class="num">${t.goals_for}</td>
-      <td class="num">${t.goals_against}</td>
-      <td class="num">${t.goal_diff > 0 ? "+" : ""}${t.goal_diff}</td>
-      <td class="num">${t.points}</td>
-    </tr>
+  empty.hidden = groups.some((g) => g.standings.length > 0);
+
+  container.innerHTML = groups.map((g) => `
+    <div class="standings-group">
+      ${g.group_name ? `<h2 class="section-title">${escapeHtml(g.group_name)}</h2>` : ""}
+      <div class="player-table-wrap">
+        ${renderStandingsTable(g.standings)}
+      </div>
+    </div>
   `).join("");
 
   syncStandingsStickyOffset();
 }
 
 function syncStandingsStickyOffset() {
-  const standingsTable = document.querySelector(".standings-table");
-  const firstHeaderCell = standingsTable?.querySelector("thead th:first-child");
-  if (!standingsTable || !firstHeaderCell) return;
-  standingsTable.style.setProperty("--pos-col-width", `${firstHeaderCell.getBoundingClientRect().width}px`);
+  document.querySelectorAll(".standings-table").forEach((table) => {
+    const firstHeaderCell = table.querySelector("thead th:first-child");
+    if (firstHeaderCell) table.style.setProperty("--pos-col-width", `${firstHeaderCell.getBoundingClientRect().width}px`);
+  });
 }
 
 window.addEventListener("resize", syncStandingsStickyOffset);
@@ -727,6 +981,7 @@ window.addEventListener("resize", syncStandingsStickyOffset);
 (async function init() {
   applyLockState();
   try {
+    await loadCompetitions();
     await loadPlayers();
     await loadMatches();
   } catch (e) {

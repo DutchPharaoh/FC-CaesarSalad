@@ -28,6 +28,11 @@
       <span id="lock-icon">🔒</span>
     </button>
   </div>
+  <div class="competition-bar">
+    <select id="competition-select" aria-label="Actieve competitie"></select>
+    <span class="competition-bar__type" id="competition-type-badge"></span>
+    <button class="btn btn--ghost btn--small admin-only" id="btn-new-competition">+ Competitie</button>
+  </div>
 </header>
 
 <main class="app">
@@ -37,7 +42,7 @@
     <div class="view__header">
       <div>
         <h1>Programma &amp; uitslagen</h1>
-        <p class="view__sub">Schema en uitslagen van FC Caesar Salad.</p>
+        <p class="view__sub" id="wedstrijden-sub">Schema en uitslagen van FC Caesar Salad.</p>
       </div>
       <button class="btn btn--primary admin-only" id="btn-new-match">+ Wedstrijd</button>
     </div>
@@ -92,30 +97,12 @@
     <div class="view__header">
       <div>
         <h1>Stand</h1>
-        <p class="view__sub">Competitietabel van jullie poule.</p>
+        <p class="view__sub" id="stand-sub">Competitietabel van jullie poule.</p>
       </div>
     </div>
 
-    <div class="player-table-wrap">
-      <table class="player-table standings-table">
-        <thead>
-          <tr>
-            <th class="col-num">#</th>
-            <th>Team</th>
-            <th class="num">GS</th>
-            <th class="num">W</th>
-            <th class="num">G</th>
-            <th class="num">V</th>
-            <th class="num">DV</th>
-            <th class="num">DT</th>
-            <th class="num">DS</th>
-            <th class="num">Pt</th>
-          </tr>
-        </thead>
-        <tbody id="standings-rows"></tbody>
-      </table>
-      <p class="empty-state" id="empty-standings" hidden>Nog geen teams of uitslagen ingevoerd.</p>
-    </div>
+    <div id="standings-groups"></div>
+    <p class="empty-state" id="empty-standings" hidden>Nog geen teams of uitslagen ingevoerd.</p>
 
     <div class="admin-only">
       <h2 class="section-title">Teams beheren</h2>
@@ -165,6 +152,23 @@
             <option value="afgelast">Afgelast</option>
           </select>
         </label>
+        <div id="match-phase-block" hidden style="display: contents;">
+          <label class="field">
+            <span>Fase</span>
+            <select id="match-phase">
+              <option value="groep">Groepsfase</option>
+              <option value="knockout">Knockout</option>
+            </select>
+          </label>
+          <label class="field" id="field-match-group">
+            <span>Groep</span>
+            <input type="text" id="match-group" placeholder="Bijv. Groep A" list="group-name-list" autocomplete="off">
+          </label>
+          <label class="field" id="field-match-round">
+            <span>Ronde</span>
+            <input type="text" id="match-round" placeholder="Bijv. Kwartfinale" list="round-name-list" autocomplete="off">
+          </label>
+        </div>
         <label class="field score-field" id="field-goals-for">
           <span>Doelpunten voor</span>
           <input type="number" min="0" id="match-goals-for">
@@ -241,6 +245,46 @@
   </div>
 </div>
 
+<!-- MODAL: competitie toevoegen/bewerken -->
+<div class="modal-backdrop" id="competition-modal" hidden>
+  <div class="modal modal--small" role="dialog" aria-modal="true" aria-labelledby="competition-modal-title">
+    <div class="modal__header">
+      <h2 id="competition-modal-title">Competitie</h2>
+      <button class="icon-btn" id="competition-modal-close" aria-label="Sluiten">✕</button>
+    </div>
+    <div class="modal__body">
+      <form id="competition-form" class="form-grid">
+        <input type="hidden" id="competition-id">
+        <label class="field" style="grid-column: 1 / -1;">
+          <span>Naam</span>
+          <input type="text" id="competition-name" required placeholder="Bijv. Mini-toernooi zomer 2026">
+        </label>
+        <label class="field">
+          <span>Type</span>
+          <select id="competition-type">
+            <option value="competitie">Competitie</option>
+            <option value="toernooi">Toernooi (groepsfase + knockout)</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>Status</span>
+          <select id="competition-status">
+            <option value="actief">Actief</option>
+            <option value="afgesloten">Afgesloten</option>
+          </select>
+        </label>
+      </form>
+    </div>
+    <div class="modal__footer">
+      <button class="btn btn--danger" id="competition-delete" hidden>Verwijderen</button>
+      <div class="modal__footer-right">
+        <button class="btn btn--ghost" id="competition-cancel">Annuleren</button>
+        <button class="btn btn--primary" id="competition-save">Opslaan</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL: ontgrendelen -->
 <div class="modal-backdrop" id="unlock-modal" hidden>
   <div class="modal modal--small" role="dialog" aria-modal="true" aria-labelledby="unlock-modal-title">
@@ -297,6 +341,23 @@
           <span>Doelpunten uit</span>
           <input type="number" min="0" id="result-away-goals">
         </label>
+        <div id="result-phase-block" hidden style="display: contents;">
+          <label class="field">
+            <span>Fase</span>
+            <select id="result-phase">
+              <option value="groep">Groepsfase</option>
+              <option value="knockout">Knockout</option>
+            </select>
+          </label>
+          <label class="field" id="field-result-group">
+            <span>Groep</span>
+            <input type="text" id="result-group" placeholder="Bijv. Groep A" list="group-name-list" autocomplete="off">
+          </label>
+          <label class="field" id="field-result-round" style="grid-column: 1 / -1;">
+            <span>Ronde</span>
+            <input type="text" id="result-round" placeholder="Bijv. Kwartfinale" list="round-name-list" autocomplete="off">
+          </label>
+        </div>
       </form>
     </div>
     <div class="modal__footer">
@@ -308,6 +369,15 @@
     </div>
   </div>
 </div>
+
+<datalist id="group-name-list"></datalist>
+<datalist id="round-name-list">
+  <option value="Achtste finale">
+  <option value="Kwartfinale">
+  <option value="Halve finale">
+  <option value="Troostfinale">
+  <option value="Finale">
+</datalist>
 
 <div class="toast" id="toast" hidden></div>
 

@@ -2,17 +2,17 @@ import { requireAdmin, json } from "./_shared.js";
 
 const OWN_TEAM_NAME = "FC Caesar Salad";
 
-// Zorgt dat er altijd precies één team als "ons team" bestaat, zonder dat
-// daar iets voor hoeft te worden ingesteld.
-async function ensureOwnTeam(env) {
+// Zorgt dat er binnen een competitie altijd precies één team als "ons team"
+// bestaat, zonder dat daar iets voor hoeft te worden ingesteld.
+async function ensureOwnTeam(env, competitionId) {
   const flagged = await env.DB.prepare(
-    "SELECT * FROM teams WHERE is_own_team = 1 LIMIT 1"
-  ).first();
+    "SELECT * FROM teams WHERE is_own_team = 1 AND competition_id = ? LIMIT 1"
+  ).bind(competitionId).first();
   if (flagged) return flagged;
 
   const byName = await env.DB.prepare(
-    "SELECT * FROM teams WHERE LOWER(name) = LOWER(?) LIMIT 1"
-  ).bind(OWN_TEAM_NAME).first();
+    "SELECT * FROM teams WHERE LOWER(name) = LOWER(?) AND competition_id = ? LIMIT 1"
+  ).bind(OWN_TEAM_NAME, competitionId).first();
   if (byName) {
     return env.DB.prepare(
       "UPDATE teams SET is_own_team = 1 WHERE id = ? RETURNING *"
@@ -20,8 +20,8 @@ async function ensureOwnTeam(env) {
   }
 
   return env.DB.prepare(
-    "INSERT INTO teams (name, is_own_team) VALUES (?, 1) RETURNING *"
-  ).bind(OWN_TEAM_NAME).first();
+    "INSERT INTO teams (name, is_own_team, competition_id) VALUES (?, 1, ?) RETURNING *"
+  ).bind(OWN_TEAM_NAME, competitionId).first();
 }
 
 // Houdt de competitie-uitslag (league_results) voor een eigen wedstrijd
@@ -39,15 +39,15 @@ async function syncLeagueResult(env, match) {
     return;
   }
 
-  const ownTeam = await ensureOwnTeam(env);
+  const ownTeam = await ensureOwnTeam(env, match.competition_id);
 
   let opponentTeam = await env.DB.prepare(
-    "SELECT * FROM teams WHERE LOWER(name) = LOWER(?) LIMIT 1"
-  ).bind(match.opponent).first();
+    "SELECT * FROM teams WHERE LOWER(name) = LOWER(?) AND competition_id = ? LIMIT 1"
+  ).bind(match.opponent, match.competition_id).first();
   if (!opponentTeam) {
     opponentTeam = await env.DB.prepare(
-      "INSERT INTO teams (name) VALUES (?) RETURNING *"
-    ).bind(match.opponent).first();
+      "INSERT INTO teams (name, competition_id) VALUES (?, ?) RETURNING *"
+    ).bind(match.opponent, match.competition_id).first();
   }
 
   const matchDateOnly = match.match_date ? match.match_date.slice(0, 10) : null;
@@ -55,22 +55,34 @@ async function syncLeagueResult(env, match) {
   if (match.league_result_id) {
     await env.DB.prepare(
       `UPDATE league_results
-       SET match_date = ?, home_team_id = ?, away_team_id = ?, home_goals = ?, away_goals = ?
+       SET match_date = ?, home_team_id = ?, away_team_id = ?, home_goals = ?, away_goals = ?,
+           competition_id = ?, phase = ?, group_name = ?, round_name = ?
        WHERE id = ?`
-    ).bind(matchDateOnly, ownTeam.id, opponentTeam.id, match.goals_for, match.goals_against, match.league_result_id).run();
+    ).bind(
+      matchDateOnly, ownTeam.id, opponentTeam.id, match.goals_for, match.goals_against,
+      match.competition_id, match.phase, match.group_name ?? null, match.round_name ?? null,
+      match.league_result_id
+    ).run();
   } else {
     const newResult = await env.DB.prepare(
-      `INSERT INTO league_results (match_date, home_team_id, away_team_id, home_goals, away_goals)
-       VALUES (?, ?, ?, ?, ?) RETURNING *`
-    ).bind(matchDateOnly, ownTeam.id, opponentTeam.id, match.goals_for, match.goals_against).first();
+      `INSERT INTO league_results (match_date, home_team_id, away_team_id, home_goals, away_goals, competition_id, phase, group_name, round_name)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING *`
+    ).bind(
+      matchDateOnly, ownTeam.id, opponentTeam.id, match.goals_for, match.goals_against,
+      match.competition_id, match.phase, match.group_name ?? null, match.round_name ?? null
+    ).first();
     await env.DB.prepare("UPDATE matches SET league_result_id = ? WHERE id = ?").bind(newResult.id, match.id).run();
   }
 }
 
-export async function onRequestGet({ env }) {
+export async function onRequestGet({ request, env }) {
+  const url = new URL(request.url);
+  const competitionId = url.searchParams.get("competition_id");
+  if (!competitionId) return json(400, { error: "competition_id is verplicht" });
+
   const { results } = await env.DB.prepare(
-    "SELECT * FROM matches ORDER BY match_date ASC"
-  ).all();
+    "SELECT * FROM matches WHERE competition_id = ? ORDER BY match_date ASC"
+  ).bind(competitionId).all();
   return json(200, results);
 }
 
@@ -79,17 +91,19 @@ export async function onRequestPost({ request, env }) {
   if (!auth.ok) return json(auth.status, { error: auth.error });
 
   const body = await request.json();
-  const { match_date, opponent, status, goals_for, goals_against, mvp_player_id, opponent_own_goals, unknown_goals } = body;
+  const { match_date, opponent, status, goals_for, goals_against, mvp_player_id, opponent_own_goals, unknown_goals, competition_id, phase, group_name, round_name } = body;
   if (!match_date || !opponent || !opponent.trim()) {
     return json(400, { error: "Datum en tegenstander zijn verplicht" });
   }
+  if (!competition_id) return json(400, { error: "competition_id is verplicht" });
 
   const match = await env.DB.prepare(
-    `INSERT INTO matches (match_date, opponent, status, goals_for, goals_against, mvp_player_id, opponent_own_goals, unknown_goals)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING *`
+    `INSERT INTO matches (match_date, opponent, status, goals_for, goals_against, mvp_player_id, opponent_own_goals, unknown_goals, competition_id, phase, group_name, round_name)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING *`
   ).bind(
     match_date, opponent.trim(), status || "gepland",
-    goals_for ?? null, goals_against ?? null, mvp_player_id ?? null, opponent_own_goals ?? 0, unknown_goals ?? 0
+    goals_for ?? null, goals_against ?? null, mvp_player_id ?? null, opponent_own_goals ?? 0, unknown_goals ?? 0,
+    competition_id, phase || "competitie", group_name ?? null, round_name ?? null
   ).first();
 
   await syncLeagueResult(env, match);
@@ -106,7 +120,7 @@ export async function onRequestPut({ request, env }) {
   if (!id) return json(400, { error: "id ontbreekt" });
 
   const body = await request.json();
-  const { match_date, opponent, status, goals_for, goals_against, mvp_player_id, opponent_own_goals, unknown_goals } = body;
+  const { match_date, opponent, status, goals_for, goals_against, mvp_player_id, opponent_own_goals, unknown_goals, phase, group_name, round_name } = body;
 
   const match = await env.DB.prepare(
     `UPDATE matches
@@ -117,12 +131,16 @@ export async function onRequestPut({ request, env }) {
          goals_against = ?,
          mvp_player_id = ?,
          opponent_own_goals = ?,
-         unknown_goals = ?
+         unknown_goals = ?,
+         phase = COALESCE(?, phase),
+         group_name = ?,
+         round_name = ?
      WHERE id = ?
      RETURNING *`
   ).bind(
     match_date ?? null, opponent ?? null, status ?? null,
     goals_for ?? null, goals_against ?? null, mvp_player_id ?? null, opponent_own_goals ?? 0, unknown_goals ?? 0,
+    phase ?? null, group_name ?? null, round_name ?? null,
     id
   ).first();
 
