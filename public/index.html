@@ -66,10 +66,14 @@
     <div class="view__header">
       <div>
         <h1>Selectie &amp; statistieken</h1>
-        <p class="view__sub">Spelers, teamvorm en statistieken van het seizoen.</p>
+        <p class="view__sub" id="statistieken-sub">Spelers, teamvorm en statistieken van het seizoen.</p>
       </div>
       <button class="btn btn--primary admin-only" id="btn-new-player">+ Speler</button>
     </div>
+
+    <label class="checkbox-field" id="stats-alltime-wrap" style="margin-bottom: 16px;">
+      <input type="checkbox" id="stats-alltime-toggle"> All-time (alle competities/toernooien samen)
+    </label>
 
     <div class="scoreboard" id="team-record"></div>
 

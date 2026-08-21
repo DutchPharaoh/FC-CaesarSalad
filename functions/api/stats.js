@@ -6,6 +6,12 @@ export async function onRequestGet({ request, env }) {
   const summary = url.searchParams.get("summary");
 
   if (summary === "true") {
+    // Zonder competition_id (all-time): alle competities/toernooien samen.
+    // Spelers zijn altijd globaal (niet per competitie), dus blijven ze met
+    // een LEFT JOIN zichtbaar, ook als ze in de gekozen competitie nog geen
+    // statistieken hebben.
+    const competitionId = url.searchParams.get("competition_id") || null;
+
     const leaderboard = await env.DB.prepare(
       `SELECT
          p.id, p.name,
@@ -14,12 +20,13 @@ export async function onRequestGet({ request, env }) {
          COALESCE(SUM(s.yellow_cards), 0) AS yellow_cards,
          COALESCE(SUM(s.red_cards), 0) AS red_cards,
          COUNT(s.match_id) AS matches_played,
-         (SELECT COUNT(*) FROM matches m WHERE m.mvp_player_id = p.id) AS mvp_count
+         (SELECT COUNT(*) FROM matches m WHERE m.mvp_player_id = p.id AND (? IS NULL OR m.competition_id = ?)) AS mvp_count
        FROM players p
        LEFT JOIN player_stats s ON s.player_id = p.id
+         AND s.match_id IN (SELECT id FROM matches WHERE ? IS NULL OR competition_id = ?)
        GROUP BY p.id
        ORDER BY goals DESC, matches_played DESC, mvp_count DESC, p.name ASC`
-    ).all();
+    ).bind(competitionId, competitionId, competitionId, competitionId).all();
 
     const record = await env.DB.prepare(
       `SELECT
@@ -29,8 +36,9 @@ export async function onRequestGet({ request, env }) {
          COUNT(*) FILTER (WHERE status = 'gespeeld' AND goals_for < goals_against) AS losses,
          COALESCE(SUM(goals_for) FILTER (WHERE status = 'gespeeld'), 0) AS goals_for,
          COALESCE(SUM(goals_against) FILTER (WHERE status = 'gespeeld'), 0) AS goals_against
-       FROM matches`
-    ).first();
+       FROM matches
+       WHERE ? IS NULL OR competition_id = ?`
+    ).bind(competitionId, competitionId).first();
 
     return json(200, { leaderboard: leaderboard.results, record });
   }

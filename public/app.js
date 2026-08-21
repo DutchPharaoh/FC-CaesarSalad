@@ -117,6 +117,17 @@ function updateCompetitionContext() {
   const standSub = document.getElementById("stand-sub");
   wedstrijdenSub.textContent = comp ? `Schema en uitslagen van FC Caesar Salad — ${comp.name}.` : "Maak eerst een competitie aan.";
   standSub.textContent = comp ? `Stand van ${comp.name}.` : "Maak eerst een competitie aan.";
+  updateStatsSub();
+}
+
+function updateStatsSub() {
+  const statsSub = document.getElementById("statistieken-sub");
+  const comp = currentCompetition();
+  statsSub.textContent = document.getElementById("stats-alltime-toggle").checked
+    ? "Spelers, teamvorm en statistieken van alle competities/toernooien samen."
+    : comp
+      ? `Spelers, teamvorm en statistieken van ${comp.name}.`
+      : "Maak eerst een competitie aan.";
 }
 
 document.getElementById("competition-select").addEventListener("change", async (e) => {
@@ -127,6 +138,7 @@ document.getElementById("competition-select").addEventListener("change", async (
   await loadMatches();
   const activeTab = document.querySelector(".tab.is-active")?.dataset.tab;
   if (activeTab === "stand") await loadStandView();
+  if (activeTab === "statistieken") await loadStats();
 });
 
 const competitionModal = document.getElementById("competition-modal");
@@ -541,10 +553,21 @@ document.getElementById("match-delete").addEventListener("click", async () => {
 
 /* ---------- Stats view ---------- */
 
+const STATS_ALLTIME_KEY = "teamstats_alltime";
+const statsAlltimeToggle = document.getElementById("stats-alltime-toggle");
+statsAlltimeToggle.checked = localStorage.getItem(STATS_ALLTIME_KEY) === "true";
+statsAlltimeToggle.addEventListener("change", () => {
+  localStorage.setItem(STATS_ALLTIME_KEY, String(statsAlltimeToggle.checked));
+  loadStats();
+});
+
 async function loadStats() {
-  const { leaderboard, record } = await api("/stats?summary=true");
+  const alltime = statsAlltimeToggle.checked;
+  const query = !alltime && currentCompetitionId ? `&competition_id=${currentCompetitionId}` : "";
+  const { leaderboard, record } = await api(`/stats?summary=true${query}`);
   renderRecord(record);
   renderLeaderboard(leaderboard);
+  updateStatsSub();
 }
 
 function renderRecord(r) {
