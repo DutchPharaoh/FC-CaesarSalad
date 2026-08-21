@@ -27,27 +27,11 @@ const TEAM_MATCH_CTE = `
   )
 `;
 
+// Altijd een LEFT JOIN vanuit alle teams van de groep (i.p.v. vanuit de
+// gespeelde wedstrijden), zodat een team dat nog 0 gespeeld heeft — bijv.
+// een tegenstander uit een net aangemaakte, geplande wedstrijd — meteen in
+// de tabel staat in plaats van pas na de eerste uitslag.
 const STANDINGS_SELECT = `
-  SELECT
-    t.id, t.name, t.is_own_team,
-    COALESCE(COUNT(tm.team_id), 0) AS played,
-    COALESCE(SUM(tm.win), 0) AS wins,
-    COALESCE(SUM(tm.draw), 0) AS draws,
-    COALESCE(SUM(tm.loss), 0) AS losses,
-    COALESCE(SUM(tm.gf), 0) AS goals_for,
-    COALESCE(SUM(tm.ga), 0) AS goals_against,
-    COALESCE(SUM(tm.gf) - SUM(tm.ga), 0) AS goal_diff,
-    COALESCE(SUM(tm.win) * 3 + SUM(tm.draw), 0) AS points
-  FROM team_matches tm
-  JOIN teams t ON t.id = tm.team_id
-  GROUP BY t.id
-  ORDER BY points DESC, goal_diff DESC, goals_for DESC, t.name ASC
-`;
-
-// Zonder groep (gewone competitie) tellen ook teams zonder wedstrijden mee
-// (bijv. net toegevoegd), daarom hier een LEFT JOIN vanuit alle teams i.p.v.
-// vanuit de gespeelde wedstrijden.
-const STANDINGS_SELECT_ALL_TEAMS = `
   SELECT
     t.id, t.name, t.is_own_team,
     COALESCE(COUNT(tm.team_id), 0) AS played,
@@ -60,18 +44,14 @@ const STANDINGS_SELECT_ALL_TEAMS = `
     COALESCE(SUM(tm.win) * 3 + SUM(tm.draw), 0) AS points
   FROM teams t
   LEFT JOIN team_matches tm ON tm.team_id = t.id
-  WHERE t.competition_id = ?
+  WHERE t.competition_id = ? AND t.group_name IS ?
   GROUP BY t.id
   ORDER BY points DESC, goal_diff DESC, goals_for DESC, t.name ASC
 `;
 
 async function standingsForGroup(env, competitionId, groupName) {
-  const sql = groupName === null
-    ? `${TEAM_MATCH_CTE}${STANDINGS_SELECT_ALL_TEAMS}`
-    : `${TEAM_MATCH_CTE}${STANDINGS_SELECT}`;
-  const binds = groupName === null
-    ? [competitionId, null, competitionId, null, competitionId]
-    : [competitionId, groupName, competitionId, groupName];
+  const sql = `${TEAM_MATCH_CTE}${STANDINGS_SELECT}`;
+  const binds = [competitionId, groupName, competitionId, groupName, competitionId, groupName];
   const { results } = await env.DB.prepare(sql).bind(...binds).all();
   return results.map((r) => ({ ...r, is_own_team: !!r.is_own_team }));
 }
@@ -83,11 +63,11 @@ export async function onRequestGet({ request, env }) {
 
   if (url.searchParams.get("standings") === "true") {
     const { results: groupRows } = await env.DB.prepare(
-      `SELECT DISTINCT group_name FROM league_results WHERE competition_id = ? AND phase != 'knockout'`
+      `SELECT DISTINCT group_name FROM teams WHERE competition_id = ? AND group_name IS NOT NULL`
     ).bind(competitionId).all();
 
     const groupNames = groupRows.map((g) => g.group_name);
-    if (groupNames.length === 0) groupNames.push(null); // geen uitslagen: toon alsnog de (lege) hoofdtabel
+    if (groupNames.length === 0) groupNames.push(null); // geen groepen: toon de (evt. lege) hoofdtabel
 
     const groups = await Promise.all(
       groupNames.map(async (groupName) => ({
@@ -153,6 +133,11 @@ export async function onRequestPost({ request, env }) {
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING *`
   ).bind(match_date || null, home_team_id, away_team_id, home_goals, away_goals, competition_id, phase || "competitie", group_name ?? null, round_name ?? null).first();
 
+  if (row.phase === "groep" && row.group_name) {
+    await env.DB.prepare("UPDATE teams SET group_name = ? WHERE id IN (?, ?)")
+      .bind(row.group_name, home_team_id, away_team_id).run();
+  }
+
   return json(201, row);
 }
 
@@ -206,6 +191,12 @@ export async function onRequestPut({ request, env }) {
   ).first();
 
   if (!row) return json(404, { error: "Uitslag niet gevonden" });
+
+  if (row.phase === "groep" && row.group_name) {
+    await env.DB.prepare("UPDATE teams SET group_name = ? WHERE id IN (?, ?)")
+      .bind(row.group_name, row.home_team_id, row.away_team_id).run();
+  }
+
   return json(200, row);
 }
 

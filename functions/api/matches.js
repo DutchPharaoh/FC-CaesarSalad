@@ -24,11 +24,41 @@ async function ensureOwnTeam(env, competitionId) {
   ).bind(OWN_TEAM_NAME, competitionId).first();
 }
 
+async function ensureOpponentTeam(env, competitionId, opponentName) {
+  let team = await env.DB.prepare(
+    "SELECT * FROM teams WHERE LOWER(name) = LOWER(?) AND competition_id = ? LIMIT 1"
+  ).bind(opponentName, competitionId).first();
+  if (!team) {
+    team = await env.DB.prepare(
+      "INSERT INTO teams (name, competition_id) VALUES (?, ?) RETURNING *"
+    ).bind(opponentName, competitionId).first();
+  }
+  return team;
+}
+
+// Ons team en de tegenstander moeten meteen als teams bestaan zodra een
+// wedstrijd is ingevoerd — ook als die nog "gepland" is — zodat ze meteen
+// in de stand/groepstabel zichtbaar zijn met 0 gespeeld, in plaats van pas
+// zodra er een uitslag is.
+async function ensureMatchTeams(env, match) {
+  const ownTeam = await ensureOwnTeam(env, match.competition_id);
+  const opponentTeam = await ensureOpponentTeam(env, match.competition_id, match.opponent);
+
+  if (match.phase === "groep" && match.group_name) {
+    await env.DB.prepare("UPDATE teams SET group_name = ? WHERE id IN (?, ?)")
+      .bind(match.group_name, ownTeam.id, opponentTeam.id).run();
+  }
+
+  return { ownTeam, opponentTeam };
+}
+
 // Houdt de competitie-uitslag (league_results) voor een eigen wedstrijd
 // automatisch in sync met de score/status die bij "Programma & uitslagen"
 // is ingevoerd. Ons team staat altijd als "thuisteam" — technische keuze,
 // heeft geen invloed op de berekende stand.
 async function syncLeagueResult(env, match) {
+  const { ownTeam, opponentTeam } = await ensureMatchTeams(env, match);
+
   const isPlayed = match.status === "gespeeld" && match.goals_for != null && match.goals_against != null;
 
   if (!isPlayed) {
@@ -37,17 +67,6 @@ async function syncLeagueResult(env, match) {
       await env.DB.prepare("UPDATE matches SET league_result_id = NULL WHERE id = ?").bind(match.id).run();
     }
     return;
-  }
-
-  const ownTeam = await ensureOwnTeam(env, match.competition_id);
-
-  let opponentTeam = await env.DB.prepare(
-    "SELECT * FROM teams WHERE LOWER(name) = LOWER(?) AND competition_id = ? LIMIT 1"
-  ).bind(match.opponent, match.competition_id).first();
-  if (!opponentTeam) {
-    opponentTeam = await env.DB.prepare(
-      "INSERT INTO teams (name, competition_id) VALUES (?, ?) RETURNING *"
-    ).bind(match.opponent, match.competition_id).first();
   }
 
   const matchDateOnly = match.match_date ? match.match_date.slice(0, 10) : null;

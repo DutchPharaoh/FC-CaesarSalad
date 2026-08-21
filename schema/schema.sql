@@ -24,6 +24,8 @@ CREATE TABLE teams (
   name TEXT NOT NULL,
   is_own_team INTEGER NOT NULL DEFAULT 0,
   competition_id INTEGER REFERENCES competitions(id) ON DELETE CASCADE,
+  group_name TEXT, -- bijgehouden vanuit de app zodra een wedstrijd/uitslag
+                    -- met fase "groep" wordt opgeslagen (ook al gepland)
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   UNIQUE(name, competition_id)
 );

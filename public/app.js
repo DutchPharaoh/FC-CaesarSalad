@@ -406,6 +406,7 @@ async function toggleStatsBlock() {
   document.getElementById("field-goals-against").hidden = !isPlayed;
   document.getElementById("field-mvp").hidden = !isPlayed;
   document.getElementById("field-own-goals").hidden = !isPlayed;
+  document.getElementById("field-unknown-goals").hidden = !isPlayed;
   if (players.length === 0) await loadPlayers();
   renderMvpOptions();
 }
