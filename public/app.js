@@ -1143,6 +1143,27 @@ function syncStandingsStickyOffset() {
 
 window.addEventListener("resize", syncStandingsStickyOffset);
 
+/* ---------- Aanmelden ---------- */
+
+document.getElementById("signup-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const name = document.getElementById("signup-name").value.trim();
+  const unit = document.getElementById("signup-unit").value.trim();
+  if (!name || !unit) { showToast("Vul naam en unit in"); return; }
+
+  const btn = document.getElementById("signup-submit");
+  btn.disabled = true;
+  try {
+    await api("/signup", { method: "POST", body: JSON.stringify({ name, unit }) });
+    document.getElementById("signup-form").reset();
+    showToast("Bedankt voor je aanmelding!");
+  } catch (err) {
+    showToast(err.message);
+  } finally {
+    btn.disabled = false;
+  }
+});
+
 /* ---------- Init ---------- */
 
 (async function init() {

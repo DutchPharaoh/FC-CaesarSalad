@@ -23,6 +23,7 @@
       <button class="tab is-active" data-tab="wedstrijden" role="tab" aria-selected="true">Programma &amp; uitslagen</button>
       <button class="tab" data-tab="statistieken" role="tab" aria-selected="false">Selectie &amp; statistieken</button>
       <button class="tab" data-tab="stand" role="tab" aria-selected="false">Stand</button>
+      <button class="tab" data-tab="aanmelden" role="tab" aria-selected="false">Aanmelden</button>
     </nav>
     <button class="lock-btn" id="btn-lock" title="Bewerken ontgrendelen">
       <span id="lock-icon">🔒</span>
@@ -134,6 +135,30 @@
     </div>
     <div class="results-list" id="results-list"></div>
     <p class="empty-state" id="empty-results" hidden>Nog geen uitslagen ingevoerd.</p>
+  </section>
+
+  <!-- AANMELDEN -->
+  <section class="view" id="view-aanmelden">
+    <div class="view__header">
+      <div>
+        <h1>Aanmelden</h1>
+        <p class="view__sub">Meld je aan voor FC Caesar Salad.</p>
+      </div>
+    </div>
+
+    <form id="signup-form" class="form-grid" style="max-width: 480px;">
+      <label class="field" style="grid-column: 1 / -1;">
+        <span>Naam</span>
+        <input type="text" id="signup-name" required placeholder="Voor- en achternaam" autocomplete="name">
+      </label>
+      <label class="field" style="grid-column: 1 / -1;">
+        <span>Unit</span>
+        <input type="text" id="signup-unit" required placeholder="Bijv. Unit Noord" autocomplete="off">
+      </label>
+      <div style="grid-column: 1 / -1;">
+        <button type="submit" class="btn btn--primary" id="signup-submit">Aanmelden</button>
+      </div>
+    </form>
   </section>
 </main>
 
@@ -394,6 +419,6 @@
 
 <div class="toast" id="toast" hidden></div>
 
-<script src="app.js?v=3"></script>
+<script src="app.js?v=4"></script>
 </body>
 </html>
