@@ -733,6 +733,20 @@ body.is-unlocked .row-actions.admin-only { display: flex; }
   .ticket__opponent { font-size: 0.92rem; }
   .tabs { flex-wrap: wrap; gap: 2px; }
   .tab { padding: 8px 10px; font-size: 0.85rem; }
+
+  /* Spelers- en standentabel passen op mobiel binnen het scherm i.p.v. te
+     moeten horizontaal scrollen — alles wat kleiner opgemaakt. */
+  .player-table { min-width: 0; width: 100%; }
+  .player-table th { padding: 6px 3px; font-size: 0.6rem; }
+  .player-table td { padding: 6px 3px; font-size: 0.74rem; }
+  .player-table th:first-child,
+  .player-table td:first-child { overflow-wrap: break-word; }
+  .col-num { width: 20px; }
+  .col-actions { width: 32px; }
+  .standings-table th:nth-child(2),
+  .standings-table td:nth-child(2) { width: 76px; }
+  .row-actions { gap: 2px; }
+  .row-actions button { font-size: 0.8rem; padding: 1px 2px; }
 }
 
 :focus-visible { outline: 2px solid var(--purple-500); outline-offset: 2px; }
