@@ -145,7 +145,7 @@ button, input, select {
   padding: 6px 10px;
   font-size: 0.85rem;
   font-weight: 600;
-  max-width: 240px;
+  max-width: 100%;
 }
 .competition-bar__type {
   font-size: 0.7rem;
@@ -368,13 +368,25 @@ body.is-unlocked td.row-actions.admin-only { display: flex; }
 }
 .row-actions button:hover { color: var(--navy-700); }
 
+.player-name-cell {
+  cursor: pointer;
+}
+.stats-table td.player-name-cell:hover,
+.stats-table td.player-name-cell:focus-visible {
+  background: rgba(53,80,122,0.07);
+}
+.player-name-cell:focus-visible {
+  outline: 2px solid var(--navy-500);
+  outline-offset: -2px;
+}
 .player-name-link {
   display: block;
-  background: none; border: none; padding: 0; margin: 0;
-  font: inherit; font-weight: 600; color: var(--navy-700);
-  cursor: pointer; text-align: left;
+  font-weight: 600; color: var(--navy-700);
 }
-.player-name-link:hover { text-decoration: underline; }
+.player-name-cell:hover .player-name-link,
+.player-name-cell:focus-visible .player-name-link {
+  text-decoration: underline;
+}
 .player-name-hint {
   display: block;
   font-size: 0.7rem;

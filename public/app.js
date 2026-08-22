@@ -658,8 +658,8 @@ function renderLeaderboard(rows) {
   empty.hidden = rows.length > 0;
   tbody.innerHTML = rows.map((r) => `
     <tr data-id="${r.id}">
-      <td>
-        <button type="button" class="player-name-link" data-action="detail">${escapeHtml(r.name)}</button>
+      <td class="player-name-cell" data-action="detail" role="button" tabindex="0">
+        <span class="player-name-link">${escapeHtml(r.name)}</span>
         <span class="player-name-hint">Klik hier voor alle stats</span>
       </td>
       <td class="num">${r.matches_played}</td>
@@ -675,7 +675,11 @@ function renderLeaderboard(rows) {
   tbody.querySelectorAll("tr").forEach((tr) => {
     const r = rows.find((x) => String(x.id) === tr.dataset.id);
     if (!r) return;
-    tr.querySelector('[data-action="detail"]').addEventListener("click", () => openPlayerDetailModal(r));
+    const nameCell = tr.querySelector('[data-action="detail"]');
+    nameCell.addEventListener("click", () => openPlayerDetailModal(r));
+    nameCell.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openPlayerDetailModal(r); }
+    });
     tr.querySelector('[data-action="edit"]').addEventListener("click", () => openPlayerModal(r));
     tr.querySelector('[data-action="delete"]').addEventListener("click", () => deletePlayer(r));
   });
