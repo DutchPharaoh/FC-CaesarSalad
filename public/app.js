@@ -198,17 +198,35 @@ document.getElementById("competition-delete").addEventListener("click", async ()
 
 /* ---------- Tabs ---------- */
 
+const TAB_NAMES = [...document.querySelectorAll(".tab")].map((t) => t.dataset.tab);
+
+// Activeert een tab zonder de URL aan te passen (dat doet de aanroeper),
+// zodat dit ook vanuit hashchange/init hergebruikt kan worden.
+function activateTab(tabName) {
+  const btn = document.querySelector(`.tab[data-tab="${tabName}"]`);
+  if (!btn) return;
+  document.querySelectorAll(".tab").forEach((t) => { t.classList.remove("is-active"); t.setAttribute("aria-selected", "false"); });
+  document.querySelectorAll(".view").forEach((v) => v.classList.remove("is-active"));
+  btn.classList.add("is-active");
+  btn.setAttribute("aria-selected", "true");
+  document.getElementById(`view-${tabName}`).classList.add("is-active");
+  if (tabName === "statistieken") loadStats();
+  if (tabName === "stand") loadStandView();
+  if (tabName === "aanmelden") loadSignups();
+}
+
 document.querySelectorAll(".tab").forEach((btn) => {
   btn.addEventListener("click", () => {
-    document.querySelectorAll(".tab").forEach((t) => { t.classList.remove("is-active"); t.setAttribute("aria-selected", "false"); });
-    document.querySelectorAll(".view").forEach((v) => v.classList.remove("is-active"));
-    btn.classList.add("is-active");
-    btn.setAttribute("aria-selected", "true");
-    document.getElementById(`view-${btn.dataset.tab}`).classList.add("is-active");
-    if (btn.dataset.tab === "statistieken") loadStats();
-    if (btn.dataset.tab === "stand") loadStandView();
-    if (btn.dataset.tab === "aanmelden") loadSignups();
+    activateTab(btn.dataset.tab);
+    history.replaceState(null, "", `#${btn.dataset.tab}`);
   });
+});
+
+// Zo kan een tab gedeeld/gebookmarkt worden (bijv. een link naar #aanmelden)
+// en blijft de juiste tab actief na verversen of via de terug/vooruit-knop.
+window.addEventListener("hashchange", () => {
+  const tab = location.hash.slice(1);
+  if (TAB_NAMES.includes(tab)) activateTab(tab);
 });
 
 /* ---------- Load & render: players ---------- */
@@ -1249,6 +1267,9 @@ function renderSignupRows(rows) {
     await loadPlayers();
     await loadMatches();
     checkSignupBadge();
+
+    const initialTab = location.hash.slice(1);
+    if (TAB_NAMES.includes(initialTab)) activateTab(initialTab);
   } catch (e) {
     showToast("Kon data niet laden: " + e.message);
   }
