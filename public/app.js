@@ -412,6 +412,7 @@ async function openMatchModal(match = null) {
   document.querySelectorAll("#match-stats-rows input").forEach((el) => { el.disabled = !unlocked; });
 
   matchModal.hidden = false;
+  matchModal.querySelector(".modal__body").scrollTop = 0;
 }
 
 function toggleMatchPhaseFields() {
