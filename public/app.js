@@ -647,12 +647,10 @@ function renderLeaderboard(rows) {
     <tr data-id="${r.id}">
       <td>
         <button type="button" class="player-name-link" data-action="detail">${escapeHtml(r.name)}</button>
-        <span class="player-name-hint">Bekijk statistieken →</span>
+        <span class="player-name-hint">Klik hier voor alle stats</span>
       </td>
       <td class="num">${r.matches_played}</td>
       <td class="num">${r.goals}</td>
-      <td class="num">${r.yellow_cards}</td>
-      <td class="num">${r.red_cards}</td>
       <td class="num">${r.mvp_count > 0 ? r.mvp_count : "—"}</td>
       <td class="row-actions admin-only">
         <button data-action="edit" title="Bewerken">✏️</button>
