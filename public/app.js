@@ -43,6 +43,16 @@ function applyLockState() {
 
 /* ---------- Helpers ---------- */
 
+let openModalCount = 0;
+function lockBodyScroll() {
+  openModalCount++;
+  document.body.classList.add("modal-open");
+}
+function unlockBodyScroll() {
+  openModalCount = Math.max(0, openModalCount - 1);
+  if (openModalCount === 0) document.body.classList.remove("modal-open");
+}
+
 function showToast(msg) {
   const el = document.getElementById("toast");
   el.textContent = msg;
@@ -149,8 +159,9 @@ function openCompetitionModal(comp = null) {
   document.getElementById("competition-status").value = comp?.status || "actief";
   document.getElementById("competition-delete").hidden = !comp;
   competitionModal.hidden = false;
+  lockBodyScroll();
 }
-function closeCompetitionModal() { competitionModal.hidden = true; }
+function closeCompetitionModal() { competitionModal.hidden = true; unlockBodyScroll(); }
 
 document.getElementById("btn-new-competition").addEventListener("click", () => openCompetitionModal());
 document.getElementById("btn-edit-competition").addEventListener("click", () => {
@@ -267,8 +278,9 @@ function openPlayerModal(player = null) {
   document.getElementById("player-delete").hidden = !player;
   playerAddRowBtn.hidden = !!player;
   playerModal.hidden = false;
+  lockBodyScroll();
 }
-function closePlayerModal() { playerModal.hidden = true; }
+function closePlayerModal() { playerModal.hidden = true; unlockBodyScroll(); }
 
 document.getElementById("btn-new-player").addEventListener("click", () => openPlayerModal());
 document.getElementById("player-modal-close").addEventListener("click", closePlayerModal);
@@ -430,6 +442,7 @@ async function openMatchModal(match = null) {
   document.querySelectorAll("#match-stats-rows input").forEach((el) => { el.disabled = !unlocked; });
 
   matchModal.hidden = false;
+  lockBodyScroll();
   matchModal.querySelector(".modal__body").scrollTop = 0;
 }
 
@@ -496,7 +509,7 @@ function renderMatchStatsRows() {
   empty.hidden = roster.length > 0;
 }
 
-function closeMatchModal() { matchModal.hidden = true; }
+function closeMatchModal() { matchModal.hidden = true; unlockBodyScroll(); }
 document.getElementById("match-modal-close").addEventListener("click", closeMatchModal);
 document.getElementById("match-cancel").addEventListener("click", closeMatchModal);
 document.getElementById("btn-new-match").addEventListener("click", () => {
@@ -701,8 +714,9 @@ function openPlayerDetailModal(r) {
   `).join("");
 
   playerDetailModal.hidden = false;
+  lockBodyScroll();
 }
-function closePlayerDetailModal() { playerDetailModal.hidden = true; }
+function closePlayerDetailModal() { playerDetailModal.hidden = true; unlockBodyScroll(); }
 document.getElementById("player-detail-close").addEventListener("click", closePlayerDetailModal);
 document.getElementById("player-detail-close-btn").addEventListener("click", closePlayerDetailModal);
 
@@ -718,9 +732,10 @@ function openUnlockModal() {
   document.getElementById("unlock-actions").hidden = unlocked;
   document.getElementById("unlock-hint").hidden = unlocked;
   unlockModal.hidden = false;
+  lockBodyScroll();
   if (!unlocked) document.getElementById("unlock-password").focus();
 }
-function closeUnlockModal() { unlockModal.hidden = true; }
+function closeUnlockModal() { unlockModal.hidden = true; unlockBodyScroll(); }
 
 document.getElementById("btn-lock").addEventListener("click", openUnlockModal);
 document.getElementById("unlock-modal-close").addEventListener("click", closeUnlockModal);
@@ -1060,8 +1075,9 @@ function openResultModal(result = null) {
   }
 
   resultModal.hidden = false;
+  lockBodyScroll();
 }
-function closeResultModal() { resultModal.hidden = true; }
+function closeResultModal() { resultModal.hidden = true; unlockBodyScroll(); }
 
 function toggleResultPhaseFields() {
   const phase = document.getElementById("result-phase").value;

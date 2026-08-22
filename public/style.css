@@ -625,6 +625,10 @@ body.is-unlocked .row-actions.admin-only { display: flex; }
 
 /* ---------- Modal ---------- */
 
+body.modal-open {
+  overflow: hidden;
+}
+
 .modal-backdrop {
   position: fixed; inset: 0;
   background: rgba(16,21,34,0.55);
@@ -665,6 +669,7 @@ body.is-unlocked .row-actions.admin-only { display: flex; }
 .modal__body {
   padding: 18px 20px;
   overflow-y: auto;
+  overscroll-behavior: contain;
 }
 .modal__footer {
   padding: 14px 20px;
