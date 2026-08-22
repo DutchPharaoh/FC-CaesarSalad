@@ -366,6 +366,20 @@ body.is-unlocked td.row-actions.admin-only { display: flex; }
 }
 .row-actions button:hover { color: var(--purple-700); }
 
+.player-name-link {
+  display: block;
+  background: none; border: none; padding: 0; margin: 0;
+  font: inherit; font-weight: 600; color: var(--purple-700);
+  cursor: pointer; text-align: left;
+}
+.player-name-link:hover { text-decoration: underline; }
+.player-name-hint {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 400;
+  color: var(--ink-soft);
+}
+
 /* Houdt de identificerende eerste kolom(men) in beeld bij horizontaal scrollen. */
 .stats-table th:first-child,
 .stats-table td:first-child {

@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=3">
+<link rel="stylesheet" href="style.css?v=4">
 <link rel="icon" type="image/jpeg" href="logo.jpeg">
 <link rel="apple-touch-icon" href="logo.jpeg">
 </head>
@@ -301,6 +301,25 @@
   </div>
 </div>
 
+<!-- MODAL: speler statistieken (detail) -->
+<div class="modal-backdrop" id="player-detail-modal" hidden>
+  <div class="modal modal--small" role="dialog" aria-modal="true" aria-labelledby="player-detail-title">
+    <div class="modal__header">
+      <h2 id="player-detail-title">Speler</h2>
+      <button class="icon-btn" id="player-detail-close" aria-label="Sluiten">✕</button>
+    </div>
+    <div class="modal__body">
+      <div class="scoreboard" id="player-detail-record" style="margin-bottom: 14px;"></div>
+      <div class="scoreboard" id="player-detail-stats"></div>
+    </div>
+    <div class="modal__footer">
+      <div class="modal__footer-right">
+        <button class="btn btn--ghost" id="player-detail-close-btn">Sluiten</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL: competitie toevoegen/bewerken -->
 <div class="modal-backdrop" id="competition-modal" hidden>
   <div class="modal modal--small" role="dialog" aria-modal="true" aria-labelledby="competition-modal-title">
@@ -437,6 +456,6 @@
 
 <div class="toast" id="toast" hidden></div>
 
-<script src="app.js?v=8"></script>
+<script src="app.js?v=9"></script>
 </body>
 </html>

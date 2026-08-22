@@ -645,7 +645,10 @@ function renderLeaderboard(rows) {
   empty.hidden = rows.length > 0;
   tbody.innerHTML = rows.map((r) => `
     <tr data-id="${r.id}">
-      <td>${escapeHtml(r.name)}</td>
+      <td>
+        <button type="button" class="player-name-link" data-action="detail">${escapeHtml(r.name)}</button>
+        <span class="player-name-hint">Bekijk statistieken →</span>
+      </td>
       <td class="num">${r.matches_played}</td>
       <td class="num">${r.goals}</td>
       <td class="num">${r.yellow_cards}</td>
@@ -661,11 +664,49 @@ function renderLeaderboard(rows) {
   tbody.querySelectorAll("tr").forEach((tr) => {
     const r = rows.find((x) => String(x.id) === tr.dataset.id);
     if (!r) return;
+    tr.querySelector('[data-action="detail"]').addEventListener("click", () => openPlayerDetailModal(r));
     tr.querySelector('[data-action="edit"]').addEventListener("click", () => openPlayerModal(r));
     tr.querySelector('[data-action="delete"]').addEventListener("click", () => deletePlayer(r));
   });
   applyLockState();
 }
+
+/* ---------- Speler-detailmodal ---------- */
+
+const playerDetailModal = document.getElementById("player-detail-modal");
+
+function openPlayerDetailModal(r) {
+  document.getElementById("player-detail-title").textContent = r.name;
+
+  document.getElementById("player-detail-record").innerHTML = [
+    ["Gespeeld", r.matches_played],
+    ["Winst", r.wins],
+    ["Gelijk", r.draws],
+    ["Verlies", r.losses],
+  ].map(([label, value]) => `
+    <div class="scoreboard__stat">
+      <div class="scoreboard__value">${value}</div>
+      <div class="scoreboard__label">${label}</div>
+    </div>
+  `).join("");
+
+  document.getElementById("player-detail-stats").innerHTML = [
+    ["Doelpunten", r.goals],
+    ["🟨 Geel", r.yellow_cards],
+    ["🟥 Rood", r.red_cards],
+    ["⭐ MVP", r.mvp_count],
+  ].map(([label, value]) => `
+    <div class="scoreboard__stat">
+      <div class="scoreboard__value">${value}</div>
+      <div class="scoreboard__label">${label}</div>
+    </div>
+  `).join("");
+
+  playerDetailModal.hidden = false;
+}
+function closePlayerDetailModal() { playerDetailModal.hidden = true; }
+document.getElementById("player-detail-close").addEventListener("click", closePlayerDetailModal);
+document.getElementById("player-detail-close-btn").addEventListener("click", closePlayerDetailModal);
 
 /* ---------- Unlock modal ---------- */
 
