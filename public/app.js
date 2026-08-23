@@ -396,7 +396,7 @@ function renderTicketList(listId, emptyId, list) {
       <div class="ticket__bar"></div>
       <div class="ticket__main">
         <span class="ticket__date">${fmtDate(m.match_date)}</span>
-        <span class="ticket__opponent team-badge-row">${teamBadgeHtml(m.opponent, false)}<span class="team-badge-row__name">vs. ${escapeHtml(m.opponent)}</span></span>
+        <span class="ticket__opponent team-badge-row"><span class="team-badge-row__vs">vs.</span>${teamBadgeHtml(m.opponent, false)}<span class="team-badge-row__name">${escapeHtml(m.opponent)}</span></span>
         ${mvp ? `<span class="ticket__meta">⭐ MVP: ${escapeHtml(mvp.name)}</span>` : ""}
       </div>
       <div class="ticket__score">${scoreHtml}</div>

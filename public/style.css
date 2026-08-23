@@ -600,6 +600,9 @@ body.is-unlocked td.row-actions.admin-only { display: flex; }
   min-width: 0;
   flex: 1 1 auto;
 }
+.team-badge-row__vs {
+  flex-shrink: 0;
+}
 
 .quick-add-form {
   display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
