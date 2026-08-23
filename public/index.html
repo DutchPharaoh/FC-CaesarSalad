@@ -212,6 +212,30 @@
   </section>
 </main>
 
+<script>
+  /* Zet meteen de juiste tab actief op basis van de URL-hash, vóór app.js
+     (dat eerst data moet ophalen) dat zou doen — voorkomt dat je heel even
+     de standaardtab ("Programma & uitslagen") ziet flitsen voordat er
+     wordt omgeschakeld naar de tab waar je op zat. */
+  (function () {
+    try {
+      var tab = location.hash.slice(1);
+      if (!tab) return;
+      var btn = document.querySelector('.tab[data-tab="' + tab + '"]');
+      var view = document.getElementById("view-" + tab);
+      if (!btn || !view) return;
+      document.querySelectorAll(".tab").forEach(function (t) {
+        t.classList.remove("is-active");
+        t.setAttribute("aria-selected", "false");
+      });
+      document.querySelectorAll(".view").forEach(function (v) { v.classList.remove("is-active"); });
+      btn.classList.add("is-active");
+      btn.setAttribute("aria-selected", "true");
+      view.classList.add("is-active");
+    } catch (e) {}
+  })();
+</script>
+
 <!-- MODAL: wedstrijd toevoegen/bewerken -->
 <div class="modal-backdrop" id="match-modal" hidden>
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="match-modal-title">
@@ -488,6 +512,6 @@
 
 <div class="toast" id="toast" hidden></div>
 
-<script src="app.js?v=21"></script>
+<script src="app.js?v=22"></script>
 </body>
 </html>

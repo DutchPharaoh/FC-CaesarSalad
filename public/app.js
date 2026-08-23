@@ -1392,8 +1392,7 @@ function renderSignupRows(rows) {
 (async function init() {
   applyLockState();
   try {
-    await loadCompetitions();
-    await loadPlayers();
+    await Promise.all([loadCompetitions(), loadPlayers()]);
     await loadMatches();
     checkSignupBadge();
 
