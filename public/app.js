@@ -906,6 +906,17 @@ async function loadResults() {
 function renderResultRow(r) {
   return `
     <div class="result-row ${r.synced_match_id ? "is-clickable" : ""}" data-id="${r.id}" data-synced="${r.synced_match_id ? "true" : "false"}">
+      <div class="result-row__centered">
+        <span class="result-row__team result-row__team--home">
+          <span class="result-row__team-name">${escapeHtml(r.home_team_name)}</span>
+          ${teamBadgeHtml(r.home_team_name, r.home_is_own_team)}
+        </span>
+        <span class="result-row__score">${r.home_goals} – ${r.away_goals}</span>
+        <span class="result-row__team result-row__team--away">
+          ${teamBadgeHtml(r.away_team_name, r.away_is_own_team)}
+          <span class="result-row__team-name">${escapeHtml(r.away_team_name)}</span>
+        </span>
+      </div>
       <div class="result-row__lines">
         <div class="result-row__line">
           ${teamBadgeHtml(r.home_team_name, r.home_is_own_team)}
