@@ -91,6 +91,8 @@ export async function onRequestGet({ request, env }) {
        r.*,
        ht.name AS home_team_name,
        at.name AS away_team_name,
+       ht.is_own_team AS home_is_own_team,
+       at.is_own_team AS away_is_own_team,
        m.id AS synced_match_id
      FROM league_results r
      JOIN teams ht ON ht.id = r.home_team_id
@@ -99,7 +101,11 @@ export async function onRequestGet({ request, env }) {
      WHERE r.competition_id = ?
      ORDER BY r.match_date DESC, r.id DESC`
   ).bind(competitionId).all();
-  return json(200, results);
+  return json(200, results.map((r) => ({
+    ...r,
+    home_is_own_team: !!r.home_is_own_team,
+    away_is_own_team: !!r.away_is_own_team,
+  })));
 }
 
 export async function onRequestPost({ request, env }) {

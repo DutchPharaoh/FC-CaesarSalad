@@ -906,7 +906,15 @@ async function loadResults() {
 function renderResultRow(r) {
   return `
     <div class="result-row ${r.synced_match_id ? "is-clickable" : ""}" data-id="${r.id}" data-synced="${r.synced_match_id ? "true" : "false"}">
-      <span class="result-row__score">${escapeHtml(r.home_team_name)} ${r.home_goals} – ${r.away_goals} ${escapeHtml(r.away_team_name)}</span>
+      <span class="result-row__team result-row__team--home">
+        <span class="result-row__team-name">${escapeHtml(r.home_team_name)}</span>
+        ${teamBadgeHtml(r.home_team_name, r.home_is_own_team)}
+      </span>
+      <span class="result-row__score">${r.home_goals} – ${r.away_goals}</span>
+      <span class="result-row__team result-row__team--away">
+        ${teamBadgeHtml(r.away_team_name, r.away_is_own_team)}
+        <span class="result-row__team-name">${escapeHtml(r.away_team_name)}</span>
+      </span>
       <span class="row-actions admin-only">
         ${!r.synced_match_id ? `<button data-action="edit" data-id="${r.id}" title="Bewerken" aria-label="Uitslag bewerken">✏️</button><button data-action="delete" data-id="${r.id}" title="Verwijderen" aria-label="Uitslag verwijderen">🗑️</button>` : ""}
       </span>
