@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=19">
+<link rel="stylesheet" href="style.css?v=20">
 <link rel="icon" type="image/jpeg" href="logo.jpeg">
 <link rel="apple-touch-icon" href="logo.jpeg">
 <link rel="manifest" href="manifest.json">
@@ -16,6 +16,16 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Caesar Salad">
+<script>
+  /* Zet het thema meteen (vóór CSS/render) om een flits van het verkeerde
+     thema bij het laden te voorkomen. */
+  (function () {
+    try {
+      var saved = localStorage.getItem("teamstats_theme");
+      if (saved === "dark") document.documentElement.setAttribute("data-theme", "dark");
+    } catch (e) {}
+  })();
+</script>
 </head>
 <body>
 
@@ -31,6 +41,24 @@
       <button class="tab" data-tab="stand" role="tab" aria-selected="false">Stand</button>
       <button class="tab" data-tab="aanmelden" role="tab" aria-selected="false">Aanmelden<span class="tab-badge admin-only" id="signup-badge" hidden></span></button>
     </nav>
+    <button class="theme-switch" id="theme-toggle" title="Donker thema aan/uit" aria-label="Wissel tussen licht en donker thema" aria-pressed="false">
+      <span class="theme-switch__icons">
+        <span class="theme-switch__sun">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M4.2 4.2l1.6 1.6M18.2 18.2l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.2 19.8l1.6-1.6M18.2 5.8l1.6-1.6"/></svg>
+        </span>
+        <span class="theme-switch__moon">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.6 15.2A8.6 8.6 0 1 1 8.8 3.4a7 7 0 0 0 11.8 11.8Z"/></svg>
+        </span>
+      </span>
+      <span class="theme-switch__knob">
+        <span class="theme-switch__knob-sun">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2.5v2.4M12 19.1v2.4M4.2 4.2l1.7 1.7M18.1 18.1l1.7 1.7M2.5 12h2.4M19.1 12h2.4M4.2 19.8l1.7-1.7M18.1 5.9l1.7-1.7"/></svg>
+        </span>
+        <span class="theme-switch__knob-moon">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.6 15.2A8.6 8.6 0 1 1 8.8 3.4a7 7 0 0 0 11.8 11.8Z"/></svg>
+        </span>
+      </span>
+    </button>
     <button class="lock-btn" id="btn-lock" title="Bewerken ontgrendelen" aria-label="Bewerken ontgrendelen">
       <span id="lock-icon">🔒</span>
     </button>
@@ -460,6 +488,6 @@
 
 <div class="toast" id="toast" hidden></div>
 
-<script src="app.js?v=20"></script>
+<script src="app.js?v=21"></script>
 </body>
 </html>

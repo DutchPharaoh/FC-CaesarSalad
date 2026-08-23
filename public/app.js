@@ -1,7 +1,24 @@
 const API = "/api";
 const TOKEN_KEY = "teamstats_admin_token";
 const COMPETITION_KEY = "teamstats_competition_id";
+const THEME_KEY = "teamstats_theme";
 const ROUND_ORDER = ["Achtste finale", "Kwartfinale", "Halve finale", "Troostfinale", "Finale"];
+
+/* ---------- Thema (licht/donker) ---------- */
+// De <head> zet data-theme al meteen bij het laden (voorkomt een flits van
+// het verkeerde thema); hier alleen de knop synchroniseren en de klik
+// afhandelen.
+function applyTheme(dark) {
+  document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
+  localStorage.setItem(THEME_KEY, dark ? "dark" : "light");
+  const btn = document.getElementById("theme-toggle");
+  btn.setAttribute("aria-pressed", String(dark));
+  btn.title = dark ? "Licht thema aan" : "Donker thema aan";
+}
+document.getElementById("theme-toggle").addEventListener("click", () => {
+  applyTheme(document.documentElement.getAttribute("data-theme") !== "dark");
+});
+applyTheme(document.documentElement.getAttribute("data-theme") === "dark");
 
 let players = [];
 let matches = [];
