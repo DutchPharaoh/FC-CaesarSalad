@@ -563,6 +563,44 @@ body.is-unlocked td.row-actions.admin-only { display: flex; }
 }
 .team-chip button:hover { background: var(--paper-dim); color: var(--red-600); }
 
+.team-badge-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  max-width: 100%;
+}
+.team-badge {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  box-shadow: 0 0 0 1px rgba(16,21,34,0.06);
+}
+.team-badge img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.team-badge--initials {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.62rem;
+  color: #fff;
+}
+.team-badge-row__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
 .quick-add-form {
   display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
 }
@@ -772,6 +810,9 @@ body.modal-open {
   .col-actions { width: 32px; }
   .standings-table th:nth-child(2),
   .standings-table td:nth-child(2) { width: 76px; }
+  .standings-table .team-badge-row { gap: 5px; }
+  .standings-table .team-badge { width: 16px; height: 16px; }
+  .standings-table .team-badge--initials { font-size: 0.5rem; }
   .row-actions { gap: 2px; }
   .row-actions button { font-size: 0.8rem; padding: 1px 2px; }
 }

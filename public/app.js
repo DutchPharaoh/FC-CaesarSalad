@@ -252,6 +252,27 @@ function escapeHtml(str) {
   return String(str).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 }
 
+/* ---------- Teambadges ---------- */
+// Elk team krijgt een kleur + initialen, deterministisch berekend uit de
+// naam (dezelfde naam geeft altijd dezelfde kleur) — geen instelling of
+// upload nodig, ook niet voor een gloednieuwe tegenstander. Het eigen team
+// (is_own_team) krijgt in plaats daarvan het echte logo.
+function teamColor(name) {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) hash = (hash * 31 + name.charCodeAt(i)) >>> 0;
+  return `hsl(${hash % 360}, 58%, 42%)`;
+}
+function teamInitials(name) {
+  const words = name.trim().split(/\s+/);
+  return words.length === 1
+    ? words[0].slice(0, 2).toUpperCase()
+    : (words[0][0] + words[1][0]).toUpperCase();
+}
+function teamBadgeHtml(name, isOwnTeam) {
+  if (isOwnTeam) return `<span class="team-badge"><img src="logo.jpeg" alt=""></span>`;
+  return `<span class="team-badge team-badge--initials" style="background:${teamColor(name)}">${escapeHtml(teamInitials(name))}</span>`;
+}
+
 /* ---------- Player modal ---------- */
 
 const playerModal = document.getElementById("player-modal");
@@ -375,7 +396,7 @@ function renderTicketList(listId, emptyId, list) {
       <div class="ticket__bar"></div>
       <div class="ticket__main">
         <span class="ticket__date">${fmtDate(m.match_date)}</span>
-        <span class="ticket__opponent">vs. ${escapeHtml(m.opponent)}</span>
+        <span class="ticket__opponent team-badge-row">${teamBadgeHtml(m.opponent, false)}<span class="team-badge-row__name">vs. ${escapeHtml(m.opponent)}</span></span>
         ${mvp ? `<span class="ticket__meta">⭐ MVP: ${escapeHtml(mvp.name)}</span>` : ""}
       </div>
       <div class="ticket__score">${scoreHtml}</div>
@@ -1188,7 +1209,7 @@ function renderStandingsTable(rows) {
         ${rows.map((t, i) => `
           <tr class="${t.is_own_team ? "is-own-team" : ""}">
             <td class="pos">${i + 1}</td>
-            <td>${escapeHtml(t.name)}</td>
+            <td><span class="team-badge-row">${teamBadgeHtml(t.name, t.is_own_team)}<span class="team-badge-row__name">${escapeHtml(t.name)}</span></span></td>
             <td class="num">${t.played}</td>
             <td class="num">${t.wins}</td>
             <td class="num">${t.draws}</td>
