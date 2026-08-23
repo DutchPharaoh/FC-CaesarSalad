@@ -842,6 +842,24 @@ body.modal-open {
   .standings-table th:nth-child(2),
   .standings-table td:nth-child(2) { width: 76px; }
   .standings-table .team-badge-row { gap: 5px; }
+
+  /* Op mobiel geen gecentreerde 2-koloms layout (te weinig breedte voor
+     lange teamnamen) — terug naar links uitgelijnd en laten wrappen, met
+     behoud van de badges. */
+  .results-list .result-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 6px 8px;
+  }
+  .results-list .result-row__team--home,
+  .results-list .result-row__team--away { justify-content: flex-start; }
+  .results-list .result-row__team-name {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: unset;
+  }
   .standings-table .team-badge { width: 16px; height: 16px; }
   .standings-table .team-badge--initials { font-size: 0.5rem; }
   .row-actions { gap: 2px; }
