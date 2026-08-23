@@ -705,9 +705,16 @@ body.is-unlocked .row-actions.admin-only { display: flex; }
     gap: 8px;
     min-width: 0;
   }
+  /* Vaste breedte (i.p.v. flexibel meegroeien) zodat de totale breedte van
+     de naam+badge-groep bij elke uitslag gelijk is — daardoor komen de
+     logo's en scores bij alle rijen op dezelfde plek te staan, ook als de
+     ene teamnaam langer is dan de andere. */
   .results-list .result-row__team-name {
-    max-width: 200px;
+    flex: 0 0 170px;
+    width: 170px;
   }
+  .results-list .result-row__team--home .result-row__team-name { text-align: right; }
+  .results-list .result-row__team--away .result-row__team-name { text-align: left; }
   .results-list .result-row__score {
     font-size: 1.05rem;
     color: var(--navy-900);
