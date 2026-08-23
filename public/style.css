@@ -147,6 +147,14 @@ button, input, select {
   font-weight: 600;
   max-width: 100%;
 }
+/* De geopende optielijst wordt door de browser met een lichte achtergrond
+   getekend, dus daar hebben de opties donkere tekst nodig (los van de
+   lichte tekstkleur van de gesloten select zelf op de donkere topbar). */
+.competition-bar select option {
+  color: var(--ink);
+  background: var(--card);
+  font-weight: 500;
+}
 .competition-bar__type {
   font-size: 0.7rem;
   font-weight: 700;
