@@ -654,32 +654,37 @@ body.is-unlocked .row-actions.admin-only { display: flex; }
   font-weight: 600;
 }
 
-/* De platte "Uitslagen"-lijst (los van de bracket-cards, die hun eigen
-   verticale layout hebben) krijgt een gecentreerde score-layout. */
-.results-list .result-row {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr auto;
-  gap: 14px;
+/* De platte "Uitslagen"-lijst (los van de bracket-cards) toont beide teams
+   elk op hun eigen regel, met hun eigen doelpuntenaantal rechts uitgelijnd
+   — zo staan de scores altijd netjes onder elkaar, ook bij lange namen of
+   op mobiel. */
+.results-list .result-row__lines {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  flex: 1;
+  min-width: 0;
 }
-.results-list .result-row__team {
+.results-list .result-row__line {
   display: flex;
   align-items: center;
   gap: 8px;
-  min-width: 0;
 }
-.results-list .result-row__team--home { justify-content: flex-end; }
-.results-list .result-row__team--away { justify-content: flex-start; }
 .results-list .result-row__team-name {
+  flex: 1 1 auto;
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  min-width: 0;
 }
-.results-list .result-row__score {
-  font-size: 1.05rem;
+.results-list .result-row__goals {
+  font-family: var(--font-display);
+  font-weight: 700;
   color: var(--navy-900);
-  padding: 0 8px;
-  white-space: nowrap;
+  flex-shrink: 0;
+  min-width: 1.4em;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
 }
 
 /* ---------- Scoreboard (team record) ---------- */
@@ -842,24 +847,6 @@ body.modal-open {
   .standings-table th:nth-child(2),
   .standings-table td:nth-child(2) { width: 76px; }
   .standings-table .team-badge-row { gap: 5px; }
-
-  /* Op mobiel geen gecentreerde 2-koloms layout (te weinig breedte voor
-     lange teamnamen) — terug naar links uitgelijnd en laten wrappen, met
-     behoud van de badges. */
-  .results-list .result-row {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: flex-start;
-    gap: 6px 8px;
-  }
-  .results-list .result-row__team--home,
-  .results-list .result-row__team--away { justify-content: flex-start; }
-  .results-list .result-row__team-name {
-    white-space: normal;
-    overflow: visible;
-    text-overflow: unset;
-  }
   .standings-table .team-badge { width: 16px; height: 16px; }
   .standings-table .team-badge--initials { font-size: 0.5rem; }
   .row-actions { gap: 2px; }
