@@ -65,7 +65,7 @@ Na de eerste deploy (mag ook falen op dit punt, dat is prima):
 
 ### 6. Klaar
 
-Je site draait op `https://fc-caesar-salad.pages.dev` (of de naam die je bij het aanmaken hebt gekozen). Open de site, klik op het hangslotje 🔒 rechtsboven, vul je wachtwoord in, en voeg FC Caesar Salad toe als team bij Stand (of laat de app dat automatisch doen zodra je de eerste gespeelde wedstrijd invoert).
+Je site draait op `https://fccaesarsalad.nl` (gekoppeld als custom domain aan het Cloudflare Pages-project). Open de site, klik op het hangslotje 🔒 rechtsboven, vul je wachtwoord in, en voeg FC Caesar Salad toe als team bij Stand (of laat de app dat automatisch doen zodra je de eerste gespeelde wedstrijd invoert).
 
 ## Lokaal testen
 

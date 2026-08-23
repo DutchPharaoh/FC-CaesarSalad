@@ -338,6 +338,14 @@ function renderMatches() {
 
   renderTicketList("list-upcoming", "empty-upcoming", upcoming);
   renderTicketList("list-played", "empty-played", played);
+
+  const emptyUpcoming = document.getElementById("empty-upcoming");
+  if (upcoming.length === 0) {
+    const comp = currentCompetition();
+    emptyUpcoming.textContent = comp?.status === "afgesloten"
+      ? (comp.type === "toernooi" ? "Dit toernooi is afgesloten." : "Deze competitie is afgesloten.")
+      : "Nog geen wedstrijden gepland.";
+  }
 }
 
 function renderTicketList(listId, emptyId, list) {
