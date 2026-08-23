@@ -10,6 +10,12 @@
 <link rel="stylesheet" href="style.css?v=9">
 <link rel="icon" type="image/jpeg" href="logo.jpeg">
 <link rel="apple-touch-icon" href="logo.jpeg">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#101A2E">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Caesar Salad">
 </head>
 <body>
 
@@ -25,14 +31,14 @@
       <button class="tab" data-tab="stand" role="tab" aria-selected="false">Stand</button>
       <button class="tab" data-tab="aanmelden" role="tab" aria-selected="false">Aanmelden<span class="tab-badge admin-only" id="signup-badge" hidden></span></button>
     </nav>
-    <button class="lock-btn" id="btn-lock" title="Bewerken ontgrendelen">
+    <button class="lock-btn" id="btn-lock" title="Bewerken ontgrendelen" aria-label="Bewerken ontgrendelen">
       <span id="lock-icon">🔒</span>
     </button>
   </div>
   <div class="competition-bar">
     <select id="competition-select" aria-label="Actieve competitie"></select>
     <span class="competition-bar__type" id="competition-type-badge"></span>
-    <button class="icon-btn admin-only" id="btn-edit-competition" title="Competitie bewerken/verwijderen">✏️</button>
+    <button class="icon-btn admin-only" id="btn-edit-competition" title="Competitie bewerken/verwijderen" aria-label="Competitie bewerken of verwijderen">✏️</button>
     <button class="btn btn--ghost btn--small admin-only" id="btn-new-competition">+ Competitie</button>
   </div>
 </header>
@@ -454,6 +460,6 @@
 
 <div class="toast" id="toast" hidden></div>
 
-<script src="app.js?v=13"></script>
+<script src="app.js?v=14"></script>
 </body>
 </html>

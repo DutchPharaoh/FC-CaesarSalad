@@ -1,0 +1,15 @@
+{
+  "name": "FC Caesar Salad",
+  "short_name": "Caesar Salad",
+  "description": "Programma, uitslagen, selectie, statistieken en stand van FC Caesar Salad.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#F2F3F6",
+  "theme_color": "#101A2E",
+  "lang": "nl",
+  "icons": [
+    { "src": "logo.jpeg", "sizes": "192x192", "type": "image/jpeg" },
+    { "src": "logo.jpeg", "sizes": "512x512", "type": "image/jpeg" }
+  ]
+}

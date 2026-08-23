@@ -38,7 +38,9 @@ function applyLockState() {
     el.style.display = unlocked ? "" : "none";
   });
   document.getElementById("lock-icon").textContent = unlocked ? "🔓" : "🔒";
-  document.getElementById("btn-lock").title = unlocked ? "Bewerken vergrendelen" : "Bewerken ontgrendelen";
+  const lockLabel = unlocked ? "Bewerken vergrendelen" : "Bewerken ontgrendelen";
+  document.getElementById("btn-lock").title = lockLabel;
+  document.getElementById("btn-lock").setAttribute("aria-label", lockLabel);
 }
 
 /* ---------- Helpers ---------- */
@@ -674,8 +676,8 @@ function renderLeaderboard(rows) {
       <td class="num">${r.goals}</td>
       <td class="num">${r.mvp_count > 0 ? r.mvp_count : "—"}</td>
       <td class="row-actions admin-only">
-        <button data-action="edit" title="Bewerken">✏️</button>
-        <button data-action="delete" title="Verwijderen">🗑️</button>
+        <button data-action="edit" title="Bewerken" aria-label="Speler bewerken">✏️</button>
+        <button data-action="delete" title="Verwijderen" aria-label="Speler verwijderen">🗑️</button>
       </td>
     </tr>
   `).join("");
@@ -810,7 +812,7 @@ function renderTeamChips() {
   el.innerHTML = teams.map((t) => `
     <span class="team-chip ${t.is_own_team ? "is-own" : ""}">
       ${t.is_own_team ? "⭐ " : ""}${escapeHtml(t.name)}
-      <button data-id="${t.id}" title="Team verwijderen">✕</button>
+      <button data-id="${t.id}" title="Team verwijderen" aria-label="${escapeHtml(t.name)} verwijderen">✕</button>
     </span>
   `).join("");
   el.querySelectorAll("button[data-id]").forEach((btn) => {
@@ -885,7 +887,7 @@ function renderResultRow(r) {
     <div class="result-row ${r.synced_match_id ? "is-clickable" : ""}" data-id="${r.id}" data-synced="${r.synced_match_id ? "true" : "false"}">
       <span class="result-row__score">${escapeHtml(r.home_team_name)} ${r.home_goals} – ${r.away_goals} ${escapeHtml(r.away_team_name)}</span>
       <span class="row-actions admin-only">
-        ${!r.synced_match_id ? `<button data-action="edit" data-id="${r.id}" title="Bewerken">✏️</button><button data-action="delete" data-id="${r.id}" title="Verwijderen">🗑️</button>` : ""}
+        ${!r.synced_match_id ? `<button data-action="edit" data-id="${r.id}" title="Bewerken" aria-label="Uitslag bewerken">✏️</button><button data-action="delete" data-id="${r.id}" title="Verwijderen" aria-label="Uitslag verwijderen">🗑️</button>` : ""}
       </span>
     </div>
   `;
@@ -1001,7 +1003,7 @@ function renderBracket() {
           <div class="bracket-match__team ${awayWin ? "is-winner" : ""}"><span>${escapeHtml(r.away_team_name)}</span><span>${r.away_goals}</span></div>
         </div>
         <span class="row-actions admin-only">
-          ${!r.synced_match_id ? `<button data-action="edit" data-id="${r.id}" title="Bewerken">✏️</button><button data-action="delete" data-id="${r.id}" title="Verwijderen">🗑️</button>` : ""}
+          ${!r.synced_match_id ? `<button data-action="edit" data-id="${r.id}" title="Bewerken" aria-label="Uitslag bewerken">✏️</button><button data-action="delete" data-id="${r.id}" title="Verwijderen" aria-label="Uitslag verwijderen">🗑️</button>` : ""}
         </span>
       `;
       roundEl.appendChild(matchEl);
@@ -1306,7 +1308,7 @@ function renderSignupRows(rows) {
       <td>${escapeHtml(r.unit)}</td>
       <td>${fmtSignupDate(r.created_at)}</td>
       <td class="row-actions admin-only">
-        <button data-action="delete" title="Verwijderen">🗑️</button>
+        <button data-action="delete" title="Verwijderen" aria-label="Aanmelding verwijderen">🗑️</button>
       </td>
     </tr>
   `).join("");
