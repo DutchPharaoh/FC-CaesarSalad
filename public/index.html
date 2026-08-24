@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=23">
+<link rel="stylesheet" href="style.css?v=24">
 <link rel="icon" type="image/jpeg" href="logo.jpeg">
 <link rel="apple-touch-icon" href="logo.jpeg">
 <link rel="manifest" href="manifest.json">
@@ -231,6 +231,29 @@
     <span class="tab-badge signup-badge admin-only bottom-nav__badge" hidden></span>
   </button>
 </nav>
+
+<script>
+  /* Corrigeert de positie van de sticky bottom-nav met de VisualViewport API
+     i.p.v. te vertrouwen op CSS-viewporteenheden (vh/dvh) of alleen
+     `position: fixed`. Op met name Firefox voor Android verschilt de
+     "layout"-viewport (waarop fixed/CSS-eenheden zich baseren) tijdelijk
+     van de echt zichtbare viewport zodra de adresbalk in-/uitschuift,
+     wat een gat onderaan het scherm veroorzaakt. Door de balk handmatig
+     mee te schuiven met de werkelijk zichtbare viewport blijft hij altijd
+     precies onderaan staan, in elke browser die deze API ondersteunt. */
+  (function () {
+    var nav = document.querySelector(".bottom-nav");
+    var vv = window.visualViewport;
+    if (!nav || !vv) return;
+    function pin() {
+      var offset = window.innerHeight - vv.height - vv.offsetTop;
+      nav.style.transform = offset > 0.5 ? "translateY(-" + offset + "px)" : "";
+    }
+    vv.addEventListener("resize", pin);
+    vv.addEventListener("scroll", pin);
+    pin();
+  })();
+</script>
 
 <script>
   /* Zet meteen de juiste tab actief op basis van de URL-hash, vóór app.js
