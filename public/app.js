@@ -252,7 +252,8 @@ document.querySelectorAll(".tab").forEach((btn) => {
   });
 });
 
-document.getElementById("btn-brand-home").addEventListener("click", () => {
+document.getElementById("btn-brand-home").addEventListener("click", (e) => {
+  e.preventDefault();
   activateTab("wedstrijden");
   history.replaceState(null, "", "#wedstrijden");
 });
