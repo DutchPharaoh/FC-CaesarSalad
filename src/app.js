@@ -233,12 +233,11 @@ const TAB_NAMES = [...document.querySelectorAll(".tab")].map((t) => t.dataset.ta
 // Activeert een tab zonder de URL aan te passen (dat doet de aanroeper),
 // zodat dit ook vanuit hashchange/init hergebruikt kan worden.
 function activateTab(tabName) {
-  const btn = document.querySelector(`.tab[data-tab="${tabName}"]`);
-  if (!btn) return;
+  const btns = document.querySelectorAll(`.tab[data-tab="${tabName}"]`);
+  if (!btns.length) return;
   document.querySelectorAll(".tab").forEach((t) => { t.classList.remove("is-active"); t.setAttribute("aria-selected", "false"); });
   document.querySelectorAll(".view").forEach((v) => v.classList.remove("is-active"));
-  btn.classList.add("is-active");
-  btn.setAttribute("aria-selected", "true");
+  btns.forEach((btn) => { btn.classList.add("is-active"); btn.setAttribute("aria-selected", "true"); });
   document.getElementById(`view-${tabName}`).classList.add("is-active");
   if (tabName === "statistieken") loadStats();
   if (tabName === "stand") loadStandView();
@@ -1329,9 +1328,10 @@ function getSignupSeenId() {
 function updateSignupBadge(rows) {
   const seenId = getSignupSeenId();
   const unseen = rows.filter((r) => r.id > seenId).length;
-  const badge = document.getElementById("signup-badge");
-  badge.textContent = unseen > 9 ? "9+" : String(unseen);
-  badge.hidden = unseen === 0;
+  document.querySelectorAll(".signup-badge").forEach((badge) => {
+    badge.textContent = unseen > 9 ? "9+" : String(unseen);
+    badge.hidden = unseen === 0;
+  });
 }
 
 // Ververst alleen het belletje (voor als de aanmeldingen nog niet echt

@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=21">
+<link rel="stylesheet" href="style.css?v=22">
 <link rel="icon" type="image/jpeg" href="logo.jpeg">
 <link rel="apple-touch-icon" href="logo.jpeg">
 <link rel="manifest" href="manifest.json">
@@ -39,7 +39,7 @@
       <button class="tab is-active" data-tab="wedstrijden" role="tab" aria-selected="true">Programma &amp; uitslagen</button>
       <button class="tab" data-tab="statistieken" role="tab" aria-selected="false">Selectie &amp; statistieken</button>
       <button class="tab" data-tab="stand" role="tab" aria-selected="false">Stand</button>
-      <button class="tab" data-tab="aanmelden" role="tab" aria-selected="false">Aanmelden<span class="tab-badge admin-only" id="signup-badge" hidden></span></button>
+      <button class="tab" data-tab="aanmelden" role="tab" aria-selected="false">Aanmelden<span class="tab-badge signup-badge admin-only" hidden></span></button>
     </nav>
     <button class="theme-switch" id="theme-toggle" title="Donker thema aan/uit" aria-label="Wissel tussen licht en donker thema" aria-pressed="false">
       <span class="theme-switch__icons">
@@ -212,6 +212,26 @@
   </section>
 </main>
 
+<nav class="bottom-nav" role="tablist" aria-label="Hoofdnavigatie (mobiel)">
+  <button class="tab bottom-nav__item is-active" data-tab="wedstrijden" role="tab" aria-selected="true">
+    <svg class="bottom-nav__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="4.5" width="17" height="16" rx="2"/><path d="M3.5 9.5h17M8 3v3M16 3v3"/></svg>
+    <span class="bottom-nav__label">Programma</span>
+  </button>
+  <button class="tab bottom-nav__item" data-tab="statistieken" role="tab" aria-selected="false">
+    <svg class="bottom-nav__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 20V11M12 20V4M19 20v-7"/></svg>
+    <span class="bottom-nav__label">Statistieken</span>
+  </button>
+  <button class="tab bottom-nav__item" data-tab="stand" role="tab" aria-selected="false">
+    <svg class="bottom-nav__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v4a5 5 0 0 1-10 0V4Z"/><path d="M7 5H4a1 1 0 0 0-1 1c0 2.5 1.6 4.3 4 4.7M17 5h3a1 1 0 0 1 1 1c0 2.5-1.6 4.3-4 4.7"/></svg>
+    <span class="bottom-nav__label">Stand</span>
+  </button>
+  <button class="tab bottom-nav__item" data-tab="aanmelden" role="tab" aria-selected="false">
+    <svg class="bottom-nav__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4.5h6a1 1 0 0 1 1 1V6h1.5a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1h-13a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1H8v-.5a1 1 0 0 1 1-1Z"/><path d="M9 12.5l2 2 4-4.2"/></svg>
+    <span class="bottom-nav__label">Aanmelden</span>
+    <span class="tab-badge signup-badge admin-only bottom-nav__badge" hidden></span>
+  </button>
+</nav>
+
 <script>
   /* Zet meteen de juiste tab actief op basis van de URL-hash, vóór app.js
      (dat eerst data moet ophalen) dat zou doen — voorkomt dat je heel even
@@ -221,16 +241,18 @@
     try {
       var tab = location.hash.slice(1);
       if (!tab) return;
-      var btn = document.querySelector('.tab[data-tab="' + tab + '"]');
+      var btns = document.querySelectorAll('.tab[data-tab="' + tab + '"]');
       var view = document.getElementById("view-" + tab);
-      if (!btn || !view) return;
+      if (!btns.length || !view) return;
       document.querySelectorAll(".tab").forEach(function (t) {
         t.classList.remove("is-active");
         t.setAttribute("aria-selected", "false");
       });
       document.querySelectorAll(".view").forEach(function (v) { v.classList.remove("is-active"); });
-      btn.classList.add("is-active");
-      btn.setAttribute("aria-selected", "true");
+      btns.forEach(function (btn) {
+        btn.classList.add("is-active");
+        btn.setAttribute("aria-selected", "true");
+      });
       view.classList.add("is-active");
     } catch (e) {}
   })();
@@ -512,6 +534,6 @@
 
 <div class="toast" id="toast" hidden></div>
 
-<script src="app.js?v=23"></script>
+<script src="app.js?v=24"></script>
 </body>
 </html>
