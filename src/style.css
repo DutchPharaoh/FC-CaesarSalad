@@ -981,22 +981,30 @@ body.modal-open {
   /* Tabs bovenin plaatsmaken voor de sticky bottom-nav. */
   .topbar .tabs { display: none; }
 
-  .app { padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px)); }
+  /* `100svh` (small viewport height) is de viewporthoogte mét zichtbare
+     adresbalk, en verandert — anders dan `100vh` of `100dvh` — NIET
+     wanneer de adresbalk in-/uitschuift tijdens het scrollen. Door het
+     lichaam op die vaste hoogte te zetten en de nav als laatste flex-item
+     `sticky` te maken, hoeft de browser tijdens die animatie niets opnieuw
+     te layouten, wat het gat/spring-effect op Firefox voor Android
+     voorkomt (en op Chrome, waar `fixed` al goed ging, niets kapotmaakt). */
+  body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    min-height: 100svh;
+  }
+  .app { flex: 1 0 auto; }
 
   .bottom-nav {
     display: flex;
-    position: fixed;
-    left: 0; right: 0; bottom: 0;
+    position: sticky;
+    bottom: 0;
     z-index: 40;
     background: var(--navy-900);
     border-top: 2px solid var(--red-600);
     padding: 6px 4px calc(6px + env(safe-area-inset-bottom, 0px));
     box-shadow: 0 -6px 16px -8px rgba(16,21,34,0.35);
-    /* Eigen compositing-laag + JS-correctie (zie index.html) tegen het
-       bekende Firefox-Android-gat: `position: fixed` volgt daar soms de
-       layout-viewport i.p.v. de echt zichtbare viewport zodra de adresbalk
-       in/uitschuift. */
-    will-change: transform;
   }
   .bottom-nav__item {
     position: relative;
