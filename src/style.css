@@ -981,25 +981,31 @@ body.modal-open {
   /* Tabs bovenin plaatsmaken voor de sticky bottom-nav. */
   .topbar .tabs { display: none; }
 
-  /* `100svh` (small viewport height) is de viewporthoogte mét zichtbare
-     adresbalk, en verandert — anders dan `100vh` of `100dvh` — NIET
-     wanneer de adresbalk in-/uitschuift tijdens het scrollen. Door het
-     lichaam op die vaste hoogte te zetten en de nav als laatste flex-item
-     `sticky` te maken, hoeft de browser tijdens die animatie niets opnieuw
-     te layouten, wat het gat/spring-effect op Firefox voor Android
-     voorkomt (en op Chrome, waar `fixed` al goed ging, niets kapotmaakt). */
+  /* "App shell": in plaats van de bottom-nav met `fixed`/`sticky` te
+     herpositioneren t.o.v. een viewport die tijdens het scrollen van
+     grootte verandert (waar Firefox voor Android op stuk loopt), laten we
+     de hele pagina (behalve de nav) scrollen in een los binnen-element.
+     De browser schuift z'n adresbalk namelijk alleen in/uit als reactie op
+     het scrollen van het document zelf — html/body blijven hier op een
+     vaste hoogte staan en scrollen niet, dus die animatie (en het gat dat
+     'm veroorzaakt) treedt niet meer op. De nav staat als gewoon,
+     niet-gepositioneerd flex-item onderaan, en hoeft dus nooit
+     herberekend te worden. */
+  html, body { height: 100%; overflow: hidden; }
   body {
     display: flex;
     flex-direction: column;
-    min-height: 100vh;
-    min-height: 100svh;
   }
-  .app { flex: 1 0 auto; }
+  .scroll-area {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
 
   .bottom-nav {
     display: flex;
-    position: sticky;
-    bottom: 0;
+    flex: 0 0 auto;
     z-index: 40;
     background: var(--navy-900);
     border-top: 2px solid var(--red-600);
