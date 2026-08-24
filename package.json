@@ -4,10 +4,12 @@
   "description": "Statistieken-app van FC Caesar Salad: programma, uitslagen, selectie, statistieken en stand.",
   "private": true,
   "devDependencies": {
+    "esbuild": "^0.28.2",
     "wrangler": "^4.0.0"
   },
   "scripts": {
-    "dev": "wrangler pages dev public",
-    "deploy": "wrangler pages deploy public"
+    "build": "node scripts/build.js",
+    "dev": "npm run build && wrangler pages dev public",
+    "deploy": "npm run build && wrangler pages deploy public"
   }
 }
