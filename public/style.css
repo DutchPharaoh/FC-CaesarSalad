@@ -92,8 +92,13 @@ button, input, select {
   display: flex;
   align-items: center;
   gap: 10px;
-  text-decoration: none;
   color: inherit;
+}
+.brand,
+.brand:hover,
+.brand:focus,
+.brand:visited {
+  text-decoration: none;
 }
 .brand__logo {
   width: 34px;
