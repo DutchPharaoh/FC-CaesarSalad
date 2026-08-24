@@ -991,10 +991,20 @@ body.modal-open {
      'm veroorzaakt) treedt niet meer op. De nav staat als gewoon,
      niet-gepositioneerd flex-item onderaan, en hoeft dus nooit
      herberekend te worden. */
-  html, body { height: 100%; overflow: hidden; }
+  /* `100%`/`100vh` volgen hier de "grote" viewport (adresbalk verborgen
+     verondersteld) — vandaar de balk die nu permanent te laag/onzichtbaar
+     stond zodra de adresbalk zichtbaar was. `100dvh` volgt wél de
+     daadwerkelijk zichtbare viewport. Dat mag hier zonder het
+     scroll-jank van eerdere pogingen: het document zelf scrollt niet meer
+     (dat gebeurt in .scroll-area), dus die herberekening wordt niet meer
+     op elk scroll-frame getriggerd, alleen als de adresbalk daadwerkelijk
+     van state wisselt. */
+  html, body { overflow: hidden; }
   body {
     display: flex;
     flex-direction: column;
+    height: 100vh;
+    height: 100dvh;
   }
   .scroll-area {
     flex: 1 1 auto;
