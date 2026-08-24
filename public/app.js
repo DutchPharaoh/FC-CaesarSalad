@@ -252,6 +252,11 @@ document.querySelectorAll(".tab").forEach((btn) => {
   });
 });
 
+document.getElementById("btn-brand-home").addEventListener("click", () => {
+  activateTab("wedstrijden");
+  history.replaceState(null, "", "#wedstrijden");
+});
+
 // Zo kan een tab gedeeld/gebookmarkt worden (bijv. een link naar #aanmelden)
 // en blijft de juiste tab actief na verversen of via de terug/vooruit-knop.
 window.addEventListener("hashchange", () => {
