@@ -381,16 +381,124 @@ function renderMatches() {
   const upcoming = matches.filter((m) => m.status !== "gespeeld").sort((a, b) => new Date(a.match_date) - new Date(b.match_date));
   const played = matches.filter((m) => m.status === "gespeeld").sort((a, b) => new Date(b.match_date) - new Date(a.match_date));
 
-  renderTicketList("list-upcoming", "empty-upcoming", upcoming);
+  const featuredId = renderHeroMatch(upcoming);
+  const restUpcoming = featuredId ? upcoming.filter((m) => m.id !== featuredId) : upcoming;
+
+  renderTicketList("list-upcoming", "empty-upcoming", restUpcoming);
   renderTicketList("list-played", "empty-played", played);
 
   const emptyUpcoming = document.getElementById("empty-upcoming");
-  if (upcoming.length === 0) {
-    const comp = currentCompetition();
-    emptyUpcoming.textContent = comp?.status === "afgesloten"
-      ? (comp.type === "toernooi" ? "Dit toernooi is afgesloten." : "Deze competitie is afgesloten.")
-      : "Nog geen wedstrijden gepland.";
+  if (restUpcoming.length === 0) {
+    if (upcoming.length > 0) {
+      emptyUpcoming.hidden = true;
+    } else {
+      const comp = currentCompetition();
+      emptyUpcoming.textContent = comp?.status === "afgesloten"
+        ? (comp.type === "toernooi" ? "Dit toernooi is afgesloten." : "Deze competitie is afgesloten.")
+        : "Nog geen wedstrijden gepland.";
+    }
   }
+}
+
+/* ---------- Hero: uitgelichte eerstvolgende wedstrijd ---------- */
+
+let heroCountdownTimer = null;
+
+// Toont de eerstvolgende geplande (niet-afgelaste) wedstrijd in een grote
+// kaart met live aftelling. Op matchday springt de kaart naar een grotere,
+// rode weergave; na aftraptijd toont hij "Bezig" i.p.v. een negatieve
+// teller. Geeft het id van de uitgelichte wedstrijd terug (of null), zodat
+// de gewone lijst eronder 'm kan overslaan.
+function renderHeroMatch(upcoming) {
+  const hero = document.getElementById("hero-next-match");
+  if (heroCountdownTimer) {
+    clearInterval(heroCountdownTimer);
+    heroCountdownTimer = null;
+  }
+
+  const next = upcoming.find((m) => m.status === "gepland");
+  if (!next) {
+    hero.hidden = true;
+    hero.innerHTML = "";
+    return null;
+  }
+
+  const target = new Date(next.match_date);
+  const now = new Date();
+  const isMatchday = target.getFullYear() === now.getFullYear()
+    && target.getMonth() === now.getMonth()
+    && target.getDate() === now.getDate();
+
+  const dateLabel = isMatchday
+    ? "Vandaag"
+    : target.toLocaleDateString("nl-NL", { weekday: "long", day: "numeric", month: "long" });
+  const timeLabel = target.toLocaleTimeString("nl-NL", { hour: "2-digit", minute: "2-digit" });
+  const comp = currentCompetition();
+
+  hero.hidden = false;
+  hero.className = "hero-match" + (isMatchday ? " hero-match--matchday" : "");
+  hero.innerHTML = `
+    <div class="hero-match__eyebrow">
+      <span>Eerstvolgende wedstrijd</span>
+      ${comp ? `<strong>${escapeHtml(comp.name)}</strong>` : ""}
+    </div>
+    <div class="hero-match__teams">
+      <div class="hero-match__team hero-match__team--us">
+        <span class="hero-match__badge"><img src="logo.jpeg" alt=""></span>
+        <span class="hero-match__name">FC Caesar Salad</span>
+      </div>
+      <div class="hero-match__vs">VS</div>
+      <div class="hero-match__team">
+        <span class="hero-match__badge" style="background:${teamColor(next.opponent)}">${escapeHtml(teamInitials(next.opponent))}</span>
+        <span class="hero-match__name">${escapeHtml(next.opponent)}</span>
+      </div>
+    </div>
+    <div class="hero-match__meta"><b>${dateLabel}</b> · ${isMatchday ? "Aftrap " : ""}${timeLabel}</div>
+    <div class="hero-match__countdown"></div>
+    <div class="hero-match__live" hidden>
+      <span class="hero-match__live-dot"></span>
+      <span class="hero-match__live-text">Bezig</span>
+    </div>
+  `;
+  hero.onclick = () => openMatchModal(next);
+
+  const cdEl = hero.querySelector(".hero-match__countdown");
+  const liveEl = hero.querySelector(".hero-match__live");
+
+  const tick = () => {
+    const diffMs = target - new Date();
+    if (diffMs <= 0) {
+      cdEl.hidden = true;
+      liveEl.hidden = false;
+      hero.classList.add("hero-match--live");
+      clearInterval(heroCountdownTimer);
+      heroCountdownTimer = null;
+      return;
+    }
+    renderHeroCountdown(cdEl, diffMs);
+  };
+  tick();
+  heroCountdownTimer = setInterval(tick, 1000);
+
+  return next.id;
+}
+
+function renderHeroCountdown(el, diffMs) {
+  const totalSec = Math.floor(diffMs / 1000);
+  const days = Math.floor(totalSec / 86400);
+  const hours = Math.floor((totalSec % 86400) / 3600);
+  const mins = Math.floor((totalSec % 3600) / 60);
+  const secs = totalSec % 60;
+  const two = (n) => String(n).padStart(2, "0");
+  const units = days > 0
+    ? [["d", days], ["u", hours], ["min", mins], ["sec", secs]]
+    : [["u", hours], ["min", mins], ["sec", secs]];
+
+  el.innerHTML = units.map(([label, val], i) => {
+    const cls = label === "sec" ? "hero-match__cd-unit hero-match__cd-unit--secs" : "hero-match__cd-unit";
+    const sep = i < units.length - 1 ? '<span class="hero-match__cd-sep">:</span>' : "";
+    return `<div class="${cls}"><span class="hero-match__cd-num">${two(val)}</span><span class="hero-match__cd-label">${label}</span></div>${sep}`;
+  }).join("");
 }
 
 function renderTicketList(listId, emptyId, list) {
