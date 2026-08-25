@@ -429,6 +429,10 @@ body.is-unlocked td.row-actions.admin-only { display: flex; }
   padding: 18px 18px 16px;
   cursor: pointer;
   margin-bottom: 24px;
+  /* Vaste, lichte kleur voor secundaire tekst op deze donkere kaart —
+     bewust los van --navy-500 (die is elders bedoeld als kleur op een
+     lichte ondergrond en leest daardoor hier te donker/onleesbaar). */
+  --hero-match-muted: rgba(242, 243, 246, 0.72);
 }
 .hero-match--live { box-shadow: 0 0 0 1.5px var(--red-600), var(--shadow); }
 
@@ -440,7 +444,7 @@ body.is-unlocked td.row-actions.admin-only { display: flex; }
   font-size: 0.68rem;
   letter-spacing: 0.09em;
   text-transform: uppercase;
-  color: var(--navy-500);
+  color: var(--hero-match-muted);
   margin-bottom: 14px;
 }
 .hero-match__eyebrow strong { color: var(--red-400); font-weight: 600; }
@@ -478,9 +482,9 @@ body.is-unlocked td.row-actions.admin-only { display: flex; }
   line-height: 1.2;
 }
 .hero-match__team--us .hero-match__name { color: var(--red-400); }
-.hero-match__vs { font-family: var(--font-display); font-size: 0.72rem; color: var(--navy-500); letter-spacing: 0.06em; }
+.hero-match__vs { font-family: var(--font-display); font-size: 0.72rem; color: var(--hero-match-muted); letter-spacing: 0.06em; }
 
-.hero-match__meta { text-align: center; margin-top: 16px; color: var(--navy-500); font-size: 0.82rem; }
+.hero-match__meta { text-align: center; margin-top: 16px; color: var(--hero-match-muted); font-size: 0.82rem; }
 .hero-match__meta b { color: var(--on-dark); font-weight: 600; }
 
 .hero-match__countdown {
@@ -500,8 +504,8 @@ body.is-unlocked td.row-actions.admin-only { display: flex; }
   color: var(--on-dark);
   line-height: 1;
 }
-.hero-match__cd-label { font-size: 0.6rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--navy-500); margin-top: 5px; }
-.hero-match__cd-sep { font-family: var(--font-display); font-size: 1.3rem; color: var(--navy-500); align-self: flex-start; margin-top: 2px; }
+.hero-match__cd-label { font-size: 0.6rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--hero-match-muted); margin-top: 5px; }
+.hero-match__cd-sep { font-family: var(--font-display); font-size: 1.3rem; color: var(--hero-match-muted); align-self: flex-start; margin-top: 2px; }
 
 .hero-match--matchday .hero-match__countdown { gap: 14px; }
 .hero-match--matchday .hero-match__cd-num {
