@@ -110,19 +110,19 @@ export async function onRequestPost({ request, env }) {
   if (!auth.ok) return json(auth.status, { error: auth.error });
 
   const body = await request.json();
-  const { match_date, opponent, status, goals_for, goals_against, mvp_player_id, opponent_own_goals, unknown_goals, competition_id, phase, group_name, round_name } = body;
+  const { match_date, opponent, status, goals_for, goals_against, mvp_player_id, opponent_own_goals, unknown_goals, competition_id, phase, group_name, round_name, pitch } = body;
   if (!match_date || !opponent || !opponent.trim()) {
     return json(400, { error: "Datum en tegenstander zijn verplicht" });
   }
   if (!competition_id) return json(400, { error: "competition_id is verplicht" });
 
   const match = await env.DB.prepare(
-    `INSERT INTO matches (match_date, opponent, status, goals_for, goals_against, mvp_player_id, opponent_own_goals, unknown_goals, competition_id, phase, group_name, round_name)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING *`
+    `INSERT INTO matches (match_date, opponent, status, goals_for, goals_against, mvp_player_id, opponent_own_goals, unknown_goals, competition_id, phase, group_name, round_name, pitch)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING *`
   ).bind(
     match_date, opponent.trim(), status || "gepland",
     goals_for ?? null, goals_against ?? null, mvp_player_id ?? null, opponent_own_goals ?? 0, unknown_goals ?? 0,
-    competition_id, phase || "competitie", group_name ?? null, round_name ?? null
+    competition_id, phase || "competitie", group_name ?? null, round_name ?? null, pitch?.trim() || null
   ).first();
 
   await syncLeagueResult(env, match);
@@ -139,7 +139,7 @@ export async function onRequestPut({ request, env }) {
   if (!id) return json(400, { error: "id ontbreekt" });
 
   const body = await request.json();
-  const { match_date, opponent, status, goals_for, goals_against, mvp_player_id, opponent_own_goals, unknown_goals, phase, group_name, round_name } = body;
+  const { match_date, opponent, status, goals_for, goals_against, mvp_player_id, opponent_own_goals, unknown_goals, phase, group_name, round_name, pitch } = body;
 
   const match = await env.DB.prepare(
     `UPDATE matches
@@ -153,13 +153,14 @@ export async function onRequestPut({ request, env }) {
          unknown_goals = ?,
          phase = COALESCE(?, phase),
          group_name = ?,
-         round_name = ?
+         round_name = ?,
+         pitch = ?
      WHERE id = ?
      RETURNING *`
   ).bind(
     match_date ?? null, opponent ?? null, status ?? null,
     goals_for ?? null, goals_against ?? null, mvp_player_id ?? null, opponent_own_goals ?? 0, unknown_goals ?? 0,
-    phase ?? null, group_name ?? null, round_name ?? null,
+    phase ?? null, group_name ?? null, round_name ?? null, pitch?.trim() || null,
     id
   ).first();
 

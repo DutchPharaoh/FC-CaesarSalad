@@ -453,7 +453,7 @@ function renderHeroMatch(upcoming) {
         <span class="hero-match__name">${escapeHtml(next.opponent)}</span>
       </div>
     </div>
-    <div class="hero-match__meta"><b>${dateLabel}</b> · ${isMatchday ? "Aftrap " : ""}${timeLabel}</div>
+    <div class="hero-match__meta"><b>${dateLabel}</b> · ${isMatchday ? "Aftrap " : ""}${timeLabel}${next.pitch ? ` · ${escapeHtml(next.pitch)}` : ""}</div>
     <div class="hero-match__countdown"></div>
     <div class="hero-match__live" hidden>
       <span class="hero-match__live-dot"></span>
@@ -527,6 +527,7 @@ function renderTicketList(listId, emptyId, list) {
       <div class="ticket__main">
         <span class="ticket__date">${fmtDate(m.match_date)}</span>
         <span class="ticket__opponent team-badge-row"><span class="team-badge-row__vs">vs.</span>${teamBadgeHtml(m.opponent, false)}<span class="team-badge-row__name">${escapeHtml(m.opponent)}</span></span>
+        ${m.pitch ? `<span class="ticket__meta">📍 ${escapeHtml(m.pitch)}</span>` : ""}
         ${mvp ? `<span class="ticket__meta">⭐ MVP: ${escapeHtml(mvp.name)}</span>` : ""}
       </div>
       <div class="ticket__score">${scoreHtml}</div>
@@ -557,6 +558,7 @@ async function openMatchModal(match = null) {
   document.getElementById("match-date").value = match ? toLocalInputValue(match.match_date) : "";
   document.getElementById("match-opponent").value = match?.opponent || "";
   document.getElementById("match-status").value = match?.status || "gepland";
+  document.getElementById("match-pitch").value = match?.pitch || "";
   document.getElementById("match-goals-for").value = match?.goals_for ?? "";
   document.getElementById("match-goals-against").value = match?.goals_against ?? "";
   document.getElementById("match-delete").hidden = !match || !unlocked;
@@ -691,6 +693,7 @@ document.getElementById("match-save").addEventListener("click", async () => {
     match_date: new Date(dateVal).toISOString(),
     opponent,
     status,
+    pitch: document.getElementById("match-pitch").value.trim() || null,
     goals_for: isPlayed && document.getElementById("match-goals-for").value !== "" ? Number(document.getElementById("match-goals-for").value) : null,
     goals_against: isPlayed && document.getElementById("match-goals-against").value !== "" ? Number(document.getElementById("match-goals-against").value) : null,
     mvp_player_id: isPlayed && document.getElementById("match-mvp").value ? Number(document.getElementById("match-mvp").value) : null,

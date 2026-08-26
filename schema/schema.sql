@@ -64,6 +64,7 @@ CREATE TABLE matches (
   phase TEXT NOT NULL DEFAULT 'competitie', -- 'competitie' | 'groep' | 'knockout'
   group_name TEXT,
   round_name TEXT,
+  pitch TEXT, -- bijv. "Veld 5"; optioneel, oude wedstrijden hebben dit niet
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
