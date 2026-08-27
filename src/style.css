@@ -1148,14 +1148,26 @@ body.modal-open {
     -webkit-overflow-scrolling: touch;
   }
 
+  /* Geen `env(safe-area-inset-bottom)` in de padding: we zetten geen
+     `viewport-fit=cover` op de viewport-meta, dus de browser tekent de
+     pagina nooit onder de systeembalken en hoort de inset op 0 te zetten.
+     Chrome doet dat ook, maar Firefox voor Android rapporteert daar de
+     volledige hoogte van de Android-navigatiebalk (~44px). Dat werd hier
+     dus dubbel geteld: de viewport hield al rekening met die balk én wij
+     zetten er nog eens ~44px padding onder — de "balk" onder de nav.
+     Alleen als de app daadwerkelijk als PWA draait (standalone/fullscreen)
+     tekent de pagina wél tot de schermrand en is de inset echt nodig. */
   .bottom-nav {
     display: flex;
     flex: 0 0 auto;
     z-index: 40;
     background: var(--navy-900);
     border-top: 2px solid var(--red-600);
-    padding: 6px 4px calc(6px + env(safe-area-inset-bottom, 0px));
+    padding: 6px 4px 6px;
     box-shadow: 0 -6px 16px -8px rgba(16,21,34,0.35);
+  }
+  @media (display-mode: standalone), (display-mode: fullscreen), (display-mode: minimal-ui) {
+    .bottom-nav { padding-bottom: calc(6px + env(safe-area-inset-bottom, 0px)); }
   }
   .bottom-nav__item {
     position: relative;
@@ -1182,7 +1194,10 @@ body.modal-open {
     margin-left: 0;
   }
 
-  .toast { bottom: calc(84px + env(safe-area-inset-bottom, 0px)); }
+  .toast { bottom: 84px; }
+  @media (display-mode: standalone), (display-mode: fullscreen), (display-mode: minimal-ui) {
+    .toast { bottom: calc(84px + env(safe-area-inset-bottom, 0px)); }
+  }
 }
 
 @media (max-width: 620px) {
