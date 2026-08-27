@@ -1097,6 +1097,48 @@ body.modal-open {
 
 /* ---------- Toast ---------- */
 
+/* ---------- Pull-to-refresh ---------- */
+/* Alleen zinvol op mobiel: daar is .scroll-area de scroller (zie de
+   app-shell verderop) en schakelt de browser z'n eigen pull-to-refresh uit,
+   omdat dat gebaar aan het scrollen van het document zelf hangt.
+   De indicator staat sticky op de bovenrand van de scroller met hoogte 0,
+   zodat hij niets verschuift; de puck zelf staat daarboven (negatieve top)
+   en wordt dus door de scroller weggeknipt tot hij naar binnen wordt
+   getrokken. */
+.ptr {
+  display: none;
+  position: sticky;
+  top: 0;
+  height: 0;
+  z-index: 30;
+  pointer-events: none;
+}
+.ptr__puck {
+  position: absolute;
+  top: -46px;
+  left: 50%;
+  width: 36px;
+  height: 36px;
+  margin-left: -18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--card);
+  color: var(--ink-soft);
+  /* Randje omdat de puck over de donkere topbar zweeft: zonder deze ring
+     loopt de kaartkleur in het donkere thema weg tegen de achtergrond. */
+  border: 1px solid var(--line);
+  box-shadow: 0 2px 8px rgba(16,21,34,0.35);
+  opacity: 0;
+  will-change: transform;
+}
+.ptr.is-armed .ptr__puck,
+.ptr.is-refreshing .ptr__puck { color: var(--red-600); }
+.ptr__icon { width: 20px; height: 20px; display: block; }
+.ptr.is-refreshing .ptr__icon { animation: ptr-spin 0.8s linear infinite; }
+@keyframes ptr-spin { to { transform: rotate(360deg); } }
+
 .toast {
   position: fixed;
   bottom: 20px; left: 50%;
@@ -1147,6 +1189,8 @@ body.modal-open {
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
   }
+
+  .ptr { display: block; }
 
   /* Geen `env(safe-area-inset-bottom)` in de padding: we zetten geen
      `viewport-fit=cover` op de viewport-meta, dus de browser tekent de

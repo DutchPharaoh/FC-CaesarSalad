@@ -30,6 +30,19 @@
 <body>
 
 <div class="scroll-area">
+
+<!-- Eigen pull-to-refresh (zie app.js): de indicator hangt sticky aan de
+     bovenkant van de scroll-container en schuift van boven het scherm naar
+     binnen zolang er getrokken wordt. -->
+<div class="ptr" id="ptr" aria-hidden="true">
+  <div class="ptr__puck" id="ptr-puck">
+    <svg class="ptr__icon" id="ptr-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M20.5 12a8.5 8.5 0 1 1-2.49-6.01"/>
+      <path d="M20.5 4.5v5h-5"/>
+    </svg>
+  </div>
+</div>
+
 <header class="topbar">
   <div class="topbar__inner">
     <a class="brand" id="btn-brand-home" href="#wedstrijden" title="Naar programma & uitslagen" aria-label="Naar programma & uitslagen">

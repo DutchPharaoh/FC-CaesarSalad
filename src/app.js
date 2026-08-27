@@ -1504,6 +1504,135 @@ function renderSignupRows(rows) {
   applyLockState();
 }
 
+/* ---------- Pull-to-refresh (mobiel) ---------- */
+// De app-shell laat html/body niet scrollen maar .scroll-area (zie
+// style.css). Daardoor schakelt de browser z'n eigen pull-to-refresh uit:
+// dat gebaar hangt aan het scrollen van het document zelf. Hieronder een
+// eigen versie op de scroll-container.
+
+const PTR_THRESHOLD = 64;    // px voorbij dit punt laat loslaten verversen
+const PTR_MAX = 96;          // maximale uitslag van de indicator
+const PTR_RESISTANCE = 0.5;  // hoe ver de puck met de vinger meebeweegt
+const PTR_MIN_VISIBLE = 400; // ms dat de spinner minimaal blijft staan
+
+const scrollArea = document.querySelector(".scroll-area");
+const ptrEl = document.getElementById("ptr");
+const ptrPuck = document.getElementById("ptr-puck");
+const ptrIcon = document.getElementById("ptr-icon");
+
+let ptrStartX = 0;
+let ptrStartY = 0;
+let ptrPull = 0;
+let ptrTracking = false;  // vinger op het scherm, gebaar nog niet beoordeeld
+let ptrActive = false;    // beoordeeld als neerwaartse sleep: wij sturen 'm
+let ptrRefreshing = false;
+
+// Alleen daar waar .scroll-area ook echt de scroller is (zelfde breekpunt
+// als de app-shell in style.css).
+function ptrEnabled() {
+  return window.matchMedia("(max-width: 640px)").matches;
+}
+
+function setPtrPull(px, animate) {
+  ptrPull = px;
+  ptrEl.classList.toggle("is-armed", px >= PTR_THRESHOLD);
+  ptrPuck.style.transition = animate ? "transform 0.2s ease, opacity 0.2s ease" : "none";
+  ptrPuck.style.transform = `translateY(${px}px)`;
+  ptrPuck.style.opacity = String(Math.min(1, px / 24));
+  // Tijdens het verversen draait het icoon via een CSS-animatie; die zou
+  // botsen met een inline rotatie.
+  if (!ptrRefreshing) ptrIcon.style.transform = `rotate(${Math.min(px, PTR_THRESHOLD) * 3.6}deg)`;
+}
+
+// Herlaadt de data van het zichtbare tabblad. Competities en wedstrijden
+// altijd: die voeden ook de selectiebalk en de "eerstvolgende wedstrijd".
+async function refreshActiveView() {
+  const activeTab = document.querySelector(".tab.is-active")?.dataset.tab;
+  await Promise.all([loadCompetitions(currentCompetitionId), loadPlayers()]);
+  await loadMatches();
+  if (activeTab === "statistieken") await loadStats();
+  if (activeTab === "stand") { teamsLoadedForCompetition = null; await loadStandView(); }
+  if (activeTab === "aanmelden") await loadSignups();
+  checkSignupBadge();
+}
+
+async function runPtrRefresh() {
+  ptrRefreshing = true;
+  ptrIcon.style.transform = "";
+  ptrEl.classList.add("is-refreshing");
+  setPtrPull(PTR_THRESHOLD, true);
+
+  const startedAt = Date.now();
+  try {
+    await refreshActiveView();
+  } catch (e) {
+    showToast("Verversen mislukt: " + e.message);
+  } finally {
+    // Even laten staan, anders flitst de spinner bij een snel antwoord.
+    setTimeout(() => {
+      ptrEl.classList.remove("is-refreshing");
+      ptrRefreshing = false;
+      setPtrPull(0, true);
+    }, Math.max(0, PTR_MIN_VISIBLE - (Date.now() - startedAt)));
+  }
+}
+
+function onPtrMove(e) {
+  if (!ptrTracking) return;
+  const touch = e.touches[0];
+  const dy = touch.clientY - ptrStartY;
+  const dx = touch.clientX - ptrStartX;
+
+  if (!ptrActive) {
+    // Wacht tot de richting duidelijk is: omhoog of overwegend horizontaal
+    // (bijv. een tabel die zijwaarts scrollt) laten we met rust.
+    if (Math.abs(dy) < 8 && Math.abs(dx) < 8) return;
+    if (dy <= 0 || Math.abs(dx) > Math.abs(dy)) { ptrTracking = false; return; }
+    ptrActive = true;
+  }
+
+  // Tussentijds toch gescrold (bijv. na een korte omhoog-beweging): laten gaan.
+  if (scrollArea.scrollTop > 0) {
+    ptrTracking = false;
+    ptrActive = false;
+    setPtrPull(0, true);
+    return;
+  }
+
+  if (e.cancelable) e.preventDefault();
+  setPtrPull(Math.min(dy * PTR_RESISTANCE, PTR_MAX));
+}
+
+function endPtrGesture() {
+  scrollArea.removeEventListener("touchmove", onPtrMove);
+  if (!ptrTracking && !ptrActive) return;
+  const wasActive = ptrActive;
+  ptrTracking = false;
+  ptrActive = false;
+  if (!wasActive) return;
+  if (ptrPull >= PTR_THRESHOLD) runPtrRefresh();
+  else setPtrPull(0, true);
+}
+
+scrollArea.addEventListener("touchstart", (e) => {
+  if (ptrRefreshing || !ptrEnabled()) return;
+  if (e.touches.length !== 1) return;
+  if (document.body.classList.contains("modal-open")) return;
+  if (scrollArea.scrollTop > 0) return;
+
+  ptrTracking = true;
+  ptrActive = false;
+  ptrStartX = e.touches[0].clientX;
+  ptrStartY = e.touches[0].clientY;
+  // Pas hier binden: een niet-passieve touchmove-listener kost de browser
+  // z'n snelle scrollpad, en dat willen we alleen voor gebaren die vanaf de
+  // bovenkant beginnen — niet bij gewoon scrollen midden in de pagina.
+  scrollArea.addEventListener("touchmove", onPtrMove, { passive: false });
+}, { passive: true });
+
+scrollArea.addEventListener("touchend", endPtrGesture);
+scrollArea.addEventListener("touchcancel", endPtrGesture);
+
 /* ---------- Init ---------- */
 
 (async function init() {
