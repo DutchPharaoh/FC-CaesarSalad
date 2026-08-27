@@ -1,0 +1,16 @@
+# Cache-headers voor Cloudflare Pages (dit bestand wordt door Pages gelezen,
+# niet uitgeserveerd).
+#
+# Standaard geeft Pages statische bestanden `max-age=14400`: vier uur lang
+# pakt de browser z'n eigen kopie zonder iets te vragen. De HTML komt wél
+# steeds vers binnen (`max-age=0`), dus na een deploy laadt een nieuwe pagina
+# de oude app.js/style.css — de wijziging is er dan uren niet te zien.
+#
+# Deze twee bestanden worden bij elke build opnieuw gegenereerd en hebben geen
+# hash in hun naam, dus laten we de browser elke keer even navragen. Dankzij de
+# ETag die Pages meestuurt is dat meestal een 304 van een paar honderd bytes.
+/app.js
+  Cache-Control: public, max-age=0, must-revalidate
+
+/style.css
+  Cache-Control: public, max-age=0, must-revalidate
