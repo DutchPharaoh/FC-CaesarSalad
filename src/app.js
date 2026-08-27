@@ -520,8 +520,8 @@ async function renderHeroH2h(hero, opponent) {
       el.innerHTML = `
         <span class="hero-match__h2h-label">Onderling</span>
         <span class="hero-match__h2h-record"><b>${h.wins}</b>W <b>${h.draws}</b>G <b>${h.losses}</b>V</span>
-        <span class="hero-match__h2h-goals">${h.goals_for}\u2013${h.goals_against}</span>
-        ${last ? `<span class="hero-match__h2h-last">laatst ${last.goals_for}\u2013${last.goals_against} (${uitkomst}) \u00b7 ${new Date(last.match_date).getFullYear()}</span>` : ""}
+        <span class="hero-match__h2h-goals">doelpunten ${h.goals_for}\u2013${h.goals_against}</span>
+        ${last ? `<span class="hero-match__h2h-last">laatst ${last.goals_for}\u2013${last.goals_against} (${uitkomst})</span>` : ""}
       `;
     }
     el.hidden = false;
