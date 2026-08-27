@@ -25,3 +25,13 @@ export function json(status, body) {
     headers: { "Content-Type": "application/json" },
   });
 }
+
+// Vergelijksleutel voor tegenstandersnamen. Dezelfde club wordt tussen
+// seizoenen net anders getypt ("Trust the Process FC" vs "Trust The Process
+// FC"); zo vallen hoofdletters, randspaties en dubbele spaties samen. Drie
+// geneste REPLACEs plakken ook langere reeksen spaties tot één samen (elke
+// ronde halveert een reeks).
+const collapseSpaces = (expr) => `REPLACE(${expr}, '  ', ' ')`;
+
+export const nameKey = (expr) =>
+  collapseSpaces(collapseSpaces(collapseSpaces(`LOWER(TRIM(${expr}))`)));

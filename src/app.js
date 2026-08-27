@@ -371,6 +371,10 @@ async function deletePlayer(player, fromModal = false) {
 /* ---------- Load & render: matches ---------- */
 
 async function loadMatches() {
+  // Een nieuwe uitslag verandert de onderlinge balans en kan een nieuwe
+  // tegenstandersnaam opleveren: beide caches hier laten vervallen.
+  h2hCache.clear();
+  knownOpponents = null;
   if (!currentCompetitionId) { matches = []; renderMatches(); return; }
   matches = await api(`/matches?competition_id=${currentCompetitionId}`);
   renderMatches();
@@ -459,8 +463,10 @@ function renderHeroMatch(upcoming) {
       <span class="hero-match__live-dot"></span>
       <span class="hero-match__live-text">Bezig</span>
     </div>
+    <div class="hero-match__h2h" hidden></div>
   `;
   hero.onclick = () => openMatchModal(next);
+  renderHeroH2h(hero, next.opponent);
 
   const cdEl = hero.querySelector(".hero-match__countdown");
   const liveEl = hero.querySelector(".hero-match__live");
@@ -481,6 +487,47 @@ function renderHeroMatch(upcoming) {
   heroCountdownTimer = setInterval(tick, 1000);
 
   return next.id;
+}
+
+const h2hCache = new Map();
+
+// Onderlinge balans tegen deze tegenstander, over alle competities heen (zie
+// functions/api/h2h.js). Los opgehaald zodat het kaartje en de aftelling er
+// meteen staan; mislukt de call, dan blijft het blok simpelweg verborgen.
+async function renderHeroH2h(hero, opponent) {
+  const el = hero.querySelector(".hero-match__h2h");
+  if (!el) return;
+
+  const key = opponent.trim().toLowerCase().replace(/\s+/g, " ");
+  try {
+    if (!h2hCache.has(key)) {
+      h2hCache.set(key, await api(`/h2h?opponent=${encodeURIComponent(opponent)}`));
+    }
+    const h = h2hCache.get(key);
+    // Tussendoor hertekend (bijv. na verversen): dit blok hangt dan los.
+    if (!el.isConnected) return;
+
+    if (!h.played) {
+      el.innerHTML = `
+        <span class="hero-match__h2h-label">Onderling</span>
+        <span class="hero-match__h2h-note">Eerste ontmoeting</span>
+      `;
+    } else {
+      const last = h.recent[0];
+      const uitkomst = last
+        ? (last.goals_for > last.goals_against ? "W" : last.goals_for < last.goals_against ? "V" : "G")
+        : "";
+      el.innerHTML = `
+        <span class="hero-match__h2h-label">Onderling</span>
+        <span class="hero-match__h2h-record"><b>${h.wins}</b>W <b>${h.draws}</b>G <b>${h.losses}</b>V</span>
+        <span class="hero-match__h2h-goals">${h.goals_for}\u2013${h.goals_against}</span>
+        ${last ? `<span class="hero-match__h2h-last">laatst ${last.goals_for}\u2013${last.goals_against} (${uitkomst}) \u00b7 ${new Date(last.match_date).getFullYear()}</span>` : ""}
+      `;
+    }
+    el.hidden = false;
+  } catch {
+    /* geen kritieke inhoud: het kaartje werkt ook zonder */
+  }
 }
 
 function renderHeroCountdown(el, diffMs) {
@@ -577,7 +624,7 @@ async function openMatchModal(match = null) {
   }
 
   if (teamsLoadedForCompetition !== currentCompetitionId) await loadTeams();
-  populateOpponentDatalist();
+  await populateOpponentDatalist();
 
   await toggleStatsBlock();
   document.getElementById("match-status").onchange = toggleStatsBlock;
@@ -983,12 +1030,23 @@ function populateTeamSelects() {
   document.getElementById("result-away-team").innerHTML = options;
 }
 
-function populateOpponentDatalist() {
+// Suggesties uit álle competities (zie functions/api/opponents.js). De teams
+// van de huidige competitie alleen zouden bij een nieuw seizoen een lege lijst
+// geven; dan typ je een terugkerende club opnieuw, en een afwijkende
+// schrijfwijze splitst stilletjes de onderlinge balans.
+let knownOpponents = null;
+
+async function populateOpponentDatalist() {
   const datalist = document.getElementById("opponent-list");
-  datalist.innerHTML = teams
-    .filter((t) => !t.is_own_team)
-    .map((t) => `<option value="${escapeHtml(t.name)}"></option>`)
-    .join("");
+  if (!knownOpponents) {
+    try {
+      knownOpponents = (await api("/opponents")).map((o) => o.name);
+    } catch {
+      knownOpponents = null; // volgende keer opnieuw proberen
+    }
+  }
+  const names = knownOpponents ?? teams.filter((t) => !t.is_own_team).map((t) => t.name);
+  datalist.innerHTML = names.map((n) => `<option value="${escapeHtml(n)}"></option>`).join("");
 }
 
 function populateGroupNameList() {

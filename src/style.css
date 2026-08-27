@@ -508,6 +508,34 @@ body.is-unlocked td.row-actions.admin-only { display: flex; }
 .hero-match__cd-sep { font-family: var(--font-display); font-size: 1.3rem; color: var(--hero-match-muted); align-self: flex-start; margin-top: 2px; }
 
 .hero-match--matchday .hero-match__countdown { gap: 14px; }
+
+/* Onderlinge balans onderaan het kaartje: zelfde hairline-scheiding als de
+   aftelling erboven, maar bewust klein en rustig — het is context, geen
+   hoofdzaak. */
+.hero-match__h2h {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: center;
+  gap: 6px 12px;
+  font-size: 0.76rem;
+  color: var(--hero-match-muted);
+}
+.hero-match__h2h-label {
+  font-family: var(--font-display);
+  font-size: 0.62rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+.hero-match__h2h-record { color: var(--on-dark); font-variant-numeric: tabular-nums; }
+.hero-match__h2h-record b { font-family: var(--font-display); font-weight: 700; }
+.hero-match__h2h-goals { font-variant-numeric: tabular-nums; }
+.hero-match__h2h-last,
+.hero-match__h2h-note { font-style: italic; }
+
 .hero-match--matchday .hero-match__cd-num {
   font-size: 2.15rem;
   color: var(--red-400);
