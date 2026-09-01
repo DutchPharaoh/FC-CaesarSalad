@@ -1020,7 +1020,7 @@ body.is-unlocked td.row-actions.admin-only { display: flex; }
 .stats-note {
   margin: 6px 0 16px;
   max-width: 62ch;
-  font-size: 0.76rem;
+  font-size: 0.7rem;
   font-style: italic;
   line-height: 1.45;
   color: var(--ink-soft);
