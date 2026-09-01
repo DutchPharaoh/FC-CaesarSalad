@@ -388,8 +388,11 @@ function renderMatches() {
   const featuredId = renderHeroMatch(upcoming);
   const restUpcoming = featuredId ? upcoming.filter((m) => m.id !== featuredId) : upcoming;
 
+  const lastId = renderLastResult(played);
+  const restPlayed = lastId ? played.filter((m) => m.id !== lastId) : played;
+
   renderTicketList("list-upcoming", "empty-upcoming", restUpcoming);
-  renderTicketList("list-played", "empty-played", played);
+  renderTicketList("list-played", "empty-played", restPlayed);
 
   const emptyUpcoming = document.getElementById("empty-upcoming");
   if (restUpcoming.length === 0) {
@@ -402,6 +405,66 @@ function renderMatches() {
         : "Nog geen wedstrijden gepland.";
     }
   }
+
+  // Uitgelicht betekent uit de lijst gehaald; dan klopt "nog geen uitslagen
+  // ingevoerd" niet meer.
+  if (restPlayed.length === 0 && played.length > 0) {
+    document.getElementById("empty-played").hidden = true;
+  }
+}
+
+/* ---------- Uitgelichte laatste uitslag ---------- */
+
+// De meest recente gespeelde wedstrijd mét uitslag, in een kaart onder de
+// hero. Zelfde opbouw als die hero, maar op een rustig oppervlak: twee even
+// luide kaarten onder elkaar vechten om aandacht en dan heeft de pagina geen
+// brandpunt meer. De uitslag krijgt hier de plek die daar de aftelling heeft.
+// Geeft het id terug zodat de lijst "Gespeeld" 'm kan overslaan.
+function renderLastResult(played) {
+  const card = document.getElementById("hero-last-match");
+
+  // `played` is aflopend op datum gesorteerd; een wedstrijd zonder ingevulde
+  // score valt af, want dan is er niets uit te lichten.
+  const last = played.find((m) => m.goals_for != null && m.goals_against != null);
+  if (!last) {
+    card.hidden = true;
+    card.innerHTML = "";
+    return null;
+  }
+
+  const uitslag = last.goals_for > last.goals_against ? "win"
+    : last.goals_for < last.goals_against ? "loss" : "draw";
+  const uitslagLabel = { win: "Winst", draw: "Gelijkspel", loss: "Verlies" }[uitslag];
+  const mvp = last.mvp_player_id ? players.find((p) => p.id === last.mvp_player_id) : null;
+
+  card.hidden = false;
+  card.className = `hero-result is-${uitslag}`;
+  card.innerHTML = `
+    <div class="hero-result__eyebrow">Laatste uitslag</div>
+    <div class="hero-result__teams">
+      <div class="hero-result__team">
+        <span class="hero-result__badge hero-result__badge--us"><img src="logo.jpeg" alt=""></span>
+        <span class="hero-result__name">FC Caesar Salad</span>
+      </div>
+      <div class="hero-result__vs">VS</div>
+      <div class="hero-result__team">
+        <span class="hero-result__badge" style="background:${teamColor(last.opponent)}">${escapeHtml(teamInitials(last.opponent))}</span>
+        <span class="hero-result__name">${escapeHtml(last.opponent)}</span>
+      </div>
+    </div>
+    <div class="hero-result__meta">${fmtDate(last.match_date)}${last.pitch ? ` \u00b7 ${escapeHtml(last.pitch)}` : ""}</div>
+    <div class="hero-result__score">
+      <span class="hero-result__score-num">${last.goals_for} \u2013 ${last.goals_against}</span>
+      <span class="hero-result__score-label">${uitslagLabel}</span>
+    </div>
+    ${mvp ? `
+      <div class="hero-result__mvp">
+        <span class="hero-result__mvp-label">MVP</span><b>${escapeHtml(mvp.name)}</b>
+      </div>` : ""}
+  `;
+  card.onclick = () => openMatchModal(last);
+
+  return last.id;
 }
 
 /* ---------- Hero: uitgelichte eerstvolgende wedstrijd ---------- */

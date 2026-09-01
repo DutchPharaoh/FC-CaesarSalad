@@ -581,6 +581,129 @@ body.is-unlocked td.row-actions.admin-only { display: flex; }
   .hero-match--matchday .hero-match__countdown { gap: 8px; }
 }
 
+/* ---------- Uitgelichte laatste uitslag ---------- */
+
+/* Zelfde opbouw als .hero-match hierboven — eyebrow, teams, meta, en een
+   groot element onderaan — maar op een rustig oppervlak in plaats van het
+   donkere verloop. Twee even luide kaarten onder elkaar vechten om aandacht;
+   de aanstaande wedstrijd hoort het brandpunt te blijven. Waar de hero z'n
+   aftelling heeft, staat hier de uitslag. */
+.hero-result {
+  position: relative;
+  border-radius: 8px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+  padding: 16px 18px 14px;
+  cursor: pointer;
+  margin-bottom: 24px;
+  --hero-result-accent: var(--stone);
+}
+.hero-result.is-win { --hero-result-accent: var(--green); }
+.hero-result.is-loss { --hero-result-accent: var(--red-600); }
+
+.hero-result__eyebrow {
+  font-family: var(--font-display);
+  font-size: 0.68rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin-bottom: 12px;
+}
+
+.hero-result__teams {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 10px;
+}
+.hero-result__team { display: flex; flex-direction: column; align-items: center; gap: 7px; text-align: center; min-width: 0; }
+.hero-result__badge {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.8rem;
+  color: #fff;
+}
+.hero-result__badge img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.hero-result__badge--us { background: var(--paper); box-shadow: 0 0 0 2px var(--red-600); }
+.hero-result__name {
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--ink);
+  max-width: 120px;
+  text-wrap: balance;
+  line-height: 1.2;
+}
+.hero-result__vs {
+  font-family: var(--font-display);
+  font-size: 0.68rem;
+  color: var(--ink-soft);
+  letter-spacing: 0.06em;
+}
+
+.hero-result__meta { text-align: center; margin-top: 12px; color: var(--ink-soft); font-size: 0.78rem; }
+
+.hero-result__score {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.hero-result__score-num {
+  font-family: var(--font-display);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  font-size: 1.6rem;
+  line-height: 1;
+  color: var(--ink);
+}
+/* Het woord erbij, niet alleen de kleur: kleur alleen is een zwak signaal. */
+.hero-result__score-label {
+  font-family: var(--font-display);
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 700;
+  margin-top: 6px;
+  color: var(--hero-result-accent);
+}
+
+.hero-result__mvp {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: center;
+  gap: 4px 8px;
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+}
+.hero-result__mvp-label {
+  font-family: var(--font-display);
+  font-size: 0.62rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+.hero-result__mvp b { color: var(--ink); font-weight: 600; }
+
+@media (max-width: 420px) {
+  .hero-result__badge { width: 36px; height: 36px; }
+  .hero-result__score-num { font-size: 1.4rem; }
+}
+
 .empty-state {
   color: var(--ink-soft);
   font-size: 0.9rem;
