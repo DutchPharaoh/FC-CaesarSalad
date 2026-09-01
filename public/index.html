@@ -109,9 +109,10 @@
       <button class="btn btn--primary admin-only" id="btn-new-player">+ Speler</button>
     </div>
 
-    <label class="checkbox-field" id="stats-alltime-wrap" style="margin-bottom: 16px;">
+    <label class="checkbox-field" id="stats-alltime-wrap">
       <input type="checkbox" id="stats-alltime-toggle"> All-time (alle competities/toernooien samen)
     </label>
+    <p class="stats-note">⭐ Spelersstatistieken worden bijgehouden vanaf het Eindtoernooi maandag 5v5 Zomer 2026. Van de competities daarvóór staan de wedstrijden en uitslagen er wel in, maar is per speler niets vastgelegd — aanwezigheid, doelpunten en kaarten beginnen dus later dan het aantal gespeelde competities doet vermoeden.</p>
 
     <div class="scoreboard" id="team-record"></div>
 
@@ -123,6 +124,7 @@
             <th>Speler</th>
             <th class="num">GS</th>
             <th class="num">Doelp.</th>
+            <th class="num" title="Gekeept, in wedstrijden (½ = één helft)">🧤</th>
             <th class="num">⭐ MVP</th>
             <th class="col-actions admin-only"></th>
           </tr>
@@ -342,6 +344,7 @@
                 <th>Speler</th>
                 <th class="num" id="col-present">Aanwezig</th>
                 <th class="num">Doelp.</th>
+                <th class="num" title="Gekeept: halve of hele wedstrijd">🧤</th>
                 <th class="num">🟨</th>
                 <th class="num">🟥</th>
               </tr>

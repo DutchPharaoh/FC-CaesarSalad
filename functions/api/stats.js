@@ -22,6 +22,7 @@ export async function onRequestGet({ request, env }) {
          COALESCE(SUM(s.assists), 0) AS assists,
          COALESCE(SUM(s.yellow_cards), 0) AS yellow_cards,
          COALESCE(SUM(s.red_cards), 0) AS red_cards,
+         COALESCE(SUM(s.keeper_halves), 0) AS keeper_halves,
          COUNT(s.match_id) AS matches_played,
          COALESCE(SUM(CASE WHEN m.goals_for > m.goals_against THEN 1 ELSE 0 END), 0) AS wins,
          COALESCE(SUM(CASE WHEN m.goals_for = m.goals_against THEN 1 ELSE 0 END), 0) AS draws,
@@ -69,19 +70,24 @@ export async function onRequestPost({ request, env }) {
   if (!auth.ok) return json(auth.status, { error: auth.error });
 
   const body = await request.json();
-  const { match_id, player_id, goals, assists, yellow_cards, red_cards } = body;
+  const { match_id, player_id, goals, assists, yellow_cards, red_cards, keeper_halves } = body;
   if (!match_id || !player_id) return json(400, { error: "match_id en player_id zijn verplicht" });
 
+  // 0 = niet gekeept, 1 = halve wedstrijd, 2 = hele wedstrijd. Afgekapt in
+  // plaats van geweigerd: een rare waarde mag het opslaan niet blokkeren.
+  const keeper = Math.min(2, Math.max(0, Math.round(Number(keeper_halves) || 0)));
+
   const row = await env.DB.prepare(
-    `INSERT INTO player_stats (match_id, player_id, goals, assists, yellow_cards, red_cards)
-     VALUES (?, ?, ?, ?, ?, ?)
+    `INSERT INTO player_stats (match_id, player_id, goals, assists, yellow_cards, red_cards, keeper_halves)
+     VALUES (?, ?, ?, ?, ?, ?, ?)
      ON CONFLICT (match_id, player_id) DO UPDATE SET
        goals = excluded.goals,
        assists = excluded.assists,
        yellow_cards = excluded.yellow_cards,
-       red_cards = excluded.red_cards
+       red_cards = excluded.red_cards,
+       keeper_halves = excluded.keeper_halves
      RETURNING *`
-  ).bind(match_id, player_id, goals || 0, assists || 0, yellow_cards || 0, red_cards || 0).first();
+  ).bind(match_id, player_id, goals || 0, assists || 0, yellow_cards || 0, red_cards || 0, keeper).first();
 
   return json(200, row);
 }

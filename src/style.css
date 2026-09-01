@@ -1015,6 +1015,17 @@ body.is-unlocked td.row-actions.admin-only { display: flex; }
   font-size: 0.85rem; font-weight: 600; color: var(--ink-soft);
 }
 
+/* Voetnoot onder de all-time toggle: klein en cursief, want het is context
+   bij de cijfers en geen mededeling op zichzelf. */
+.stats-note {
+  margin: 6px 0 16px;
+  max-width: 62ch;
+  font-size: 0.76rem;
+  font-style: italic;
+  line-height: 1.45;
+  color: var(--ink-soft);
+}
+
 .results-list { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
 .results-round__title {
   font-family: var(--font-display);
@@ -1235,7 +1246,8 @@ body.modal-open {
 }
 .score-field { grid-column: span 1; }
 
-.stats-input-table input {
+.stats-input-table input,
+.stats-input-table select {
   width: 56px;
   border: 1px solid var(--line);
   border-radius: 6px;
@@ -1244,6 +1256,11 @@ body.modal-open {
   font-size: 0.88rem;
   color: var(--ink);
   background: var(--card);
+}
+.stats-input-table select:disabled {
+  background: var(--paper-dim);
+  color: var(--ink-soft);
+  cursor: default;
 }
 
 /* ---------- Toast ---------- */

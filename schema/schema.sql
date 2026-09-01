@@ -85,6 +85,8 @@ CREATE TABLE player_stats (
   assists INTEGER NOT NULL DEFAULT 0,
   yellow_cards INTEGER NOT NULL DEFAULT 0,
   red_cards INTEGER NOT NULL DEFAULT 0,
+  -- Aantal helften als keeper: 0, 1 (halve wedstrijd) of 2 (hele wedstrijd).
+  keeper_halves INTEGER NOT NULL DEFAULT 0,
   UNIQUE(match_id, player_id)
 );
 

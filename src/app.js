@@ -270,6 +270,16 @@ async function loadPlayers() {
   players = await api("/players");
 }
 
+// Keepersinzet staat in helften in de database (0, 1 of 2 per wedstrijd).
+// Als aantal wedstrijden gelezen is dat prettiger: 3 helften = 1½ wedstrijd.
+function fmtKeeper(halves) {
+  const n = Number(halves) || 0;
+  if (!n) return "\u2014";
+  const heel = Math.floor(n / 2);
+  const half = n % 2 ? "\u00bd" : "";
+  return heel ? `${heel}${half}` : half;
+}
+
 function escapeHtml(str) {
   return String(str).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 }
@@ -765,10 +775,17 @@ function renderMatchStatsRows() {
       <td>${escapeHtml(p.name)}</td>
       <td class="num" ${unlocked ? "" : "hidden"}><input type="checkbox" class="s-played" ${existing ? "checked" : ""}></td>
       <td class="num"><input type="number" min="0" class="s-goals" value="${existing?.goals ?? 0}"></td>
+      <td class="num"><select class="s-keeper">
+        ${[[0, "\u2014"], [1, "\u00bd"], [2, "heel"]].map(([v, label]) =>
+          `<option value="${v}"${(existing?.keeper_halves ?? 0) === v ? " selected" : ""}>${label}</option>`).join("")}
+      </select></td>
       <td class="num"><input type="number" min="0" class="s-yellow" value="${existing?.yellow_cards ?? 0}"></td>
       <td class="num"><input type="number" min="0" class="s-red" value="${existing?.red_cards ?? 0}"></td>
     `;
     tr.querySelector(".s-goals").addEventListener("input", (e) => {
+      if (Number(e.target.value || 0) > 0) tr.querySelector(".s-played").checked = true;
+    });
+    tr.querySelector(".s-keeper").addEventListener("change", (e) => {
       if (Number(e.target.value || 0) > 0) tr.querySelector(".s-played").checked = true;
     });
     tbody.appendChild(tr);
@@ -848,10 +865,11 @@ document.getElementById("match-save").addEventListener("click", async () => {
         const goals = Number(row.querySelector(".s-goals").value || 0);
         const yellow = Number(row.querySelector(".s-yellow").value || 0);
         const red = Number(row.querySelector(".s-red").value || 0);
-        if (present || goals || yellow || red) {
+        const keeper = Number(row.querySelector(".s-keeper").value || 0);
+        if (present || goals || yellow || red || keeper) {
           await api("/stats", {
             method: "POST",
-            body: JSON.stringify({ match_id: matchId, player_id: Number(playerId), goals, yellow_cards: yellow, red_cards: red }),
+            body: JSON.stringify({ match_id: matchId, player_id: Number(playerId), goals, yellow_cards: yellow, red_cards: red, keeper_halves: keeper }),
           });
         } else if (statId) {
           // Niet aangevinkt als aanwezig en geen statistieken -> bestaande rij verwijderen
@@ -933,6 +951,7 @@ function renderLeaderboard(rows) {
       </td>
       <td class="num">${r.matches_played}</td>
       <td class="num">${r.goals}</td>
+      <td class="num">${fmtKeeper(r.keeper_halves)}</td>
       <td class="num">${r.mvp_count > 0 ? r.mvp_count : "—"}</td>
       <td class="row-actions admin-only">
         <button data-action="edit" title="Bewerken" aria-label="Speler bewerken">✏️</button>
@@ -978,6 +997,7 @@ function openPlayerDetailModal(r) {
     ["Doelpunten", r.goals],
     ["🟨 Geel", r.yellow_cards],
     ["🟥 Rood", r.red_cards],
+    ["🧤 Gekeept", fmtKeeper(r.keeper_halves)],
     ["⭐ MVP", r.mvp_count],
   ].map(([label, value]) => `
     <div class="scoreboard__stat">
