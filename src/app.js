@@ -388,11 +388,14 @@ function renderMatches() {
   const featuredId = renderHeroMatch(upcoming);
   const restUpcoming = featuredId ? upcoming.filter((m) => m.id !== featuredId) : upcoming;
 
-  const lastId = renderLastResult(played);
-  const restPlayed = lastId ? played.filter((m) => m.id !== lastId) : played;
+  // De uitgelichte uitslag blijft bewust ook in de lijst hieronder staan: die
+  // is het volledige overzicht, en een gat op de eerste plek leest als een
+  // ontbrekende wedstrijd. (Bij "Aankomend" wordt de hero er wél uitgehaald,
+  // want daar staat de eerstvolgende letterlijk als grote kaart erboven.)
+  renderLastResult(played);
 
   renderTicketList("list-upcoming", "empty-upcoming", restUpcoming);
-  renderTicketList("list-played", "empty-played", restPlayed);
+  renderTicketList("list-played", "empty-played", played);
 
   const emptyUpcoming = document.getElementById("empty-upcoming");
   if (restUpcoming.length === 0) {
@@ -406,11 +409,6 @@ function renderMatches() {
     }
   }
 
-  // Uitgelicht betekent uit de lijst gehaald; dan klopt "nog geen uitslagen
-  // ingevoerd" niet meer.
-  if (restPlayed.length === 0 && played.length > 0) {
-    document.getElementById("empty-played").hidden = true;
-  }
 }
 
 /* ---------- Uitgelichte laatste uitslag ---------- */
@@ -419,7 +417,6 @@ function renderMatches() {
 // hero. Zelfde opbouw als die hero, maar op een rustig oppervlak: twee even
 // luide kaarten onder elkaar vechten om aandacht en dan heeft de pagina geen
 // brandpunt meer. De uitslag krijgt hier de plek die daar de aftelling heeft.
-// Geeft het id terug zodat de lijst "Gespeeld" 'm kan overslaan.
 function renderLastResult(played) {
   const card = document.getElementById("hero-last-match");
 
@@ -429,7 +426,7 @@ function renderLastResult(played) {
   if (!last) {
     card.hidden = true;
     card.innerHTML = "";
-    return null;
+    return;
   }
 
   const uitslag = last.goals_for > last.goals_against ? "win"
@@ -459,12 +456,10 @@ function renderLastResult(played) {
     </div>
     ${mvp ? `
       <div class="hero-result__mvp">
-        <span class="hero-result__mvp-label">MVP</span><b>${escapeHtml(mvp.name)}</b>
+        <span class="hero-result__mvp-label">\u2b50 MVP</span><b>${escapeHtml(mvp.name)}</b>
       </div>` : ""}
   `;
   card.onclick = () => openMatchModal(last);
-
-  return last.id;
 }
 
 /* ---------- Hero: uitgelichte eerstvolgende wedstrijd ---------- */
