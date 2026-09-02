@@ -1,0 +1,10 @@
+{
+  "_comment": [
+    "Vertaaltabel voor teamnamen: sleutel = de naam zoals Footy 'm schrijft,",
+    "waarde = de naam zoals het team in deze app heet. Alleen nodig als de",
+    "namen echt van elkaar verschillen — hoofdletters, accenten en extra",
+    "spaties negeert scripts/sync-footy-results.mjs sowieso al.",
+    "Voorbeeld: { \"Noord CF\": \"Team Noord\" }"
+  ],
+  "aliases": {}
+}
