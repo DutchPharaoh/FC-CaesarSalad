@@ -717,7 +717,7 @@ async function openMatchModal(match = null) {
     currentMatchStats = [];
   }
   renderMatchStatsRows();
-  document.querySelectorAll("#match-stats-rows input").forEach((el) => { el.disabled = !unlocked; });
+  document.querySelectorAll("#match-stats-rows input, #match-stats-rows select").forEach((el) => { el.disabled = !unlocked; });
 
   matchModal.hidden = false;
   lockBodyScroll();
