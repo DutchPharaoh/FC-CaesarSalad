@@ -1,0 +1,54 @@
+# Haalt na elke speelavond de uitslagen van de andere teams uit de Footy-app
+# en zet ze in de database van deze app.
+#
+# De competitie speelt op dinsdagavond; de scheidsrechters voeren de standen
+# meestal kort na afloop in, maar soms pas de dag erna. Daarom draait dit
+# dinsdagnacht én woensdagochtend: de tweede run vult aan wat de eerste nog
+# niet zag en doet verder niets (het script slaat bestaande uitslagen over).
+name: Footy-uitslagen synchroniseren
+
+on:
+  schedule:
+    - cron: "0 21 * * 2" # dinsdag 23:00 Amsterdamse tijd (22:00 in de winter)
+    - cron: "0 6 * * 3"  # woensdag 08:00 Amsterdamse tijd (07:00 in de winter)
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Alleen tonen wat er zou gebeuren, niets wegschrijven"
+        type: boolean
+        default: false
+      update_scores:
+        description: "Ook al ingevoerde uitslagen overschrijven met de stand bij Footy"
+        type: boolean
+        default: false
+
+# Twee runs tegelijk zouden dezelfde uitslag dubbel kunnen toevoegen.
+concurrency:
+  group: sync-footy-results
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Uitslagen synchroniseren
+        env:
+          FOOTY_EMAIL: ${{ secrets.FOOTY_EMAIL }}
+          FOOTY_PASSWORD: ${{ secrets.FOOTY_PASSWORD }}
+          APP_BASE_URL: ${{ vars.APP_BASE_URL || 'https://fccaesarsalad.nl' }}
+          APP_ADMIN_TOKEN: ${{ secrets.APP_ADMIN_TOKEN }}
+          # Optioneel; leeg laten laat het script zelf de actieve competitie
+          # en de bijbehorende Footy-competitie opzoeken.
+          APP_COMPETITION: ${{ vars.APP_COMPETITION }}
+          FOOTY_LEAGUE: ${{ vars.FOOTY_LEAGUE }}
+        run: |
+          node scripts/sync-footy-results.mjs \
+            ${{ inputs.dry_run && '--dry-run' || '' }} \
+            ${{ inputs.update_scores && '--update-scores' || '' }}

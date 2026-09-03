@@ -76,6 +76,74 @@ wrangler pages dev public
 ```
 Dit draait de site + functions + een lokale D1-database op je eigen computer, meestal op `http://localhost:8788`. Voor lokale testen met het wachtwoord-slot: maak een bestand `.dev.vars` aan in de projectroot met daarin `ADMIN_PASSWORD=jouwwachtwoord`.
 
+## Uitslagen van de andere teams automatisch ophalen
+
+De stand klopt alleen als ook de wedstrijden van de andere teams in de app
+staan. Die hoeven niet met de hand ingevoerd te worden:
+`scripts/sync-footy-results.mjs` haalt ze op uit de Footy-app en zet ze via
+`/api/results` in de database.
+
+Eigen wedstrijden slaat het script bewust over — die voer je in via
+"Programma & uitslagen", waarna de app ze zelf naar de stand doorrekent.
+
+### Handmatig draaien
+
+```
+FOOTY_EMAIL=... FOOTY_PASSWORD=... APP_ADMIN_TOKEN=... \
+  node scripts/sync-footy-results.mjs --dry-run
+```
+
+Laat `--dry-run` weg om echt weg te schrijven. Verder:
+
+| Optie | Doet |
+| --- | --- |
+| `--dry-run` | Laat zien wat er zou gebeuren, schrijft niets weg (`APP_ADMIN_TOKEN` niet nodig) |
+| `--update-scores` | Overschrijft een al ingevoerde uitslag als Footy een andere stand heeft |
+| `--verbose` | Extra uitleg over welke competitie en wedstrijden gekozen zijn |
+
+Omgevingsvariabelen:
+
+| Variabele | Verplicht | Betekenis |
+| --- | --- | --- |
+| `FOOTY_EMAIL` / `FOOTY_PASSWORD` | ja | Inloggegevens van een Footy-account dat in het team zit |
+| `APP_ADMIN_TOKEN` | ja (tenzij `--dry-run`) | Hetzelfde wachtwoord als `ADMIN_PASSWORD` in Cloudflare |
+| `APP_BASE_URL` | nee | Standaard `https://fccaesarsalad.nl`; voor lokaal testen `http://localhost:8788` |
+| `APP_COMPETITION` | nee | Naam of id van de competitie in de app; leeg = de enige actieve competitie |
+| `FOOTY_LEAGUE` | nee | Naam of id van de competitie bij Footy; leeg = automatisch op naam gezocht |
+
+Zonder `APP_COMPETITION` en `FOOTY_LEAGUE` zoekt het script zelf de actieve
+competitie op en koppelt daar de Footy-competitie met de meest overeenkomende
+naam aan ("Competitie dinsdag 5v5 Herfst 2026" ↔ "FPU Dinsdag 5v5 Herfst
+2026"). Twijfelt het, dan stopt het met een melding in plaats van de verkeerde
+competitie te vullen.
+
+### Wekelijks automatisch
+
+`.github/workflows/sync-footy-results.yml` draait dinsdagnacht en
+woensdagochtend. De tweede run vangt op dat een scheidsrechter de stand pas de
+volgende dag invoert; staat een uitslag er al in, dan doet het script niets.
+
+Zet daarvoor eenmalig in de GitHub-repo onder **Settings** → **Secrets and
+variables** → **Actions** deze *secrets*: `FOOTY_EMAIL`, `FOOTY_PASSWORD` en
+`APP_ADMIN_TOKEN`. De optionele *variables* `APP_BASE_URL`, `APP_COMPETITION`
+en `FOOTY_LEAGUE` kun je leeg laten.
+
+Onder het tabblad **Actions** kun je 'm ook met de hand starten, met of zonder
+proefrun.
+
+### Als er een team niet gevonden wordt
+
+Footy en de app schrijven een teamnaam niet altijd hetzelfde. Hoofdletters,
+accenten en dubbele spaties negeert het script al; is het verschil groter
+(bijv. "Noord CF" tegenover "Team Noord"), dan meldt het script dat en stopt de
+run met een foutcode, zodat de workflow rood wordt. Los het op door het team in
+de app te hernoemen, of door de naam toe te voegen aan
+`scripts/footy-team-aliases.json`:
+
+```json
+{ "aliases": { "Noord CF": "Team Noord" } }
+```
+
 ## Nieuwe wijzigingen later doorvoeren
 
 Omdat de repo nu aan GitHub gekoppeld is: elke keer dat er een update is, hoef je alleen de gewijzigde bestanden te committen en te pushen (`git add . && git commit -m "..." && git push`) — Cloudflare bouwt en deployt daarna automatisch. Wijzigt het databaseschema, dan voer je het nieuwe SQL-bestand nog los uit met `wrangler d1 execute fc-caesar-salad-db --remote --file=...`.
