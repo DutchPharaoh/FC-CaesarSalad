@@ -96,5 +96,14 @@ CREATE INDEX idx_stats_player ON player_stats(player_id);
 CREATE INDEX idx_league_results_home ON league_results(home_team_id);
 CREATE INDEX idx_league_results_away ON league_results(away_team_id);
 CREATE INDEX idx_teams_competition ON teams(competition_id);
+
+-- Teamnamen zijn binnen een competitie niet hoofdlettergevoelig: dezelfde
+-- normalisatie als nameKey() in functions/api/_shared.js, zodat "Trust The
+-- Process FC" en "Trust the process FC" niet als twee teams kunnen bestaan.
+CREATE UNIQUE INDEX idx_teams_name_nocase
+  ON teams (
+    competition_id,
+    REPLACE(REPLACE(REPLACE(LOWER(TRIM(name)), '  ', ' '), '  ', ' '), '  ', ' ')
+  );
 CREATE INDEX idx_matches_competition ON matches(competition_id);
 CREATE INDEX idx_league_results_competition ON league_results(competition_id);

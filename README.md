@@ -131,18 +131,27 @@ en `FOOTY_LEAGUE` kun je leeg laten.
 Onder het tabblad **Actions** kun je 'm ook met de hand starten, met of zonder
 proefrun.
 
-### Als er een team niet gevonden wordt
+### Teamnamen en hoofdletters
 
-Footy en de app schrijven een teamnaam niet altijd hetzelfde. Hoofdletters,
-accenten en dubbele spaties negeert het script al; is het verschil groter
-(bijv. "Noord CF" tegenover "Team Noord"), dan meldt het script dat en stopt de
-run met een foutcode, zodat de workflow rood wordt. Los het op door het team in
-de app te hernoemen, of door de naam toe te voegen aan
-`scripts/footy-team-aliases.json`:
+Hoofdletters, accenten en dubbele spaties tellen nergens mee: "Trust The
+Process FC" en "Trust the process FC" zijn hetzelfde team. Dat geldt zowel bij
+het overnemen van uitslagen als in de app zelf — je kunt die twee dus ook niet
+per ongeluk naast elkaar aanmaken (index `idx_teams_name_nocase`, migratie
+`0007`). Probeer je het toch, dan krijg je netjes "Er bestaat al een team met
+deze naam" in plaats van een tweede half team in de stand.
+
+Is het verschil groter dan schrijfwijze (bijv. "Noord CF" tegenover "Team
+Noord"), dan meldt het script dat en stopt de run met een foutcode, zodat de
+workflow rood wordt. Los het op door het team in de app te hernoemen, of door
+de naam toe te voegen aan `scripts/footy-team-aliases.json`:
 
 ```json
 { "aliases": { "Noord CF": "Team Noord" } }
 ```
+
+Staan er in een bestaande database nog twee teams die alleen in hoofdletters
+verschillen, dan weigert migratie `0007` te draaien en meldt het sync-script
+welke twee het zijn. Voeg ze dan eerst samen in de app.
 
 ## Nieuwe wijzigingen later doorvoeren
 

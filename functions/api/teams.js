@@ -1,5 +1,14 @@
 import { requireAdmin, json } from "./_shared.js";
 
+// Teamnamen zijn binnen een competitie niet hoofdlettergevoelig: naast
+// UNIQUE(name, competition_id) bewaakt de index idx_teams_name_nocase ook
+// varianten die alleen in hoofdletters of spaties verschillen (zie
+// schema/migrations/0007_teams_name_case_insensitive.sql). Beide leveren
+// dezelfde SQLite-fout op.
+const DUPLICATE_NAME_ERROR = "Er bestaat al een team met deze naam (hoofdletters tellen niet mee)";
+
+const isDuplicateName = (err) => String(err?.message || "").includes("UNIQUE");
+
 export async function onRequestGet({ request, env }) {
   const url = new URL(request.url);
   const competitionId = url.searchParams.get("competition_id");
@@ -26,9 +35,7 @@ export async function onRequestPost({ request, env }) {
     ).bind(name, body.is_own_team ? 1 : 0, body.competition_id).first();
     return json(201, { ...row, is_own_team: !!row.is_own_team });
   } catch (err) {
-    if (String(err.message || "").includes("UNIQUE")) {
-      return json(409, { error: "Er bestaat al een team met deze naam" });
-    }
+    if (isDuplicateName(err)) return json(409, { error: DUPLICATE_NAME_ERROR });
     throw err;
   }
 }
@@ -44,13 +51,19 @@ export async function onRequestPut({ request, env }) {
   const body = await request.json();
   const ownVal = body.is_own_team === undefined || body.is_own_team === null ? null : (body.is_own_team ? 1 : 0);
 
-  const row = await env.DB.prepare(
-    `UPDATE teams
-     SET name = COALESCE(?, name),
-         is_own_team = COALESCE(?, is_own_team)
-     WHERE id = ?
-     RETURNING *`
-  ).bind(body.name ?? null, ownVal, id).first();
+  let row;
+  try {
+    row = await env.DB.prepare(
+      `UPDATE teams
+       SET name = COALESCE(?, name),
+           is_own_team = COALESCE(?, is_own_team)
+       WHERE id = ?
+       RETURNING *`
+    ).bind(body.name ?? null, ownVal, id).first();
+  } catch (err) {
+    if (isDuplicateName(err)) return json(409, { error: DUPLICATE_NAME_ERROR });
+    throw err;
+  }
 
   if (!row) return json(404, { error: "Team niet gevonden" });
   return json(200, { ...row, is_own_team: !!row.is_own_team });

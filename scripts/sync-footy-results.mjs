@@ -333,7 +333,29 @@ const appTeams = await appRequest("GET", `/api/teams?competition_id=${competitio
 const appResults = await appRequest("GET", `/api/results?competition_id=${competition.id}`);
 
 const aliases = loadAliases();
-const teamsByKey = new Map(appTeams.map((team) => [nameKey(team.name), team]));
+
+// Twee teams die alleen in hoofdletters of spaties verschillen horen sinds
+// migratie 0007 niet meer voor te komen, maar een database van voor die
+// migratie kan ze nog hebben. Stilzwijgend de laatste kiezen zou een uitslag
+// aan het verkeerde team hangen, dus melden we het en stoppen we ermee.
+const teamsByKey = new Map();
+const duplicateTeams = [];
+for (const team of appTeams) {
+  const key = nameKey(team.name);
+  const earlier = teamsByKey.get(key);
+  if (earlier) {
+    duplicateTeams.push(`"${earlier.name}" (id ${earlier.id}) en "${team.name}" (id ${team.id})`);
+    continue;
+  }
+  teamsByKey.set(key, team);
+}
+if (duplicateTeams.length) {
+  fail(
+    "Deze teams hebben in de app dezelfde naam op hoofdletters en spaties na:\n  "
+    + duplicateTeams.join("\n  ")
+    + "\nVoeg ze eerst samen in de app; anders belandt een uitslag bij het verkeerde team."
+  );
+}
 
 function findAppTeam(footyName) {
   const key = nameKey(footyName);
