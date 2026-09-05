@@ -2,15 +2,18 @@
 # en zet ze in de database van deze app.
 #
 # De competitie speelt op dinsdagavond; de scheidsrechters voeren de standen
-# meestal kort na afloop in, maar soms pas de dag erna. Daarom draait dit
-# dinsdagnacht én woensdagochtend: de tweede run vult aan wat de eerste nog
-# niet zag en doet verder niets (het script slaat bestaande uitslagen over).
+# meestal pas later in, soms een dag of langer na afloop. Daarom draait dit
+# vier keer verspreid over woensdag en donderdag: elke volgende run vult aan
+# wat de vorige nog niet zag en doet verder niets (het script slaat bestaande
+# uitslagen over).
 name: Footy-uitslagen synchroniseren
 
 on:
   schedule:
-    - cron: "0 21 * * 2" # dinsdag 23:00 Amsterdamse tijd (22:00 in de winter)
-    - cron: "0 6 * * 3"  # woensdag 08:00 Amsterdamse tijd (07:00 in de winter)
+    - cron: "0 9 * * 3"  # woensdag 11:00 Amsterdamse tijd (10:00 in de winter)
+    - cron: "0 16 * * 3" # woensdag 18:00 Amsterdamse tijd (17:00 in de winter)
+    - cron: "0 20 * * 3" # woensdag 22:00 Amsterdamse tijd (21:00 in de winter)
+    - cron: "0 8 * * 4"  # donderdag 10:00 Amsterdamse tijd (09:00 in de winter)
   workflow_dispatch:
     inputs:
       dry_run:
