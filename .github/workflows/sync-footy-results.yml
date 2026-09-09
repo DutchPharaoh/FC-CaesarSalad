@@ -10,10 +10,13 @@ name: Footy-uitslagen synchroniseren
 
 on:
   schedule:
-    - cron: "0 9 * * 3"  # woensdag 11:00 Amsterdamse tijd (10:00 in de winter)
-    - cron: "0 16 * * 3" # woensdag 18:00 Amsterdamse tijd (17:00 in de winter)
-    - cron: "0 20 * * 3" # woensdag 22:00 Amsterdamse tijd (21:00 in de winter)
-    - cron: "0 8 * * 4"  # donderdag 10:00 Amsterdamse tijd (09:00 in de winter)
+    # Niet op het hele uur: dan staat half GitHub in de wachtrij en loopt een
+    # geplande run makkelijk een half uur achter. Op minuut 17 start hij
+    # doorgaans wel op tijd.
+    - cron: "17 9 * * 3"  # woensdag 11:17 Amsterdamse tijd (10:17 in de winter)
+    - cron: "17 16 * * 3" # woensdag 18:17 Amsterdamse tijd (17:17 in de winter)
+    - cron: "17 20 * * 3" # woensdag 22:17 Amsterdamse tijd (21:17 in de winter)
+    - cron: "17 8 * * 4"  # donderdag 10:17 Amsterdamse tijd (09:17 in de winter)
   workflow_dispatch:
     inputs:
       dry_run:
