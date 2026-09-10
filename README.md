@@ -80,8 +80,9 @@ Dit draait de site + functions + een lokale D1-database op je eigen computer, me
 
 De stand klopt alleen als ook de wedstrijden van de andere teams in de app
 staan. Die hoeven niet met de hand ingevoerd te worden:
-`scripts/sync-footy-results.mjs` haalt ze op uit de Footy-app en zet ze via
-`/api/results` in de database.
+`scripts/footy-sync-core.mjs` haalt ze op uit de Footy-app en zet ze via
+`/api/results` in de database — automatisch vanuit een Cloudflare Worker, of
+met de hand via `scripts/sync-footy-results.mjs`.
 
 Eigen wedstrijden slaat het script bewust over — die voer je in via
 "Programma & uitslagen", waarna de app ze zelf naar de stand doorrekent.
@@ -119,17 +120,53 @@ competitie te vullen.
 
 ### Wekelijks automatisch
 
-`.github/workflows/sync-footy-results.yml` draait dinsdagnacht en
-woensdagochtend. De tweede run vangt op dat een scheidsrechter de stand pas de
-volgende dag invoert; staat een uitslag er al in, dan doet het script niets.
+Dat doet de Cloudflare Worker in `workers/footy-sync/`. Die draait vier keer
+per speelronde: woensdag 11:17, 18:17 en 22:17 en donderdag 10:17. De latere
+runs vangen op dat een scheidsrechter de stand pas een dag later invoert;
+staat een uitslag er al in, dan gebeurt er niets.
 
-Zet daarvoor eenmalig in de GitHub-repo onder **Settings** → **Secrets and
-variables** → **Actions** deze *secrets*: `FOOTY_EMAIL`, `FOOTY_PASSWORD` en
-`APP_ADMIN_TOKEN`. De optionele *variables* `APP_BASE_URL`, `APP_COMPETITION`
-en `FOOTY_LEAGUE` kun je leeg laten.
+De synchronisatie zelf staat in `scripts/footy-sync-core.mjs` en wordt door
+zowel de Worker als het script hierboven gebruikt, zodat beide precies
+hetzelfde doen.
 
-Onder het tabblad **Actions** kun je 'm ook met de hand starten, met of zonder
-proefrun.
+Eenmalig instellen:
+
+```
+npx wrangler deploy --config workers/footy-sync/wrangler.toml
+
+npx wrangler secret put FOOTY_EMAIL       --config workers/footy-sync/wrangler.toml
+npx wrangler secret put FOOTY_PASSWORD    --config workers/footy-sync/wrangler.toml
+npx wrangler secret put APP_ADMIN_TOKEN   --config workers/footy-sync/wrangler.toml
+```
+
+De optionele `APP_COMPETITION` en `FOOTY_LEAGUE` kun je weglaten; `APP_BASE_URL`
+staat al in `workers/footy-sync/wrangler.toml`. Meekijken met een run:
+
+```
+npx wrangler tail --config workers/footy-sync/wrangler.toml
+```
+
+Wil je de Worker ook met de hand kunnen aanroepen, zet dan een zelfgekozen
+`SYNC_TRIGGER_TOKEN` als secret. Zonder dat secret geeft de URL van de Worker
+403 en werkt alleen de cron.
+
+```
+curl -H "x-sync-token: ..." "https://<worker-url>/?dry_run=true"
+```
+
+### Waarom niet via GitHub Actions
+
+`.github/workflows/sync-footy-results.yml` kan hetzelfde werk doen, maar staat
+nu alleen nog op handmatig starten (tabblad **Actions**, met of zonder
+proefrun) als noodknop. De `schedule`-trigger van GitHub bleek de runs uren te
+laat af te leveren — op 9 september 2026 kwam de run van 18:17 pas om 21:16 en
+die van 22:17 pas om 00:32 — en dat is niet iets wat je in de workflow kunt
+oplossen.
+
+Wil je die noodknop gebruiken, zet dan in de GitHub-repo onder **Settings** →
+**Secrets and variables** → **Actions** deze *secrets*: `FOOTY_EMAIL`,
+`FOOTY_PASSWORD` en `APP_ADMIN_TOKEN`. De optionele *variables* `APP_BASE_URL`,
+`APP_COMPETITION` en `FOOTY_LEAGUE` kun je leeg laten.
 
 ### Teamnamen en hoofdletters
 

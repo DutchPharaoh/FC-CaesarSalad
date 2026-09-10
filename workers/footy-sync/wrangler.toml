@@ -1,0 +1,28 @@
+# Aparte Worker naast het Pages-project in ../../wrangler.toml: Pages Functions
+# kennen geen cron-triggers, Workers wel.
+#
+#   npx wrangler deploy   --config workers/footy-sync/wrangler.toml
+#   npx wrangler tail     --config workers/footy-sync/wrangler.toml
+#
+name = "fc-caesar-salad-footy-sync"
+main = "src/index.js"
+compatibility_date = "2026-08-01"
+
+# De momenten waarop de uitslagen worden opgehaald, in UTC. De competitie
+# speelt dinsdagavond; scheidsrechters voeren de standen soms pas een dag of
+# langer later in, dus kijken we vier keer. Elke volgende run vult aan wat de
+# vorige nog niet zag en doet verder niets (bestaande uitslagen worden
+# overgeslagen).
+[triggers]
+crons = [
+  "17 9 * * 3",  # woensdag 11:17 Amsterdamse tijd (10:17 in de winter)
+  "17 16 * * 3", # woensdag 18:17 Amsterdamse tijd (17:17 in de winter)
+  "17 20 * * 3", # woensdag 22:17 Amsterdamse tijd (21:17 in de winter)
+  "17 8 * * 4",  # donderdag 10:17 Amsterdamse tijd (09:17 in de winter)
+]
+
+# Niet-geheime instellingen. De geheimen (FOOTY_EMAIL, FOOTY_PASSWORD,
+# APP_ADMIN_TOKEN en eventueel SYNC_TRIGGER_TOKEN) zet je met
+# `wrangler secret put <naam>`, zodat ze niet in de repo staan.
+[vars]
+APP_BASE_URL = "https://fccaesarsalad.nl"

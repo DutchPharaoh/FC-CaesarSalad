@@ -1,22 +1,13 @@
-# Haalt na elke speelavond de uitslagen van de andere teams uit de Footy-app
-# en zet ze in de database van deze app.
+# Handmatige noodknop voor het overnemen van de uitslagen van de andere teams
+# uit de Footy-app.
 #
-# De competitie speelt op dinsdagavond; de scheidsrechters voeren de standen
-# meestal pas later in, soms een dag of langer na afloop. Daarom draait dit
-# vier keer verspreid over woensdag en donderdag: elke volgende run vult aan
-# wat de vorige nog niet zag en doet verder niets (het script slaat bestaande
-# uitslagen over).
+# Het automatische ophalen gebeurt niet hier maar in de Cloudflare Worker in
+# workers/footy-sync/: de schedule-trigger van GitHub leverde runs uren te laat
+# af. Beide draaien dezelfde code uit scripts/footy-sync-core.mjs, dus deze
+# workflow blijft bruikbaar als er met de hand iets bijgewerkt moet worden.
 name: Footy-uitslagen synchroniseren
 
 on:
-  schedule:
-    # Niet op het hele uur: dan staat half GitHub in de wachtrij en loopt een
-    # geplande run makkelijk een half uur achter. Op minuut 17 start hij
-    # doorgaans wel op tijd.
-    - cron: "17 9 * * 3"  # woensdag 11:17 Amsterdamse tijd (10:17 in de winter)
-    - cron: "17 16 * * 3" # woensdag 18:17 Amsterdamse tijd (17:17 in de winter)
-    - cron: "17 20 * * 3" # woensdag 22:17 Amsterdamse tijd (21:17 in de winter)
-    - cron: "17 8 * * 4"  # donderdag 10:17 Amsterdamse tijd (09:17 in de winter)
   workflow_dispatch:
     inputs:
       dry_run:
