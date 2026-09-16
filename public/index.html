@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=27">
+<link rel="stylesheet" href="style.css?v=28">
 <link rel="icon" type="image/jpeg" href="logo.jpeg">
 <link rel="apple-touch-icon" href="logo.jpeg">
 <link rel="manifest" href="manifest.json">
@@ -533,6 +533,36 @@
   </div>
 </div>
 
+<!-- MODAL: teamnaam wijzigen -->
+<div class="modal-backdrop" id="team-modal" hidden>
+  <div class="modal modal--small" role="dialog" aria-modal="true" aria-labelledby="team-modal-title">
+    <div class="modal__header">
+      <h2 id="team-modal-title">Teamnaam wijzigen</h2>
+      <button class="icon-btn" id="team-modal-close" aria-label="Sluiten">✕</button>
+    </div>
+    <div class="modal__body">
+      <p class="modal__hint">Alleen de naam verandert: de stand, uitslagen, wedstrijden en statistieken van dit team blijven precies zoals ze zijn.</p>
+      <form id="team-form" class="form-grid">
+        <input type="hidden" id="team-id">
+        <label class="field" style="grid-column: 1 / -1;">
+          <span>Teamnaam</span>
+          <input type="text" id="team-name" required placeholder="Bijv. FC Almere" autocomplete="off">
+        </label>
+        <label class="checkbox-field" style="grid-column: 1 / -1;">
+          <input type="checkbox" id="team-all-competitions" checked> Naam ook in eerdere competities bijwerken
+        </label>
+        <p class="modal__hint" style="grid-column: 1 / -1; margin: -4px 0 0;">Handig als de club echt van naam is veranderd: zo blijft de onderlinge balans (alle duels tegen dit team) bij elkaar staan.</p>
+      </form>
+    </div>
+    <div class="modal__footer">
+      <div class="modal__footer-right">
+        <button class="btn btn--ghost" id="team-cancel">Annuleren</button>
+        <button class="btn btn--primary" id="team-save">Opslaan</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <datalist id="group-name-list"></datalist>
 <datalist id="round-name-list">
   <option value="Achtste finale">
@@ -544,6 +574,6 @@
 
 <div class="toast" id="toast" hidden></div>
 
-<script src="app.js?v=24"></script>
+<script src="app.js?v=25"></script>
 </body>
 </html>

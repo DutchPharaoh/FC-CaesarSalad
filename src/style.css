@@ -946,7 +946,11 @@ body.is-unlocked td.row-actions.admin-only { display: flex; }
   width: 20px; height: 20px;
   display: flex; align-items: center; justify-content: center;
 }
-.team-chip button:hover { background: var(--paper-dim); color: var(--danger-text); }
+.team-chip button:hover { background: var(--paper-dim); }
+/* Potloodje (hernoemen) links van het kruisje: zelfde formaat, maar alleen het
+   kruisje kleurt bij hover rood — dat is de onomkeerbare actie. */
+.team-chip__edit { font-size: 0.78rem; }
+.team-chip__remove:hover { color: var(--danger-text); }
 
 .team-badge-row {
   display: inline-flex;

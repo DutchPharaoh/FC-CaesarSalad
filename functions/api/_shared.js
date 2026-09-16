@@ -35,3 +35,10 @@ const collapseSpaces = (expr) => `REPLACE(${expr}, '  ', ' ')`;
 
 export const nameKey = (expr) =>
   collapseSpaces(collapseSpaces(collapseSpaces(`LOWER(TRIM(${expr}))`)));
+
+// JS-tegenhanger van nameKey() voor vergelijkingen buiten SQL om, bijv. om te
+// zien of een hernoeming alleen de schrijfwijze verandert. Dit collapst álle
+// witruimte in één keer (\s+) waar de SQL-variant drie REPLACE-rondes op
+// spaties doet; voor teamnamen komt dat op hetzelfde neer.
+export const normalizeName = (name) =>
+  String(name ?? "").trim().toLowerCase().replace(/\s+/g, " ");

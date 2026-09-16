@@ -1086,18 +1086,74 @@ async function loadTeams() {
   populateTeamSelects();
 }
 
+// Tegenstanders krijgen een potloodje om te hernoemen: clubs wisselen tijdens
+// een competitie weleens van naam, en dan moet de stand gewoon doorlopen (zie
+// renameTeam in functions/api/teams.js). Ons eigen team blijft zoals het is —
+// die naam zit ook in matches.js vast.
 function renderTeamChips() {
   const el = document.getElementById("team-chip-list");
   el.innerHTML = teams.map((t) => `
     <span class="team-chip ${t.is_own_team ? "is-own" : ""}">
       ${t.is_own_team ? "⭐ " : ""}${escapeHtml(t.name)}
-      <button data-id="${t.id}" title="Team verwijderen" aria-label="${escapeHtml(t.name)} verwijderen">✕</button>
+      ${t.is_own_team ? "" : `<button class="team-chip__edit" data-edit-id="${t.id}" title="Teamnaam wijzigen" aria-label="Naam van ${escapeHtml(t.name)} wijzigen">✏️</button>`}
+      <button class="team-chip__remove" data-delete-id="${t.id}" title="Team verwijderen" aria-label="${escapeHtml(t.name)} verwijderen">✕</button>
     </span>
   `).join("");
-  el.querySelectorAll("button[data-id]").forEach((btn) => {
-    btn.addEventListener("click", () => deleteTeam(Number(btn.dataset.id)));
+  el.querySelectorAll("button[data-edit-id]").forEach((btn) => {
+    btn.addEventListener("click", () => openTeamModal(Number(btn.dataset.editId)));
+  });
+  el.querySelectorAll("button[data-delete-id]").forEach((btn) => {
+    btn.addEventListener("click", () => deleteTeam(Number(btn.dataset.deleteId)));
   });
 }
+
+/* ---------- Teamnaam wijzigen ---------- */
+
+const teamModal = document.getElementById("team-modal");
+
+function openTeamModal(id) {
+  const team = teams.find((t) => t.id === id);
+  if (!team) return;
+  document.getElementById("team-id").value = team.id;
+  document.getElementById("team-name").value = team.name;
+  document.getElementById("team-all-competitions").checked = true;
+  teamModal.hidden = false;
+  lockBodyScroll();
+  document.getElementById("team-name").focus();
+}
+function closeTeamModal() { teamModal.hidden = true; unlockBodyScroll(); }
+
+document.getElementById("team-modal-close").addEventListener("click", closeTeamModal);
+document.getElementById("team-cancel").addEventListener("click", closeTeamModal);
+document.getElementById("team-form").addEventListener("submit", (e) => {
+  e.preventDefault();
+  document.getElementById("team-save").click();
+});
+
+document.getElementById("team-save").addEventListener("click", async () => {
+  const id = Number(document.getElementById("team-id").value);
+  const team = teams.find((t) => t.id === id);
+  const name = document.getElementById("team-name").value.trim();
+  const allCompetitions = document.getElementById("team-all-competitions").checked;
+  if (!name) { showToast("Vul een teamnaam in"); return; }
+  if (!team) { closeTeamModal(); return; }
+  if (name === team.name) { closeTeamModal(); return; }
+
+  try {
+    const saved = await api(`/teams?id=${id}`, {
+      method: "PUT",
+      body: JSON.stringify({ name, all_competitions: allCompetitions }),
+    });
+    closeTeamModal();
+    knownOpponents = null; // suggestielijst opnieuw ophalen: naam is gewijzigd
+    await Promise.all([loadStandView(), loadMatches()]);
+    if (saved.skipped_competitions?.length) {
+      showToast(`Naam gewijzigd, maar overgeslagen in: ${saved.skipped_competitions.join(", ")} — daar bestaat "${name}" al`);
+    } else {
+      showToast("Teamnaam gewijzigd");
+    }
+  } catch (e) { showToast(e.message); }
+});
 
 function populateTeamSelects() {
   const options = teams

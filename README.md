@@ -153,6 +153,25 @@ Staan er in een bestaande database nog twee teams die alleen in hoofdletters
 verschillen, dan weigert migratie `0007` te draaien en meldt het sync-script
 welke twee het zijn. Voeg ze dan eerst samen in de app.
 
+### Een team hernoemen
+
+Verandert een club tijdens de competitie van naam, dan hernoem je 'm in de app:
+ontgrendel met het hangslotje, ga naar **Stand → Teams beheren** en klik op het
+potloodje van dat team. Alleen tegenstanders krijgen dat potloodje; de naam van
+ons eigen team ligt vast.
+
+De stand, uitslagen en statistieken blijven ongewijzigd: die hangen aan het
+team-id, niet aan de naam. Naast de teamnaam wordt ook het tegenstanderveld van
+de eigen wedstrijden bijgewerkt, want dat is in `matches` een vrij tekstveld —
+zonder die stap zou de app bij de eerstvolgende wijziging een tweede team onder
+de nieuwe naam aanmaken.
+
+Het vinkje **"Naam ook in eerdere competities bijwerken"** staat standaard aan.
+Zo houdt de onderlinge balans (alle duels tegen dat team, over seizoenen heen)
+alles bij elkaar. Zet het uit als alleen déze competitie de nieuwe naam moet
+krijgen. Bestaat de nieuwe naam in een eerdere competitie al als ander team,
+dan slaat de app die competitie over en meldt dat in het melding-balkje.
+
 ## Nieuwe wijzigingen later doorvoeren
 
 Omdat de repo nu aan GitHub gekoppeld is: elke keer dat er een update is, hoef je alleen de gewijzigde bestanden te committen en te pushen (`git add . && git commit -m "..." && git push`) — Cloudflare bouwt en deployt daarna automatisch. Wijzigt het databaseschema, dan voer je het nieuwe SQL-bestand nog los uit met `wrangler d1 execute fc-caesar-salad-db --remote --file=...`.
