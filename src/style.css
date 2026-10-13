@@ -1367,9 +1367,18 @@ body.modal-open {
   .player-table td:first-child { overflow-wrap: break-word; }
   .col-num { width: 20px; }
   .col-actions { width: 32px; }
-  .standings-table th:nth-child(2),
-  .standings-table td:nth-child(2) { width: 76px; }
-  .standings-table .team-badge-row { gap: 5px; }
+  .standings-table th.num,
+  .standings-table td.num { width: 1%; white-space: nowrap; }
+  /* Lange teamnamen breken af over meerdere regels; met nowrap dwongen ze de
+     kolom breder dan het scherm en werd de stand weer horizontaal scrollbaar. */
+  .standings-table .team-badge-row { gap: 5px; align-items: flex-start; }
+  .standings-table .team-badge-row__name {
+    white-space: normal;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    line-height: 1.25;
+  }
+  .standings-table .team-badge { margin-top: 1px; }
   .standings-table .team-badge { width: 16px; height: 16px; }
   .standings-table .team-badge--initials { font-size: 0.5rem; }
   .row-actions { gap: 2px; }
