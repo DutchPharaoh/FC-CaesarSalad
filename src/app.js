@@ -178,6 +178,51 @@ document.getElementById("competition-select").addEventListener("change", async (
 });
 
 const competitionModal = document.getElementById("competition-modal");
+const finalsRows = document.getElementById("finals-rows");
+
+// Zelfde lijst als FINAL_COLORS in functions/api/competitions.js; de
+// kleuren zelf staan in style.css (.finals-color--…).
+const FINAL_COLORS = ["roze", "blauw", "groen", "goud", "zilver", "brons", "paars", "oranje"];
+
+function addFinalsRow(f = {}) {
+  const row = document.createElement("div");
+  row.className = "finals-row";
+  row.innerHTML = `
+    <label class="field finals-row__name"><span>Naam</span>
+      <input type="text" class="finals-name" maxlength="60" placeholder="Bijv. Hoofdklasse Finals" value="${escapeHtml(f.name || "")}"></label>
+    <label class="field finals-row__date"><span>Datum</span>
+      <input type="date" class="finals-date" value="${escapeHtml(f.date || "")}"></label>
+    <label class="field finals-row__pos"><span>Plek van</span>
+      <input type="number" class="finals-from" min="1" max="99" inputmode="numeric" value="${f.from ?? ""}"></label>
+    <label class="field finals-row__pos"><span>t/m</span>
+      <input type="number" class="finals-to" min="1" max="99" inputmode="numeric" value="${f.to ?? ""}"></label>
+    <label class="field finals-row__color"><span>Kleur</span>
+      <select class="finals-color">
+        ${FINAL_COLORS.map((c) => `<option value="${c}" ${c === f.color ? "selected" : ""}>${c[0].toUpperCase() + c.slice(1)}</option>`).join("")}
+      </select></label>
+    <button type="button" class="icon-btn finals-row__remove" aria-label="Finale verwijderen">✕</button>
+  `;
+  row.querySelector(".finals-row__remove").addEventListener("click", () => row.remove());
+  finalsRows.appendChild(row);
+}
+
+// Volgende vrije plek en kleur alvast invullen, dat scheelt typen.
+document.getElementById("finals-add-row").addEventListener("click", () => {
+  const rows = readFinalsRows();
+  const last = rows[rows.length - 1];
+  const from = last && Number.isInteger(last.to) ? last.to + 1 : 1;
+  addFinalsRow({ from, color: FINAL_COLORS[rows.length % FINAL_COLORS.length] });
+});
+
+function readFinalsRows() {
+  return [...finalsRows.querySelectorAll(".finals-row")].map((row) => ({
+    name: row.querySelector(".finals-name").value.trim(),
+    date: row.querySelector(".finals-date").value || null,
+    from: parseInt(row.querySelector(".finals-from").value, 10),
+    to: parseInt(row.querySelector(".finals-to").value, 10),
+    color: row.querySelector(".finals-color").value,
+  }));
+}
 
 function openCompetitionModal(comp = null) {
   document.getElementById("competition-modal-title").textContent = comp ? "Competitie bewerken" : "Competitie toevoegen";
@@ -186,6 +231,8 @@ function openCompetitionModal(comp = null) {
   document.getElementById("competition-type").value = comp?.type || "competitie";
   document.getElementById("competition-status").value = comp?.status || "actief";
   document.getElementById("competition-delete").hidden = !comp;
+  finalsRows.innerHTML = "";
+  (comp?.finals || []).forEach((f) => addFinalsRow(f));
   competitionModal.hidden = false;
   lockBodyScroll();
 }
@@ -207,12 +254,22 @@ document.getElementById("competition-save").addEventListener("click", async () =
   const status = document.getElementById("competition-status").value;
   if (!name) { showToast("Vul een naam in"); return; }
 
+  const finals = readFinalsRows();
+  const badFinal = finals.find((f) => !f.name || !Number.isInteger(f.from) || !Number.isInteger(f.to) || f.from < 1 || f.to < f.from);
+  if (badFinal) { showToast("Vul bij elke finale een naam en geldige plekken in"); return; }
+
+  // Alleen meesturen als er iets met finales is (of was), zodat bewerken
+  // ook werkt zolang migratie 0008 nog niet gedraaid heeft.
+  const existing = competitions.find((c) => String(c.id) === String(id));
+  const payload = { name, type, status };
+  if (finals.length || existing?.finals?.length) payload.finals = finals;
+
   try {
     let saved;
     if (id) {
-      saved = await api(`/competitions?id=${id}`, { method: "PUT", body: JSON.stringify({ name, type, status }) });
+      saved = await api(`/competitions?id=${id}`, { method: "PUT", body: JSON.stringify(payload) });
     } else {
-      saved = await api("/competitions", { method: "POST", body: JSON.stringify({ name, type, status }) });
+      saved = await api("/competitions", { method: "POST", body: JSON.stringify(payload) });
     }
     closeCompetitionModal();
     await loadCompetitions(id ? undefined : saved.id);
@@ -1544,7 +1601,42 @@ async function loadStandingsTable() {
   renderStandingsGroups(groups);
 }
 
-function renderStandingsTable(rows) {
+function finalForPosition(finals, pos) {
+  return (finals || []).find((f) => pos >= f.from && pos <= f.to) || null;
+}
+
+function fmtFinalDate(isoDate) {
+  // Alleen een datum (geen tijd): als lokale middag lezen, zodat een
+  // tijdzone de dag nooit verschuift.
+  const d = new Date(`${isoDate}T12:00:00`);
+  return d.toLocaleDateString("nl-NL", { weekday: "long", day: "numeric", month: "long" });
+}
+
+// Kopje boven de stand met de finales, op volgorde van speeldatum (zoals
+// Footy ze ook toont). Alleen als er voor deze competitie finales zijn.
+function renderStandingsFinals(finals) {
+  const el = document.getElementById("standings-finals");
+  if (!finals?.length) { el.hidden = true; el.innerHTML = ""; return; }
+
+  const sorted = [...finals].sort((a, b) => (a.date || "9999").localeCompare(b.date || "9999") || a.from - b.from);
+  el.hidden = false;
+  el.innerHTML = `
+    <div class="finals-card">
+      <h2 class="finals-card__title">Finale</h2>
+      <ul class="finals-card__list">
+        ${sorted.map((f) => `
+          <li class="finals-card__item">
+            <span class="finals-dot finals-color--${escapeHtml(f.color)}" aria-hidden="true"></span>
+            <span class="finals-card__name">${escapeHtml(f.name)}</span>
+            <span class="finals-card__meta">${f.date ? `${escapeHtml(fmtFinalDate(f.date))} · ` : ""}plek ${f.from === f.to ? f.from : `${f.from}–${f.to}`}</span>
+          </li>
+        `).join("")}
+      </ul>
+    </div>
+  `;
+}
+
+function renderStandingsTable(rows, finals) {
   return `
     <table class="player-table standings-table">
       <thead>
@@ -1562,9 +1654,11 @@ function renderStandingsTable(rows) {
         </tr>
       </thead>
       <tbody>
-        ${rows.map((t, i) => `
+        ${rows.map((t, i) => {
+          const final = finalForPosition(finals, i + 1);
+          return `
           <tr class="${t.is_own_team ? "is-own-team" : ""}">
-            <td class="pos">${i + 1}</td>
+            <td class="pos${final ? ` pos--final finals-color--${escapeHtml(final.color)}` : ""}"${final ? ` title="${escapeHtml(final.name)}"` : ""}>${i + 1}</td>
             <td><span class="team-badge-row">${teamBadgeHtml(t.name, t.is_own_team)}<span class="team-badge-row__name">${escapeHtml(t.name)}</span></span></td>
             <td class="num">${t.played}</td>
             <td class="num">${t.wins}</td>
@@ -1575,7 +1669,8 @@ function renderStandingsTable(rows) {
             <td class="num">${t.goal_diff > 0 ? "+" : ""}${t.goal_diff}</td>
             <td class="num">${t.points}</td>
           </tr>
-        `).join("")}
+        `;
+        }).join("")}
       </tbody>
     </table>
   `;
@@ -1586,13 +1681,19 @@ function renderStandingsTable(rows) {
 function renderStandingsGroups(groups) {
   const container = document.getElementById("standings-groups");
   const empty = document.getElementById("empty-standings");
-  empty.hidden = groups.some((g) => g.standings.length > 0);
+  const hasRows = groups.some((g) => g.standings.length > 0);
+  empty.hidden = hasRows;
+
+  // Finales horen bij één competitietabel; bij poules van een toernooi
+  // zouden de plekken per groep niets betekenen.
+  const finals = !isTournament() && hasRows ? currentCompetition()?.finals : null;
+  renderStandingsFinals(finals);
 
   container.innerHTML = groups.map((g) => `
     <div class="standings-group">
       ${g.group_name ? `<h2 class="section-title">${escapeHtml(g.group_name)}</h2>` : ""}
       <div class="player-table-wrap">
-        ${renderStandingsTable(g.standings)}
+        ${renderStandingsTable(g.standings, g.group_name ? null : finals)}
       </div>
     </div>
   `).join("");

@@ -16,6 +16,7 @@ CREATE TABLE competitions (
   name TEXT NOT NULL,
   type TEXT NOT NULL DEFAULT 'competitie', -- 'competitie' | 'toernooi'
   status TEXT NOT NULL DEFAULT 'actief', -- 'actief' | 'afgesloten'
+  finals TEXT, -- JSON-lijst met finales na de competitie, zie migratie 0008
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 

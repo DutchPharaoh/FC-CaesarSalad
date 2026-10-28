@@ -2,6 +2,47 @@ import { requireAdmin, json } from "./_shared.js";
 
 const TYPES = ["competitie", "toernooi"];
 const STATUSES = ["actief", "afgesloten"];
+// Kleurnamen; de echte kleuren staan in style.css (.finals-color--…).
+const FINAL_COLORS = ["roze", "blauw", "groen", "goud", "zilver", "brons", "paars", "oranje"];
+const MAX_FINALS = 8;
+
+// Valideert de finales uit het formulier (zie schema/migrations/0008). Geeft
+// de JSON-tekst voor de database terug, of null bij een lege lijst.
+function parseFinals(input) {
+  if (input == null) return { value: null };
+  if (!Array.isArray(input)) return { error: "Finales moeten een lijst zijn" };
+  if (input.length > MAX_FINALS) return { error: `Maximaal ${MAX_FINALS} finales` };
+
+  const finals = [];
+  for (const f of input) {
+    const name = String(f?.name || "").trim().slice(0, 60);
+    const from = Number(f?.from);
+    const to = Number(f?.to);
+    const date = f?.date ? String(f.date) : null;
+    if (!name) return { error: "Elke finale heeft een naam nodig" };
+    if (!Number.isInteger(from) || !Number.isInteger(to) || from < 1 || to < from || to > 99) {
+      return { error: `Ongeldige plekken bij "${name}"` };
+    }
+    if (date && !/^\d{4}-\d{2}-\d{2}$/.test(date)) return { error: `Ongeldige datum bij "${name}"` };
+    finals.push({ name, date, from, to, color: FINAL_COLORS.includes(f?.color) ? f.color : FINAL_COLORS[0] });
+  }
+  return { value: finals.length ? JSON.stringify(finals) : null };
+}
+
+// finals staat als tekst in de database; de app krijgt een lijst (of null).
+function withFinals(row) {
+  if (!row) return row;
+  let finals = null;
+  try { finals = row.finals ? JSON.parse(row.finals) : null; } catch {}
+  return { ...row, finals };
+}
+
+// Draait migratie 0008 nog niet, dan is er geen kolom om in op te slaan.
+function finalsColumnError(err) {
+  return /no such column: finals|has no column named finals/i.test(String(err?.message))
+    ? json(500, { error: "De database mist de kolom voor finales. Voer migratie 0008 uit (zie README)." })
+    : null;
+}
 
 // Sorteert op de laatst gespeelde wedstrijddatum binnen de competitie
 // (over league_results én matches heen), niet op wanneer de competitie is
@@ -21,7 +62,7 @@ export async function onRequestGet({ env }) {
      FROM competitions c
      ORDER BY (last_match_date IS NULL) DESC, last_match_date DESC, c.created_at DESC, c.id DESC`
   ).all();
-  return json(200, results);
+  return json(200, results.map(withFinals));
 }
 
 export async function onRequestPost({ request, env }) {
@@ -35,11 +76,27 @@ export async function onRequestPost({ request, env }) {
   const type = TYPES.includes(body.type) ? body.type : "competitie";
   const status = STATUSES.includes(body.status) ? body.status : "actief";
 
-  const row = await env.DB.prepare(
-    "INSERT INTO competitions (name, type, status) VALUES (?, ?, ?) RETURNING *"
-  ).bind(name, type, status).first();
+  const finals = parseFinals(body.finals);
+  if (finals.error) return json(400, { error: finals.error });
 
-  return json(201, row);
+  // Zonder finales de kolom niet noemen, zodat aanmaken ook werkt zolang
+  // migratie 0008 nog niet gedraaid heeft.
+  const stmt = finals.value
+    ? env.DB.prepare("INSERT INTO competitions (name, type, status, finals) VALUES (?, ?, ?, ?) RETURNING *")
+        .bind(name, type, status, finals.value)
+    : env.DB.prepare("INSERT INTO competitions (name, type, status) VALUES (?, ?, ?) RETURNING *")
+        .bind(name, type, status);
+
+  let row;
+  try {
+    row = await stmt.first();
+  } catch (err) {
+    const res = finalsColumnError(err);
+    if (res) return res;
+    throw err;
+  }
+
+  return json(201, withFinals(row));
 }
 
 export async function onRequestPut({ request, env }) {
@@ -55,17 +112,42 @@ export async function onRequestPut({ request, env }) {
   const type = body.type != null ? (TYPES.includes(body.type) ? body.type : null) : null;
   const status = body.status != null ? (STATUSES.includes(body.status) ? body.status : null) : null;
 
-  const row = await env.DB.prepare(
-    `UPDATE competitions
-     SET name = COALESCE(?, name),
-         type = COALESCE(?, type),
-         status = COALESCE(?, status)
-     WHERE id = ?
-     RETURNING *`
-  ).bind(name, type, status, id).first();
+  // finals alleen aanpassen als het formulier ze meestuurt (ook een lege
+  // lijst: dan worden ze gewist).
+  const updateFinals = body.finals !== undefined;
+  const finals = parseFinals(body.finals);
+  if (finals.error) return json(400, { error: finals.error });
+
+  const stmt = updateFinals
+    ? env.DB.prepare(
+        `UPDATE competitions
+         SET name = COALESCE(?, name),
+             type = COALESCE(?, type),
+             status = COALESCE(?, status),
+             finals = ?
+         WHERE id = ?
+         RETURNING *`
+      ).bind(name, type, status, finals.value, id)
+    : env.DB.prepare(
+        `UPDATE competitions
+         SET name = COALESCE(?, name),
+             type = COALESCE(?, type),
+             status = COALESCE(?, status)
+         WHERE id = ?
+         RETURNING *`
+      ).bind(name, type, status, id);
+
+  let row;
+  try {
+    row = await stmt.first();
+  } catch (err) {
+    const res = finalsColumnError(err);
+    if (res) return res;
+    throw err;
+  }
 
   if (!row) return json(404, { error: "Competitie niet gevonden" });
-  return json(200, row);
+  return json(200, withFinals(row));
 }
 
 export async function onRequestDelete({ request, env }) {

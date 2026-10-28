@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=28">
+<link rel="stylesheet" href="style.css?v=29">
 <link rel="icon" type="image/jpeg" href="logo.jpeg">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="manifest" href="manifest.json">
@@ -144,6 +144,7 @@
       </div>
     </div>
 
+    <div id="standings-finals" hidden></div>
     <div id="standings-groups"></div>
     <p class="empty-state" id="empty-standings" hidden>Nog geen teams of uitslagen ingevoerd.</p>
 
@@ -437,6 +438,12 @@
           </select>
         </label>
       </form>
+      <div class="finals-editor">
+        <h3 class="finals-editor__title">Finales</h3>
+        <p class="modal__hint">Het eindtoernooi na de competitie. Geef per finale aan welke plekken in de stand meedoen; die plekken krijgen de kleur in de stand. Leeg laten als Footy de finales nog niet heeft bekendgemaakt.</p>
+        <div id="finals-rows" class="finals-editor__rows"></div>
+        <button type="button" class="btn btn--ghost" id="finals-add-row">+ Finale toevoegen</button>
+      </div>
     </div>
     <div class="modal__footer">
       <button class="btn btn--danger" id="competition-delete" hidden>Verwijderen</button>
@@ -574,6 +581,6 @@
 
 <div class="toast" id="toast" hidden></div>
 
-<script src="app.js?v=26"></script>
+<script src="app.js?v=27"></script>
 </body>
 </html>

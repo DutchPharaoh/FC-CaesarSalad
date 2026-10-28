@@ -172,6 +172,22 @@ alles bij elkaar. Zet het uit als alleen déze competitie de nieuwe naam moet
 krijgen. Bestaat de nieuwe naam in een eerdere competitie al als ander team,
 dan slaat de app die competitie over en meldt dat in het melding-balkje.
 
+## Finales na de competitie
+
+Na een competitie volgt een eindtoernooi. Footy deelt de eindstand daarvoor op
+in vakken met elk een eigen kleur, bijv. plek 1–3 naar de Hoofdklasse Finals,
+4–6 naar de 1e Klasse Finals. Dat kun je in de app overnemen: ontgrendel,
+klik op ✏️ bij de competitie en voeg onder **Finales** per finale de naam,
+datum, plekken en kleur toe. De stand toont dan een kopje "Finale" met de
+data, en de plekken in de tabel krijgen de kleur van hun finale.
+
+Zonder finales ziet de stand er uit zoals altijd, dus voeg ze pas toe zodra
+Footy ze bekendmaakt. Vereist migratie `0008`:
+
+```
+wrangler d1 execute fc-caesar-salad-db --remote --file=schema/migrations/0008_add_competition_finals.sql
+```
+
 ## Nieuwe wijzigingen later doorvoeren
 
 Omdat de repo nu aan GitHub gekoppeld is: elke keer dat er een update is, hoef je alleen de gewijzigde bestanden te committen en te pushen (`git add . && git commit -m "..." && git push`) — Cloudflare bouwt en deployt daarna automatisch. Wijzigt het databaseschema, dan voer je het nieuwe SQL-bestand nog los uit met `wrangler d1 execute fc-caesar-salad-db --remote --file=...`.
