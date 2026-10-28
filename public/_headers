@@ -14,3 +14,10 @@
 
 /style.css
   Cache-Control: public, max-age=0, must-revalidate
+
+# De service worker moet een nieuwe versie altijd meteen kunnen oppikken.
+/sw.js
+  Cache-Control: no-cache
+
+/manifest.json
+  Cache-Control: public, max-age=0, must-revalidate

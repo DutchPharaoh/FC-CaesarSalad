@@ -83,7 +83,16 @@ function showToast(msg) {
 async function api(path, options = {}) {
   const headers = { "Content-Type": "application/json", "X-Admin-Token": getAdminToken(), ...(options.headers || {}) };
 
-  const res = await fetch(`${API}${path}`, { ...options, headers });
+  let res;
+  try {
+    res = await fetch(`${API}${path}`, { ...options, headers });
+  } catch {
+    throw new Error("Geen verbinding met internet. Probeer het zo nog eens.");
+  }
+  if (res.headers.get("X-From-SW-Cache") && !api._offlineShown) {
+    api._offlineShown = true;
+    showToast("Geen verbinding — je ziet de laatst bewaarde gegevens.");
+  }
   if (!res.ok) {
     let msg = `Fout (${res.status})`;
     try { const body = await res.json(); msg = body.error || msg; } catch {}
@@ -1697,6 +1706,14 @@ function renderSignupRows(rows) {
 }
 
 /* ---------- Init ---------- */
+
+// Service worker: maakt de app installeerbaar en laat 'm zonder bereik de
+// laatst geladen gegevens tonen (zie public/sw.js).
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/sw.js").catch(() => {});
+  });
+}
 
 (async function init() {
   applyLockState();
