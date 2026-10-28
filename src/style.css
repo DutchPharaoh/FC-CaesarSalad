@@ -1480,7 +1480,13 @@ body.modal-open {
   .standings-table th.num,
   .standings-table td.num { width: 1%; white-space: nowrap; }
   .standings-table .col-num { width: 30px; }
-  .standings-table td.pos { padding-left: 4px; padding-right: 4px; }
+  /* Zelfde ruimte tot de rand rechts (punten) als links (plaatsnummer):
+     de puntenkolom rechts uitgelijnd, zodat die ruimte niet afhangt van
+     hoeveel cijfers er staan. */
+  .standings-table td.pos { padding-left: 8px; padding-right: 4px; }
+  .standings-table th:first-child { padding-left: 8px; }
+  .standings-table th:last-child,
+  .standings-table td:last-child { padding-right: 8px; text-align: right; }
   .pos-badge { min-width: 21px; height: 21px; padding: 0 3px; border-radius: 5px; font-size: 0.7rem; }
   /* Lange teamnamen breken af over meerdere regels; met nowrap dwongen ze de
      kolom breder dan het scherm en werd de stand weer horizontaal scrollbaar. */
