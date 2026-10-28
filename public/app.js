@@ -193,7 +193,7 @@ const API="/api",TOKEN_KEY="teamstats_admin_token",COMPETITION_KEY="teamstats_co
       <tbody>
         ${e.map((n,a)=>{const s=finalForPosition(t,a+1);return`
           <tr class="${n.is_own_team?"is-own-team":""}">
-            <td class="pos${s?` pos--final finals-color--${escapeHtml(s.color)}`:""}"${s?` title="${escapeHtml(s.name)}"`:""}>${a+1}</td>
+            <td class="pos${s?` pos--final finals-color--${escapeHtml(s.color)}`:""}"${s?` title="${escapeHtml(s.name)}"`:""}><span class="pos-badge">${a+1}</span></td>
             <td><span class="team-badge-row">${teamBadgeHtml(n.name,n.is_own_team)}<span class="team-badge-row__name">${escapeHtml(n.name)}</span></span></td>
             <td class="num">${n.played}</td>
             <td class="num">${n.wins}</td>

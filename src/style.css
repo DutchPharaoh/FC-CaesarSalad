@@ -835,9 +835,25 @@ body.is-unlocked td.row-actions.admin-only { display: flex; }
 .standings-table tr.is-own-team td:nth-child(2) {
   background: var(--own-row-bg);
 }
+.standings-table th:first-child,
+.standings-table td.pos {
+  text-align: center;
+}
 .standings-table td.pos {
   color: var(--ink-soft);
   font-variant-numeric: tabular-nums;
+}
+/* Het plaatsnummer staat altijd in een vast blokje, zodat de cijfers met én
+   zonder finalekleur netjes onder elkaar staan. */
+.pos-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 26px;
+  height: 26px;
+  padding: 0 4px;
+  border-radius: 6px;
+  line-height: 1;
 }
 .standings-table .num { font-variant-numeric: tabular-nums; }
 .standings-table td:nth-child(10) {
@@ -898,9 +914,7 @@ body.is-unlocked td.row-actions.admin-only { display: flex; }
 .finals-card__name { font-weight: 700; font-size: 0.92rem; color: var(--ink); }
 .finals-card__meta { font-size: 0.8rem; color: var(--ink-soft); }
 
-/* Specifiek genoeg om ook de achtergrond van de eigen-teamrij (hierboven)
-   te overschrijven. */
-.standings-table tr td.pos.pos--final:first-child {
+.standings-table td.pos--final .pos-badge {
   background: var(--final-bg);
   color: var(--final-fg);
   font-weight: 700;
@@ -1465,6 +1479,9 @@ body.modal-open {
   .col-actions { width: 32px; }
   .standings-table th.num,
   .standings-table td.num { width: 1%; white-space: nowrap; }
+  .standings-table .col-num { width: 30px; }
+  .standings-table td.pos { padding-left: 4px; padding-right: 4px; }
+  .pos-badge { min-width: 21px; height: 21px; padding: 0 3px; border-radius: 5px; font-size: 0.7rem; }
   /* Lange teamnamen breken af over meerdere regels; met nowrap dwongen ze de
      kolom breder dan het scherm en werd de stand weer horizontaal scrollbaar. */
   .standings-table .team-badge-row { gap: 5px; align-items: flex-start; }

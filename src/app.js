@@ -1658,7 +1658,7 @@ function renderStandingsTable(rows, finals) {
           const final = finalForPosition(finals, i + 1);
           return `
           <tr class="${t.is_own_team ? "is-own-team" : ""}">
-            <td class="pos${final ? ` pos--final finals-color--${escapeHtml(final.color)}` : ""}"${final ? ` title="${escapeHtml(final.name)}"` : ""}>${i + 1}</td>
+            <td class="pos${final ? ` pos--final finals-color--${escapeHtml(final.color)}` : ""}"${final ? ` title="${escapeHtml(final.name)}"` : ""}><span class="pos-badge">${i + 1}</span></td>
             <td><span class="team-badge-row">${teamBadgeHtml(t.name, t.is_own_team)}<span class="team-badge-row__name">${escapeHtml(t.name)}</span></span></td>
             <td class="num">${t.played}</td>
             <td class="num">${t.wins}</td>
