@@ -480,11 +480,12 @@ function renderMatches() {
   const featuredId = renderHeroMatch(upcoming);
   const restUpcoming = featuredId ? upcoming.filter((m) => m.id !== featuredId) : upcoming;
 
-  // Het grote donkere blok is voor de eerstvolgende wedstrijd. Is die er
-  // niet (competitie afgelopen, of nog niets gepland), dan krijgt de laatste
-  // uitslag die plek. Die uitslag blijft ook in de lijst "Gespeeld" staan:
-  // dat is het volledige overzicht.
-  renderLastResult(featuredId ? [] : played);
+  // De laatste uitslag staat altijd los bovenaan. Is er ook een eerstvolgende
+  // wedstrijd, dan in een lichte kaart onder het donkere blok: twee even
+  // luide blokken onder elkaar vechten om aandacht. Zonder geplande wedstrijd
+  // krijgt de uitslag zelf het donkere blok. Hij blijft ook in de lijst
+  // "Gespeeld" staan: dat is het volledige overzicht.
+  renderLastResult(played, !!featuredId);
 
   renderPlayedList(played);
   renderUpcomingList(restUpcoming);
@@ -536,10 +537,9 @@ function heroTeamsHtml(opponent) {
 
 /* ---------- Uitgelichte laatste uitslag ---------- */
 
-// Alleen als er geen eerstvolgende wedstrijd is (zie renderMatches): dan
-// staat de meest recente uitslag in het grote donkere blok, met de score
-// waar anders de aftelling staat.
-function renderLastResult(played) {
+// De meest recente uitslag, met de score waar bij de eerstvolgende wedstrijd
+// de aftelling staat. `quiet`: lichte variant onder dat donkere blok.
+function renderLastResult(played, quiet = false) {
   const card = document.getElementById("hero-last-match");
 
   // `played` is aflopend op datum gesorteerd; een wedstrijd zonder ingevulde
@@ -556,7 +556,7 @@ function renderLastResult(played) {
   const mvp = last.mvp_player_id ? players.find((p) => p.id === last.mvp_player_id) : null;
 
   card.hidden = false;
-  card.className = `hero hero-result is-${outcomeCls}`;
+  card.className = `hero hero-result is-${outcomeCls}${quiet ? " hero--light" : ""}`;
   card.innerHTML = `
     <div class="hero__info">
       <div class="hero__eyebrow">
@@ -1863,8 +1863,8 @@ function renderStandingsTable(rows, finals) {
           <th scope="col" class="num"><abbr title="Winst">W</abbr></th>
           <th scope="col" class="num"><abbr title="Gelijk">G</abbr></th>
           <th scope="col" class="num"><abbr title="Verlies">V</abbr></th>
-          <th scope="col" class="num hide-sm"><abbr title="Doelpunten voor">DV</abbr></th>
-          <th scope="col" class="num hide-sm"><abbr title="Doelpunten tegen">DT</abbr></th>
+          <th scope="col" class="num"><abbr title="Doelpunten voor">DV</abbr></th>
+          <th scope="col" class="num"><abbr title="Doelpunten tegen">DT</abbr></th>
           <th scope="col" class="num"><abbr title="Doelsaldo">DS</abbr></th>
           <th scope="col" class="num"><abbr title="Punten">PT</abbr></th>
         </tr>
@@ -1885,8 +1885,8 @@ function renderStandingsTable(rows, finals) {
             <td class="num">${t.wins}</td>
             <td class="num">${t.draws}</td>
             <td class="num">${t.losses}</td>
-            <td class="num hide-sm">${t.goals_for}</td>
-            <td class="num hide-sm">${t.goals_against}</td>
+            <td class="num">${t.goals_for}</td>
+            <td class="num">${t.goals_against}</td>
             <td class="num">${t.goal_diff > 0 ? "+" : ""}${t.goal_diff}</td>
             <td class="num pts">${t.points}</td>
           </tr>
