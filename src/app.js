@@ -4,6 +4,15 @@ const COMPETITION_KEY = "teamstats_competition_id";
 const THEME_KEY = "teamstats_theme";
 const ROUND_ORDER = ["Achtste finale", "Kwartfinale", "Halve finale", "Troostfinale", "Finale"];
 
+/* ---------- Iconen (inline SVG, kleuren via currentColor) ---------- */
+const svgIcon = (paths, size = 16, extra = "") =>
+  `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"${extra}>${paths}</svg>`;
+const ICON_X = svgIcon('<path d="M6 6l12 12M18 6L6 18"/>');
+const ICON_EDIT = svgIcon('<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/>');
+const ICON_TRASH = svgIcon('<path d="M4 7h16M10 11v6M14 11v6"/><path d="M6 7l1 13h10l1-13M9 7V4h6v3"/>');
+const ICON_TROPHY = svgIcon('<path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/>', 20);
+const ICON_STAR = '<svg width="13" height="13" viewBox="0 0 24 24" fill="#E3A008" stroke="#B7791F" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/></svg>';
+
 /* ---------- Thema (licht/donker) ---------- */
 // De <head> zet data-theme al meteen bij het laden (voorkomt een flits van
 // het verkeerde thema); hier alleen de knop synchroniseren en de klik
@@ -54,7 +63,7 @@ function applyLockState() {
   document.querySelectorAll(".admin-only").forEach((el) => {
     el.style.display = unlocked ? "" : "none";
   });
-  document.getElementById("lock-icon").textContent = unlocked ? "🔓" : "🔒";
+  // Het slotje zelf wisselt via CSS (body.is-unlocked) tussen open en dicht.
   const lockLabel = unlocked ? "Bewerken vergrendelen" : "Bewerken ontgrendelen";
   document.getElementById("btn-lock").title = lockLabel;
   document.getElementById("btn-lock").setAttribute("aria-label", lockLabel);
@@ -148,6 +157,9 @@ function updateCompetitionContext() {
   const comp = currentCompetition();
   const badge = document.getElementById("competition-type-badge");
   badge.textContent = comp ? (comp.type === "toernooi" ? "Toernooi" : "Competitie") : "";
+  badge.className = `chip competition-bar__type ${comp?.type === "toernooi" ? "chip--lime" : "chip--ink"}`;
+  const statusBadge = document.getElementById("competition-status-badge");
+  statusBadge.textContent = comp ? (comp.status === "afgesloten" ? "Afgesloten" : "Actief") : "";
 
   const wedstrijdenSub = document.getElementById("wedstrijden-sub");
   const standSub = document.getElementById("stand-sub");
@@ -170,6 +182,7 @@ document.getElementById("competition-select").addEventListener("change", async (
   currentCompetitionId = Number(e.target.value);
   localStorage.setItem(COMPETITION_KEY, String(currentCompetitionId));
   teamsLoadedForCompetition = null;
+  showAllRounds = false;
   updateCompetitionContext();
   await loadMatches();
   const activeTab = document.querySelector(".tab.is-active")?.dataset.tab;
@@ -200,7 +213,7 @@ function addFinalsRow(f = {}) {
       <select class="finals-color">
         ${FINAL_COLORS.map((c) => `<option value="${c}" ${c === f.color ? "selected" : ""}>${c[0].toUpperCase() + c.slice(1)}</option>`).join("")}
       </select></label>
-    <button type="button" class="icon-btn finals-row__remove" aria-label="Finale verwijderen">✕</button>
+    <button type="button" class="icon-btn finals-row__remove" aria-label="Finale verwijderen">${ICON_X}</button>
   `;
   row.querySelector(".finals-row__remove").addEventListener("click", () => row.remove());
   finalsRows.appendChild(row);
@@ -358,7 +371,7 @@ function escapeHtml(str) {
 function teamColor(name) {
   let hash = 0;
   for (let i = 0; i < name.length; i++) hash = (hash * 31 + name.charCodeAt(i)) >>> 0;
-  return `hsl(${hash % 360}, 58%, 42%)`;
+  return `hsl(${hash % 360}, 45%, 36%)`;
 }
 function teamInitials(name) {
   const words = name.trim().split(/\s+/);
@@ -366,10 +379,13 @@ function teamInitials(name) {
     ? words[0].slice(0, 2).toUpperCase()
     : (words[0][0] + words[1][0]).toUpperCase();
 }
-function teamBadgeHtml(name, isOwnTeam) {
-  if (isOwnTeam) return `<span class="team-badge"><img src="logo.jpeg" alt=""></span>`;
-  return `<span class="team-badge team-badge--initials" style="background:${teamColor(name)}">${escapeHtml(teamInitials(name))}</span>`;
+// Afgerond blokje met initialen (of ons logo). `extra` = extra classes,
+// bijv. "avatar--sm" of "avatar--round".
+function avatarHtml(name, isOwnTeam = false, extra = "") {
+  if (isOwnTeam) return `<span class="avatar avatar--logo ${extra}" aria-hidden="true"><img src="logo.jpeg" alt=""></span>`;
+  return `<span class="avatar ${extra}" style="background:${teamColor(name)}" aria-hidden="true">${escapeHtml(teamInitials(name))}</span>`;
 }
+
 
 /* ---------- Player modal ---------- */
 
@@ -383,7 +399,7 @@ function addPlayerNameRow(value = "") {
   row.style.cssText = "display: flex; gap: 8px; align-items: center;";
   row.innerHTML = `
     <input type="text" class="player-name-input" required placeholder="Voor- en achternaam" style="flex: 1;" value="${escapeHtml(value)}">
-    <button type="button" class="icon-btn player-name-remove" aria-label="Rij verwijderen">✕</button>
+    <button type="button" class="icon-btn player-name-remove" aria-label="Rij verwijderen">${ICON_X}</button>
   `;
   row.querySelector(".player-name-remove").addEventListener("click", () => {
     if (playerNameRows.children.length > 1) row.remove();
@@ -464,19 +480,28 @@ function renderMatches() {
   const featuredId = renderHeroMatch(upcoming);
   const restUpcoming = featuredId ? upcoming.filter((m) => m.id !== featuredId) : upcoming;
 
-  // De uitgelichte uitslag blijft bewust ook in de lijst hieronder staan: die
-  // is het volledige overzicht, en een gat op de eerste plek leest als een
-  // ontbrekende wedstrijd. (Bij "Aankomend" wordt de hero er wél uitgehaald,
-  // want daar staat de eerstvolgende letterlijk als grote kaart erboven.)
-  renderLastResult(played);
+  // Het grote donkere blok is voor de eerstvolgende wedstrijd. Is die er
+  // niet (competitie afgelopen, of nog niets gepland), dan krijgt de laatste
+  // uitslag die plek. Die uitslag blijft ook in de lijst "Gespeeld" staan:
+  // dat is het volledige overzicht.
+  renderLastResult(featuredId ? [] : played);
 
-  renderTicketList("list-upcoming", "empty-upcoming", restUpcoming);
-  renderTicketList("list-played", "empty-played", played);
+  renderPlayedList(played);
+  renderUpcomingList(restUpcoming);
+
+  const upcomingCount = document.getElementById("upcoming-count");
+  const plannedRest = restUpcoming.filter((m) => m.status === "gepland").length;
+  upcomingCount.hidden = plannedRest === 0;
+  upcomingCount.textContent = `${plannedRest} gepland`;
+  const playedCount = document.getElementById("played-count");
+  playedCount.hidden = played.length === 0;
+  playedCount.textContent = `${played.length} ${played.length === 1 ? "wedstrijd" : "wedstrijden"}`;
 
   const emptyUpcoming = document.getElementById("empty-upcoming");
   if (restUpcoming.length === 0) {
     if (upcoming.length > 0) {
-      emptyUpcoming.hidden = true;
+      emptyUpcoming.hidden = false;
+      emptyUpcoming.textContent = "Alleen de wedstrijd hierboven staat nog gepland.";
     } else {
       const comp = currentCompetition();
       emptyUpcoming.textContent = comp?.status === "afgesloten"
@@ -485,14 +510,35 @@ function renderMatches() {
     }
   }
 
+  renderTeamForm();
+}
+
+function matchOutcome(m) {
+  if (m.status !== "gespeeld" || m.goals_for == null || m.goals_against == null) return null;
+  return m.goals_for > m.goals_against ? "w" : m.goals_for < m.goals_against ? "v" : "g";
+}
+const OUTCOME_LABEL = { w: "Winst", g: "Gelijkspel", v: "Verlies" };
+
+function heroTeamsHtml(opponent) {
+  return `
+    <div class="hero__teams">
+      <div class="hero__team">
+        ${avatarHtml("FC Caesar Salad", true, "avatar--xl")}
+        <span class="hero__name">FC Caesar Salad</span>
+      </div>
+      <span class="hero__vs">vs</span>
+      <div class="hero__team">
+        ${avatarHtml(opponent, false, "avatar--xl")}
+        <span class="hero__name">${escapeHtml(opponent)}</span>
+      </div>
+    </div>`;
 }
 
 /* ---------- Uitgelichte laatste uitslag ---------- */
 
-// De meest recente gespeelde wedstrijd mét uitslag, in een kaart onder de
-// hero. Zelfde opbouw als die hero, maar op een rustig oppervlak: twee even
-// luide kaarten onder elkaar vechten om aandacht en dan heeft de pagina geen
-// brandpunt meer. De uitslag krijgt hier de plek die daar de aftelling heeft.
+// Alleen als er geen eerstvolgende wedstrijd is (zie renderMatches): dan
+// staat de meest recente uitslag in het grote donkere blok, met de score
+// waar anders de aftelling staat.
 function renderLastResult(played) {
   const card = document.getElementById("hero-last-match");
 
@@ -505,35 +551,25 @@ function renderLastResult(played) {
     return;
   }
 
-  const uitslag = last.goals_for > last.goals_against ? "win"
-    : last.goals_for < last.goals_against ? "loss" : "draw";
-  const uitslagLabel = { win: "Winst", draw: "Gelijkspel", loss: "Verlies" }[uitslag];
+  const uitslag = matchOutcome(last);
+  const outcomeCls = { w: "win", g: "draw", v: "loss" }[uitslag];
   const mvp = last.mvp_player_id ? players.find((p) => p.id === last.mvp_player_id) : null;
 
   card.hidden = false;
-  card.className = `hero-result is-${uitslag}`;
+  card.className = `hero hero-result is-${outcomeCls}`;
   card.innerHTML = `
-    <div class="hero-result__eyebrow">Laatste uitslag</div>
-    <div class="hero-result__teams">
-      <div class="hero-result__team">
-        <span class="hero-result__badge hero-result__badge--us"><img src="logo.jpeg" alt=""></span>
-        <span class="hero-result__name">FC Caesar Salad</span>
+    <div class="hero__info">
+      <div class="hero__eyebrow">
+        <span class="hero__pill hero__pill--grey">Laatste uitslag</span>
+        <span class="hero__comp">${fmtDate(last.match_date)}${last.pitch ? ` · ${escapeHtml(last.pitch)}` : ""}</span>
       </div>
-      <div class="hero-result__vs">VS</div>
-      <div class="hero-result__team">
-        <span class="hero-result__badge" style="background:${teamColor(last.opponent)}">${escapeHtml(teamInitials(last.opponent))}</span>
-        <span class="hero-result__name">${escapeHtml(last.opponent)}</span>
-      </div>
+      ${heroTeamsHtml(last.opponent)}
+      ${mvp ? `<div class="hero__chips"><span class="hero__chip">⭐ MVP: <b>${escapeHtml(mvp.name)}</b></span></div>` : ""}
     </div>
-    <div class="hero-result__meta">${fmtDate(last.match_date)}${last.pitch ? ` \u00b7 ${escapeHtml(last.pitch)}` : ""}</div>
-    <div class="hero-result__score">
-      <span class="hero-result__score-num">${last.goals_for} \u2013 ${last.goals_against}</span>
-      <span class="hero-result__score-label">${uitslagLabel}</span>
+    <div class="hero__score-wrap">
+      <span class="hero__score">${last.goals_for} – ${last.goals_against}</span>
+      <span class="hero__outcome hero__outcome--${outcomeCls}">${OUTCOME_LABEL[uitslag]}</span>
     </div>
-    ${mvp ? `
-      <div class="hero-result__mvp">
-        <span class="hero-result__mvp-label">\u2b50 MVP</span><b>${escapeHtml(mvp.name)}</b>
-      </div>` : ""}
   `;
   card.onclick = () => openMatchModal(last);
 }
@@ -542,11 +578,10 @@ function renderLastResult(played) {
 
 let heroCountdownTimer = null;
 
-// Toont de eerstvolgende geplande (niet-afgelaste) wedstrijd in een grote
-// kaart met live aftelling. Op matchday springt de kaart naar een grotere,
-// rode weergave; na aftraptijd toont hij "Bezig" i.p.v. een negatieve
-// teller. Geeft het id van de uitgelichte wedstrijd terug (of null), zodat
-// de gewone lijst eronder 'm kan overslaan.
+// Toont de eerstvolgende geplande (niet-afgelaste) wedstrijd in een groot
+// donker blok met live aftelling. Na aftraptijd toont hij "Bezig" i.p.v. een
+// negatieve teller. Geeft het id van de uitgelichte wedstrijd terug (of
+// null), zodat de gewone lijst eronder 'm kan overslaan.
 function renderHeroMatch(upcoming) {
   const hero = document.getElementById("hero-next-match");
   if (heroCountdownTimer) {
@@ -574,36 +609,30 @@ function renderHeroMatch(upcoming) {
   const comp = currentCompetition();
 
   hero.hidden = false;
-  hero.className = "hero-match" + (isMatchday ? " hero-match--matchday" : "");
+  hero.className = "hero hero-match" + (isMatchday ? " hero-match--matchday" : "");
   hero.innerHTML = `
-    <div class="hero-match__eyebrow">
-      <span>Eerstvolgende wedstrijd</span>
-      ${comp ? `<strong>${escapeHtml(comp.name)}</strong>` : ""}
-    </div>
-    <div class="hero-match__teams">
-      <div class="hero-match__team hero-match__team--us">
-        <span class="hero-match__badge"><img src="logo.jpeg" alt=""></span>
-        <span class="hero-match__name">FC Caesar Salad</span>
+    <div class="hero__info">
+      <div class="hero__eyebrow">
+        <span class="hero__pill"><span class="hero__pill-dot"></span>Eerstvolgende wedstrijd</span>
+        ${comp ? `<span class="hero__comp">${escapeHtml(comp.name)}</span>` : ""}
       </div>
-      <div class="hero-match__vs">VS</div>
-      <div class="hero-match__team">
-        <span class="hero-match__badge" style="background:${teamColor(next.opponent)}">${escapeHtml(teamInitials(next.opponent))}</span>
-        <span class="hero-match__name">${escapeHtml(next.opponent)}</span>
+      ${heroTeamsHtml(next.opponent)}
+      <div class="hero__chips">
+        <span class="hero__chip">${dateLabel} · Aftrap ${timeLabel}</span>
+        ${next.pitch ? `<span class="hero__chip">${escapeHtml(next.pitch)}</span>` : ""}
+        <span class="hero__chip hero__h2h" hidden></span>
       </div>
     </div>
-    <div class="hero-match__meta"><b>${dateLabel}</b> · ${isMatchday ? "Aftrap " : ""}${timeLabel}${next.pitch ? ` · ${escapeHtml(next.pitch)}` : ""}</div>
-    <div class="hero-match__countdown"></div>
-    <div class="hero-match__live" hidden>
-      <span class="hero-match__live-dot"></span>
-      <span class="hero-match__live-text">Bezig</span>
+    <div class="countdown" role="timer" aria-label="Aftellen tot de aftrap"></div>
+    <div class="hero__live" hidden>
+      <span class="hero__live-pill"><span class="hero__live-dot"></span>Bezig</span>
     </div>
-    <div class="hero-match__h2h" hidden></div>
   `;
   hero.onclick = () => openMatchModal(next);
   renderHeroH2h(hero, next.opponent);
 
-  const cdEl = hero.querySelector(".hero-match__countdown");
-  const liveEl = hero.querySelector(".hero-match__live");
+  const cdEl = hero.querySelector(".countdown");
+  const liveEl = hero.querySelector(".hero__live");
 
   const tick = () => {
     const diffMs = target - new Date();
@@ -626,10 +655,10 @@ function renderHeroMatch(upcoming) {
 const h2hCache = new Map();
 
 // Onderlinge balans tegen deze tegenstander, over alle competities heen (zie
-// functions/api/h2h.js). Los opgehaald zodat het kaartje en de aftelling er
-// meteen staan; mislukt de call, dan blijft het blok simpelweg verborgen.
+// functions/api/h2h.js). Los opgehaald zodat het blok en de aftelling er
+// meteen staan; mislukt de call, dan blijft het chipje simpelweg verborgen.
 async function renderHeroH2h(hero, opponent) {
-  const el = hero.querySelector(".hero-match__h2h");
+  const el = hero.querySelector(".hero__h2h");
   if (!el) return;
 
   const key = opponent.trim().toLowerCase().replace(/\s+/g, " ");
@@ -642,25 +671,18 @@ async function renderHeroH2h(hero, opponent) {
     if (!el.isConnected) return;
 
     if (!h.played) {
-      el.innerHTML = `
-        <span class="hero-match__h2h-label">Onderling</span>
-        <span class="hero-match__h2h-note">Eerste ontmoeting</span>
-      `;
+      el.textContent = "Eerste ontmoeting";
     } else {
       const last = h.recent[0];
       const uitkomst = last
         ? (last.goals_for > last.goals_against ? "W" : last.goals_for < last.goals_against ? "V" : "G")
         : "";
-      el.innerHTML = `
-        <span class="hero-match__h2h-label">Onderling</span>
-        <span class="hero-match__h2h-record"><b>${h.wins}</b>W <b>${h.draws}</b>G <b>${h.losses}</b>V</span>
-        <span class="hero-match__h2h-goals">doelpunten ${h.goals_for}\u2013${h.goals_against}</span>
-        ${last ? `<span class="hero-match__h2h-last">laatst ${last.goals_for}\u2013${last.goals_against} (${uitkomst})</span>` : ""}
-      `;
+      el.innerHTML = `Onderling: <b>${h.wins}W ${h.draws}G ${h.losses}V</b> · ${h.goals_for}–${h.goals_against}`
+        + (last ? ` · laatst ${last.goals_for}–${last.goals_against} (${uitkomst})` : "");
     }
     el.hidden = false;
   } catch {
-    /* geen kritieke inhoud: het kaartje werkt ook zonder */
+    /* geen kritieke inhoud: het blok werkt ook zonder */
   }
 }
 
@@ -672,51 +694,114 @@ function renderHeroCountdown(el, diffMs) {
   const secs = totalSec % 60;
   const two = (n) => String(n).padStart(2, "0");
   const units = days > 0
-    ? [["d", days], ["u", hours], ["min", mins], ["sec", secs]]
-    : [["u", hours], ["min", mins], ["sec", secs]];
+    ? [[days === 1 ? "dag" : "dagen", days], ["uur", hours], ["min", mins], ["sec", secs]]
+    : [["uur", hours], ["min", mins], ["sec", secs]];
 
-  el.innerHTML = units.map(([label, val], i) => {
-    const cls = label === "sec" ? "hero-match__cd-unit hero-match__cd-unit--secs" : "hero-match__cd-unit";
-    const sep = i < units.length - 1 ? '<span class="hero-match__cd-sep">:</span>' : "";
-    return `<div class="${cls}"><span class="hero-match__cd-num">${two(val)}</span><span class="hero-match__cd-label">${label}</span></div>${sep}`;
-  }).join("");
+  el.style.setProperty("--units", units.length);
+  el.innerHTML = units.map(([label, val]) =>
+    `<div class="countdown__unit"><span class="countdown__num">${two(val)}</span><span class="countdown__label">${label}</span></div>`
+  ).join("");
 }
 
-function renderTicketList(listId, emptyId, list) {
-  const el = document.getElementById(listId);
-  const empty = document.getElementById(emptyId);
-  el.innerHTML = "";
-  empty.hidden = list.length > 0;
+function matchDateParts(iso) {
+  const d = new Date(iso);
+  return {
+    dow: d.toLocaleDateString("nl-NL", { weekday: "short" }).replace(".", ""),
+    day: d.getDate(),
+    mon: d.toLocaleDateString("nl-NL", { month: "short" }).replace(".", ""),
+    time: d.toLocaleTimeString("nl-NL", { hour: "2-digit", minute: "2-digit" }),
+  };
+}
 
-  for (const m of list) {
-    const div = document.createElement("div");
-    let resultClass = "";
-    if (m.status === "gespeeld" && m.goals_for != null && m.goals_against != null) {
-      resultClass = m.goals_for > m.goals_against ? "is-win" : m.goals_for < m.goals_against ? "is-loss" : "is-draw";
-    } else if (m.status === "afgelast") {
-      resultClass = "is-cancelled";
-    }
-    div.className = `ticket ${resultClass}`;
-    const scoreHtml = (m.status === "gespeeld" && m.goals_for != null && m.goals_against != null)
-      ? `${m.goals_for} – ${m.goals_against}`
-      : `<span class="ticket__score--pending">${m.status === "afgelast" ? "Afgelast" : "Gepland"}</span>`;
+function wireMatchRows(el, list) {
+  el.querySelectorAll(".match-row").forEach((row) => {
+    const m = list.find((x) => String(x.id) === row.dataset.id);
+    if (!m) return;
+    row.addEventListener("click", () => openMatchModal(m));
+    row.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openMatchModal(m); }
+    });
+  });
+}
 
-    const mvp = m.mvp_player_id ? players.find((p) => p.id === m.mvp_player_id) : null;
+function renderPlayedList(list) {
+  const el = document.getElementById("list-played");
+  document.getElementById("empty-played").hidden = list.length > 0;
 
-    div.innerHTML = `
-      <div class="ticket__bar"></div>
-      <div class="ticket__main">
-        <span class="ticket__date">${fmtDate(m.match_date)}</span>
-        <span class="ticket__opponent team-badge-row"><span class="team-badge-row__vs">vs.</span>${teamBadgeHtml(m.opponent, false)}<span class="team-badge-row__name">${escapeHtml(m.opponent)}</span></span>
-        ${m.pitch ? `<span class="ticket__meta">📍 ${escapeHtml(m.pitch)}</span>` : ""}
-        ${mvp ? `<span class="ticket__meta">⭐ MVP: ${escapeHtml(mvp.name)}</span>` : ""}
-      </div>
-      <div class="ticket__score">${scoreHtml}</div>
-    `;
-    div.addEventListener("click", () => openMatchModal(m));
-    el.appendChild(div);
-  }
-  applyLockState();
+  el.innerHTML = list.map((m) => {
+    const p = matchDateParts(m.match_date);
+    const res = matchOutcome(m);
+    const mvp = m.mvp_player_id ? players.find((pl) => pl.id === m.mvp_player_id) : null;
+    const meta = [p.time, m.pitch ? escapeHtml(m.pitch) : ""].filter(Boolean).join(" · ");
+    return `
+      <div class="match-row" data-id="${m.id}" role="button" tabindex="0" aria-label="Wedstrijd tegen ${escapeHtml(m.opponent)}">
+        <div class="match-row__date">
+          <div class="match-row__dow">${p.dow}</div>
+          <div class="match-row__day">${p.day}</div>
+          <div class="match-row__mon">${p.mon}</div>
+        </div>
+        ${avatarHtml(m.opponent)}
+        <div class="match-row__main">
+          <span class="match-row__opp">vs. ${escapeHtml(m.opponent)}</span>
+          <span class="match-row__meta">
+            <span>${meta}</span>
+            ${mvp ? `<span class="match-row__mvp">${ICON_STAR}MVP: ${escapeHtml(mvp.name)}</span>` : ""}
+          </span>
+        </div>
+        ${res
+          ? `<span class="match-row__score">${m.goals_for} – ${m.goals_against}</span>
+             <span class="res res--${res}" title="${OUTCOME_LABEL[res]}" aria-label="${OUTCOME_LABEL[res]}">${res.toUpperCase()}</span>`
+          : `<span class="chip">Geen uitslag</span>`}
+        <span class="icon-btn icon-btn--sm admin-only" aria-hidden="true" title="Bewerken">${ICON_EDIT}</span>
+      </div>`;
+  }).join("");
+  wireMatchRows(el, list);
+}
+
+function renderUpcomingList(list) {
+  const el = document.getElementById("list-upcoming");
+  document.getElementById("empty-upcoming").hidden = list.length > 0;
+
+  el.innerHTML = list.map((m) => {
+    const cancelled = m.status === "afgelast";
+    const meta = [fmtDate(m.match_date), m.pitch ? escapeHtml(m.pitch) : ""].filter(Boolean).join(" · ");
+    return `
+      <div class="match-row${cancelled ? " is-cancelled" : ""}" data-id="${m.id}" role="button" tabindex="0" aria-label="Wedstrijd tegen ${escapeHtml(m.opponent)}">
+        ${avatarHtml(m.opponent)}
+        <div class="match-row__main">
+          <span class="match-row__opp">vs. ${escapeHtml(m.opponent)}</span>
+          <span class="match-row__meta">${meta}</span>
+        </div>
+        <span class="chip${cancelled ? " chip--loss" : ""}">${cancelled ? "Afgelast" : "Gepland"}</span>
+      </div>`;
+  }).join("");
+  wireMatchRows(el, list);
+}
+
+/* ---------- Teamvorm (laatste 5) ---------- */
+
+// Uit de geladen wedstrijden van de gekozen competitie; bij "All-time" niet,
+// want dan zou de vorm maar over één competitie gaan.
+function renderTeamForm() {
+  const el = document.getElementById("team-form-row");
+  const alltime = document.getElementById("stats-alltime-toggle").checked;
+  const lastFive = matches
+    .filter((m) => matchOutcome(m))
+    .sort((a, b) => new Date(b.match_date) - new Date(a.match_date))
+    .slice(0, 5)
+    .reverse();
+  if (alltime || lastFive.length === 0) { el.hidden = true; el.innerHTML = ""; return; }
+  el.hidden = false;
+  el.innerHTML = `
+    <span class="eyebrow">Teamvorm</span>
+    <span class="form-row__pills">
+      ${lastFive.map((m) => {
+        const r = matchOutcome(m);
+        return `<span class="res res--${r}" title="${OUTCOME_LABEL[r]} tegen ${escapeHtml(m.opponent)} (${m.goals_for}–${m.goals_against})" aria-label="${OUTCOME_LABEL[r]} tegen ${escapeHtml(m.opponent)}">${r.toUpperCase()}</span>`;
+      }).join("")}
+    </span>
+    <span class="form-row__note">laatste ${lastFive.length}, nieuwste rechts</span>
+  `;
 }
 
 /* ---------- Match modal ---------- */
@@ -970,11 +1055,32 @@ document.getElementById("match-delete").addEventListener("click", async () => {
 /* ---------- Stats view ---------- */
 
 const STATS_ALLTIME_KEY = "teamstats_alltime";
+const STATS_SORT_KEY = "teamstats_sort";
 const statsAlltimeToggle = document.getElementById("stats-alltime-toggle");
 statsAlltimeToggle.checked = localStorage.getItem(STATS_ALLTIME_KEY) === "true";
 statsAlltimeToggle.addEventListener("change", () => {
   localStorage.setItem(STATS_ALLTIME_KEY, String(statsAlltimeToggle.checked));
+  renderTeamForm();
   loadStats();
+});
+
+// Sorteren van de selectietabel: klik op een kolomkop. Eerste klik sorteert
+// aflopend (meeste bovenaan), nog een klik op dezelfde kolom draait het om.
+const SORT_KEYS = ["matches_played", "goals", "keeper_halves", "mvp_count"];
+let statsSort = { key: "goals", dir: -1 };
+try {
+  const saved = JSON.parse(localStorage.getItem(STATS_SORT_KEY) || "null");
+  if (saved && SORT_KEYS.includes(saved.key) && (saved.dir === 1 || saved.dir === -1)) statsSort = saved;
+} catch { /* ongeldige waarde: standaard houden */ }
+let leaderboardRows = [];
+
+document.querySelectorAll(".stats-table .sort-btn").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    const key = btn.dataset.sort;
+    statsSort = { key, dir: statsSort.key === key ? -statsSort.dir : -1 };
+    try { localStorage.setItem(STATS_SORT_KEY, JSON.stringify(statsSort)); } catch {}
+    renderLeaderboard(leaderboardRows);
+  });
 });
 
 async function loadStats() {
@@ -983,6 +1089,7 @@ async function loadStats() {
   const { leaderboard, record } = await api(`/stats?summary=true${query}`);
   renderRecord(record);
   renderLeaderboard(leaderboard);
+  renderHighlights(leaderboard);
   updateStatsSub();
 }
 
@@ -990,38 +1097,131 @@ function renderRecord(r) {
   const points = r.wins * 3 + r.draws;
   const el = document.getElementById("team-record");
   const stats = [
-    ["Gespeeld", r.played],
-    ["Winst", r.wins],
-    ["Gelijk", r.draws],
-    ["Verlies", r.losses],
-    ["Doelsaldo", `${r.goals_for}-${r.goals_against}`],
-    ["Punten", points],
+    ["Gespeeld", r.played, ""],
+    ["Winst", r.wins, "win"],
+    ["Gelijk", r.draws, ""],
+    ["Verlies", r.losses, "loss"],
+    ["Doelsaldo", `${r.goals_for}-${r.goals_against}`, ""],
+    ["Punten", points, "accent"],
   ];
-  el.innerHTML = stats.map(([label, value]) => `
-    <div class="scoreboard__stat">
-      <div class="scoreboard__value">${value}</div>
-      <div class="scoreboard__label">${label}</div>
+  el.innerHTML = stats.map(([label, value, tone]) => `
+    <div class="kpi">
+      <span class="eyebrow">${label}</span>
+      <span class="kpi__value${tone ? ` kpi__value--${tone}` : ""}">${value}</span>
     </div>
   `).join("");
 }
 
+// Drie uitgelichte kaarten boven de selectie. Bij een gedeelde eerste plek
+// staan alle namen erbij in plaats van willekeurig één te kiezen.
+function renderHighlights(rows) {
+  const el = document.getElementById("stats-highlights");
+  const leaders = (key) => {
+    const max = rows.reduce((m, r) => Math.max(m, Number(r[key]) || 0), 0);
+    return { max, who: max > 0 ? rows.filter((r) => (Number(r[key]) || 0) === max) : [] };
+  };
+  const names = (list) => list.map((r) => r.name);
+  const joinNames = (list) => {
+    const n = names(list);
+    return n.length <= 1 ? n.join("") : `${n.slice(0, -1).join(", ")} en ${n[n.length - 1]}`;
+  };
+  const whoLabel = (list) => (list.length === 1 ? list[0].name : list.length > 1 ? `${list.length} spelers` : "—");
+
+  const goals = leaders("goals");
+  const keep = leaders("keeper_halves");
+  const mvp = leaders("mvp_count");
+  const totalMvp = rows.reduce((s, r) => s + (Number(r.mvp_count) || 0), 0);
+
+  let goalsSub = "Nog geen doelpunten";
+  if (goals.who.length === 1) {
+    const r = goals.who[0];
+    const perMatch = r.matches_played ? (r.goals / r.matches_played).toFixed(2).replace(".", ",") : "—";
+    goalsSub = `${perMatch} per wedstrijd · ${r.matches_played} gespeeld`;
+  } else if (goals.who.length > 1) {
+    goalsSub = `${joinNames(goals.who)} — elk ${goals.max}`;
+  }
+
+  const cards = [
+    {
+      label: "Topscorer",
+      who: whoLabel(goals.who),
+      val: goals.max,
+      sub: goalsSub,
+    },
+    {
+      label: "Meest gekeept",
+      who: whoLabel(keep.who),
+      val: keep.max ? fmtKeeper(keep.max) : "0",
+      sub: keep.who.length > 1
+        ? `${joinNames(keep.who)} — elk ${fmtKeeper(keep.max)} wedstrijden`
+        : keep.who.length ? "wedstrijden op doel" : "Nog niemand op doel",
+    },
+    {
+      label: "Meeste MVP’s",
+      who: whoLabel(mvp.who),
+      val: mvp.max,
+      sub: mvp.who.length > 1
+        ? `${joinNames(mvp.who)} — elk ${mvp.max}×`
+        : mvp.who.length ? `${totalMvp} MVP-verkiezing${totalMvp === 1 ? "" : "en"} in totaal` : "Nog geen MVP gekozen",
+    },
+  ];
+
+  el.innerHTML = rows.length === 0 ? "" : cards.map((c) => `
+    <div class="card highlight">
+      <span class="eyebrow">${c.label}</span>
+      <div class="highlight__row">
+        <span class="highlight__who">${escapeHtml(c.who)}</span>
+        <span class="highlight__val">${c.val}</span>
+      </div>
+      <span class="highlight__sub">${escapeHtml(c.sub)}</span>
+    </div>
+  `).join("");
+}
+
+function sortLeaderboard(rows) {
+  const { key, dir } = statsSort;
+  return [...rows].sort((a, b) =>
+    ((Number(a[key]) || 0) - (Number(b[key]) || 0)) * dir
+    || (Number(b.goals) || 0) - (Number(a.goals) || 0)
+    || (Number(b.matches_played) || 0) - (Number(a.matches_played) || 0)
+    || a.name.localeCompare(b.name, "nl")
+  );
+}
+
+function renderSortHeaders() {
+  document.querySelectorAll(".stats-table th[data-sort-col]").forEach((th) => {
+    const on = th.dataset.sortCol === statsSort.key;
+    th.setAttribute("aria-sort", on ? (statsSort.dir === -1 ? "descending" : "ascending") : "none");
+    const btn = th.querySelector(".sort-btn");
+    btn.classList.toggle("is-on", on);
+    btn.querySelector(".sort-btn__arrow").textContent = on ? (statsSort.dir === -1 ? "↓" : "↑") : "";
+  });
+}
+
 function renderLeaderboard(rows) {
+  leaderboardRows = rows;
   const tbody = document.getElementById("leaderboard-rows");
   const empty = document.getElementById("empty-stats");
   empty.hidden = rows.length > 0;
-  tbody.innerHTML = rows.map((r) => `
+  renderSortHeaders();
+
+  const sorted = sortLeaderboard(rows);
+  tbody.innerHTML = sorted.map((r, i) => `
     <tr data-id="${r.id}">
-      <td class="player-name-cell" data-action="detail" role="button" tabindex="0">
-        <span class="player-name-link">${escapeHtml(r.name)}</span>
-        <span class="player-name-hint">Klik hier voor alle stats</span>
+      <td>
+        <button type="button" class="row-btn" data-action="detail" title="Alle stats van ${escapeHtml(r.name)}">
+          <span class="row-btn__rank">${i + 1}</span>
+          ${avatarHtml(r.name, false, "avatar--sm avatar--round")}
+          <span class="row-btn__name">${escapeHtml(r.name)}</span>
+        </button>
       </td>
       <td class="num">${r.matches_played}</td>
-      <td class="num">${r.goals}</td>
+      <td class="num goals">${r.goals}</td>
       <td class="num">${fmtKeeper(r.keeper_halves)}</td>
       <td class="num">${r.mvp_count > 0 ? r.mvp_count : "—"}</td>
       <td class="row-actions admin-only">
-        <button data-action="edit" title="Bewerken" aria-label="Speler bewerken">✏️</button>
-        <button data-action="delete" title="Verwijderen" aria-label="Speler verwijderen">🗑️</button>
+        <button class="icon-btn icon-btn--sm" data-action="edit" title="Bewerken" aria-label="${escapeHtml(r.name)} bewerken">${ICON_EDIT}</button>
+        <button class="icon-btn icon-btn--sm icon-btn--danger" data-action="delete" title="Verwijderen" aria-label="${escapeHtml(r.name)} verwijderen">${ICON_TRASH}</button>
       </td>
     </tr>
   `).join("");
@@ -1029,11 +1229,7 @@ function renderLeaderboard(rows) {
   tbody.querySelectorAll("tr").forEach((tr) => {
     const r = rows.find((x) => String(x.id) === tr.dataset.id);
     if (!r) return;
-    const nameCell = tr.querySelector('[data-action="detail"]');
-    nameCell.addEventListener("click", () => openPlayerDetailModal(r));
-    nameCell.addEventListener("keydown", (e) => {
-      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openPlayerDetailModal(r); }
-    });
+    tr.querySelector('[data-action="detail"]').addEventListener("click", () => openPlayerDetailModal(r));
     tr.querySelector('[data-action="edit"]').addEventListener("click", () => openPlayerModal(r));
     tr.querySelector('[data-action="delete"]').addEventListener("click", () => deletePlayer(r));
   });
@@ -1048,27 +1244,29 @@ function openPlayerDetailModal(r) {
   document.getElementById("player-detail-title").textContent = r.name;
 
   document.getElementById("player-detail-record").innerHTML = [
-    ["Gespeeld", r.matches_played],
-    ["Winst", r.wins],
-    ["Gelijk", r.draws],
-    ["Verlies", r.losses],
-  ].map(([label, value]) => `
-    <div class="scoreboard__stat">
-      <div class="scoreboard__value">${value}</div>
-      <div class="scoreboard__label">${label}</div>
+    ["Gespeeld", r.matches_played, ""],
+    ["Winst", r.wins, "text-win"],
+    ["Gelijk", r.draws, ""],
+    ["Verlies", r.losses, "text-loss"],
+  ].map(([label, value, cls]) => `
+    <div class="player-record__cell">
+      <span class="player-record__value ${cls}">${value}</span>
+      <span class="eyebrow">${label}</span>
     </div>
   `).join("");
 
+  const perMatch = r.matches_played ? (r.goals / r.matches_played).toFixed(1).replace(".", ",") : "—";
   document.getElementById("player-detail-stats").innerHTML = [
     ["Doelpunten", r.goals],
-    ["🟨 Geel", r.yellow_cards],
-    ["🟥 Rood", r.red_cards],
-    ["🧤 Gekeept", fmtKeeper(r.keeper_halves)],
-    ["⭐ MVP", r.mvp_count],
+    ["Per wedstrijd", perMatch],
+    ["Gekeept", fmtKeeper(r.keeper_halves)],
+    ["MVP", r.mvp_count || "—"],
+    ["Geel", r.yellow_cards],
+    ["Rood", r.red_cards],
   ].map(([label, value]) => `
-    <div class="scoreboard__stat">
-      <div class="scoreboard__value">${value}</div>
-      <div class="scoreboard__label">${label}</div>
+    <div class="player-stats__cell">
+      <span class="player-stats__value">${value}</span>
+      <span class="eyebrow">${label}</span>
     </div>
   `).join("");
 
@@ -1100,12 +1298,17 @@ document.getElementById("btn-lock").addEventListener("click", openUnlockModal);
 document.getElementById("unlock-modal-close").addEventListener("click", closeUnlockModal);
 document.getElementById("unlock-cancel").addEventListener("click", closeUnlockModal);
 
-document.getElementById("unlock-lock-again").addEventListener("click", () => {
+function lockAgain() {
   setAdminToken("");
   applyLockState();
-  closeUnlockModal();
   showToast("Vergrendeld — alleen-lezen modus");
+}
+document.getElementById("unlock-lock-again").addEventListener("click", () => {
+  lockAgain();
+  closeUnlockModal();
 });
+// Zelfde actie vanuit de groene "Bewerkmodus aan"-balk bovenin.
+document.getElementById("btn-banner-lock").addEventListener("click", lockAgain);
 
 document.getElementById("unlock-save").addEventListener("click", async () => {
   const password = document.getElementById("unlock-password").value;
@@ -1160,9 +1363,13 @@ function renderTeamChips() {
   const el = document.getElementById("team-chip-list");
   el.innerHTML = teams.map((t) => `
     <span class="team-chip ${t.is_own_team ? "is-own" : ""}">
-      ${t.is_own_team ? "⭐ " : ""}${escapeHtml(t.name)}
-      ${t.is_own_team ? "" : `<button class="team-chip__edit" data-edit-id="${t.id}" title="Teamnaam wijzigen" aria-label="Naam van ${escapeHtml(t.name)} wijzigen">✏️</button>`}
-      <button class="team-chip__remove" data-delete-id="${t.id}" title="Team verwijderen" aria-label="${escapeHtml(t.name)} verwijderen">✕</button>
+      ${avatarHtml(t.name, t.is_own_team, "avatar--xs")}
+      <span>${escapeHtml(t.name)}</span>
+      ${t.is_own_team ? '<span class="chip chip--win">Ons team</span>' : ""}
+      <span class="team-chip__actions">
+        ${t.is_own_team ? "" : `<button type="button" class="team-chip__edit" data-edit-id="${t.id}" title="Teamnaam wijzigen" aria-label="Naam van ${escapeHtml(t.name)} wijzigen">${ICON_EDIT}</button>`}
+        <button type="button" class="team-chip__remove" data-delete-id="${t.id}" title="Team verwijderen" aria-label="${escapeHtml(t.name)} verwijderen">${ICON_X}</button>
+      </span>
     </span>
   `).join("");
   el.querySelectorAll("button[data-edit-id]").forEach((btn) => {
@@ -1294,35 +1501,22 @@ async function loadResults() {
   populateGroupNameList();
 }
 
+// Eén uitslag als regel in een speelronde-kaart: thuis – score – uit.
+// Eigen wedstrijden (gesynchroniseerd vanuit "Programma & uitslagen") zijn
+// klikbaar en openen die wedstrijd; alleen losse uitslagen van andere teams
+// zijn hier te bewerken.
 function renderResultRow(r) {
+  const own = r.home_is_own_team || r.away_is_own_team;
+  const editable = !r.synced_match_id;
   return `
-    <div class="result-row ${r.synced_match_id ? "is-clickable" : ""}" data-id="${r.id}" data-synced="${r.synced_match_id ? "true" : "false"}">
-      <div class="result-row__centered">
-        <span class="result-row__team result-row__team--home">
-          <span class="result-row__team-name">${escapeHtml(r.home_team_name)}</span>
-          ${teamBadgeHtml(r.home_team_name, r.home_is_own_team)}
-        </span>
-        <span class="result-row__score">${r.home_goals} – ${r.away_goals}</span>
-        <span class="result-row__team result-row__team--away">
-          ${teamBadgeHtml(r.away_team_name, r.away_is_own_team)}
-          <span class="result-row__team-name">${escapeHtml(r.away_team_name)}</span>
-        </span>
-      </div>
-      <div class="result-row__lines">
-        <div class="result-row__line">
-          ${teamBadgeHtml(r.home_team_name, r.home_is_own_team)}
-          <span class="result-row__team-name">${escapeHtml(r.home_team_name)}</span>
-          <span class="result-row__goals">${r.home_goals}</span>
-        </div>
-        <div class="result-row__line">
-          ${teamBadgeHtml(r.away_team_name, r.away_is_own_team)}
-          <span class="result-row__team-name">${escapeHtml(r.away_team_name)}</span>
-          <span class="result-row__goals">${r.away_goals}</span>
-        </div>
-      </div>
-      <span class="row-actions admin-only">
-        ${!r.synced_match_id ? `<button data-action="edit" data-id="${r.id}" title="Bewerken" aria-label="Uitslag bewerken">✏️</button><button data-action="delete" data-id="${r.id}" title="Verwijderen" aria-label="Uitslag verwijderen">🗑️</button>` : ""}
-      </span>
+    <div class="result-row round-game${own ? " is-own" : ""}${r.synced_match_id ? " is-clickable" : ""}${editable ? " has-actions" : ""}" data-id="${r.id}" data-synced="${r.synced_match_id ? "true" : "false"}">
+      <span class="round-game__team round-game__team--home${r.home_is_own_team ? " is-own" : ""}" title="${escapeHtml(r.home_team_name)}">${escapeHtml(r.home_team_name)}</span>
+      <span class="round-game__score">${r.home_goals} – ${r.away_goals}</span>
+      <span class="round-game__team${r.away_is_own_team ? " is-own" : ""}" title="${escapeHtml(r.away_team_name)}">${escapeHtml(r.away_team_name)}</span>
+      ${editable ? `<span class="row-actions admin-only">
+        <button class="icon-btn" data-action="edit" data-id="${r.id}" title="Bewerken" aria-label="Uitslag bewerken">${ICON_EDIT}</button>
+        <button class="icon-btn icon-btn--danger" data-action="delete" data-id="${r.id}" title="Verwijderen" aria-label="Uitslag verwijderen">${ICON_TRASH}</button>
+      </span>` : ""}
     </div>
   `;
 }
@@ -1360,26 +1554,54 @@ function wireResultRowActions(el) {
   });
 }
 
+// Uitslagen per speelronde (= speeldatum), nieuwste eerst. Standaard de
+// laatste drie rondes; "Alle N speelrondes" klapt de rest uit.
+const ROUNDS_COLLAPSED = 3;
+let showAllRounds = false;
+
+function fmtRoundDate(isoDate) {
+  const d = new Date(`${isoDate.slice(0, 10)}T12:00:00`);
+  return d.toLocaleDateString("nl-NL", { weekday: "long", day: "numeric", month: "long" });
+}
+
 function renderResultsList() {
   const el = document.getElementById("results-list");
   const empty = document.getElementById("empty-results");
-  // Knockout-uitslagen staan in de bracket hieronder, niet in deze lijst.
+  const toggle = document.getElementById("btn-toggle-rounds");
+  // Knockout-uitslagen staan in de bracket hierboven, niet in deze lijst.
   const regular = results.filter((r) => r.phase !== "knockout");
   empty.hidden = regular.length > 0;
 
-  let lastGroupKey;
-  el.innerHTML = regular.map((r) => {
-    const groupKey = r.match_date || "";
-    const groupHtml = groupKey !== lastGroupKey
-      ? `<h3 class="results-round__title">${r.match_date ? new Date(r.match_date).toLocaleDateString("nl-NL", { day: "numeric", month: "long" }) : "Datum onbekend"}</h3>`
-      : "";
-    lastGroupKey = groupKey;
-    return groupHtml + renderResultRow(r);
-  }).join("");
+  // `results` komt al aflopend op datum binnen (zie functions/api/results.js).
+  const rounds = [];
+  for (const r of regular) {
+    const key = r.match_date ? r.match_date.slice(0, 10) : "";
+    let round = rounds.find((x) => x.key === key);
+    if (!round) { round = { key, list: [] }; rounds.push(round); }
+    round.list.push(r);
+  }
+
+  const canExpand = rounds.length > ROUNDS_COLLAPSED;
+  toggle.hidden = !canExpand;
+  toggle.textContent = showAllRounds ? "Toon minder" : `Alle ${rounds.length} speelrondes`;
+  toggle.setAttribute("aria-expanded", String(showAllRounds));
+  const shown = canExpand && !showAllRounds ? rounds.slice(0, ROUNDS_COLLAPSED) : rounds;
+
+  el.innerHTML = shown.map((round) => `
+    <div class="card round">
+      <div class="eyebrow round__title">${round.key ? escapeHtml(fmtRoundDate(round.key)) : "Datum onbekend"}</div>
+      ${round.list.map(renderResultRow).join("")}
+    </div>
+  `).join("");
 
   wireResultRowActions(el);
   applyLockState();
 }
+
+document.getElementById("btn-toggle-rounds").addEventListener("click", () => {
+  showAllRounds = !showAllRounds;
+  renderResultsList();
+});
 
 /* ---------- Knockout-bracket ---------- */
 
@@ -1437,7 +1659,7 @@ function renderBracket() {
           <div class="bracket-match__team ${awayWin ? "is-winner" : ""}"><span>${escapeHtml(r.away_team_name)}</span><span>${r.away_goals}</span></div>
         </div>
         <span class="row-actions admin-only">
-          ${!r.synced_match_id ? `<button data-action="edit" data-id="${r.id}" title="Bewerken" aria-label="Uitslag bewerken">✏️</button><button data-action="delete" data-id="${r.id}" title="Verwijderen" aria-label="Uitslag verwijderen">🗑️</button>` : ""}
+          ${!r.synced_match_id ? `<button class="icon-btn" data-action="edit" data-id="${r.id}" title="Bewerken" aria-label="Uitslag bewerken">${ICON_EDIT}</button><button class="icon-btn icon-btn--danger" data-action="delete" data-id="${r.id}" title="Verwijderen" aria-label="Uitslag verwijderen">${ICON_TRASH}</button>` : ""}
         </span>
       `;
       roundEl.appendChild(matchEl);
@@ -1612,7 +1834,7 @@ function fmtFinalDate(isoDate) {
   return d.toLocaleDateString("nl-NL", { weekday: "long", day: "numeric", month: "long" });
 }
 
-// Kopje boven de stand met de finales, op volgorde van speeldatum (zoals
+// Kaarten boven de stand met de finales, op volgorde van speeldatum (zoals
 // Footy ze ook toont). Alleen als er voor deze competitie finales zijn.
 function renderStandingsFinals(finals) {
   const el = document.getElementById("standings-finals");
@@ -1620,37 +1842,31 @@ function renderStandingsFinals(finals) {
 
   const sorted = [...finals].sort((a, b) => (a.date || "9999").localeCompare(b.date || "9999") || a.from - b.from);
   el.hidden = false;
-  el.innerHTML = `
-    <div class="finals-card">
-      <h2 class="finals-card__title">Finale</h2>
-      <ul class="finals-card__list">
-        ${sorted.map((f) => `
-          <li class="finals-card__item">
-            <span class="finals-dot finals-color--${escapeHtml(f.color)}" aria-hidden="true"></span>
-            <span class="finals-card__name">${escapeHtml(f.name)}</span>
-            <span class="finals-card__meta">${f.date ? `${escapeHtml(fmtFinalDate(f.date))} · ` : ""}plek ${f.from === f.to ? f.from : `${f.from}–${f.to}`}</span>
-          </li>
-        `).join("")}
-      </ul>
+  el.innerHTML = sorted.map((f) => `
+    <div class="card finale finals-color--${escapeHtml(f.color)}">
+      <span class="finale__icon" aria-hidden="true">${ICON_TROPHY}</span>
+      <div class="finale__text">
+        <span class="finale__name">${escapeHtml(f.name)}</span>
+        <span class="finale__meta">${f.date ? `${escapeHtml(fmtFinalDate(f.date))} · ` : ""}plek ${f.from === f.to ? f.from : `${f.from}–${f.to}`}</span>
+      </div>
     </div>
-  `;
+  `).join("");
 }
 
 function renderStandingsTable(rows, finals) {
   return `
-    <table class="player-table standings-table">
+    <table class="tbl standings-table">
       <thead>
         <tr>
-          <th class="col-num">#</th>
-          <th>Team</th>
-          <th class="num">GS</th>
-          <th class="num">W</th>
-          <th class="num">G</th>
-          <th class="num">V</th>
-          <th class="num">DV</th>
-          <th class="num">DT</th>
-          <th class="num">DS</th>
-          <th class="num">Pt</th>
+          <th scope="col">#&nbsp;&nbsp;Team</th>
+          <th scope="col" class="num"><abbr title="Gespeeld">GS</abbr></th>
+          <th scope="col" class="num"><abbr title="Winst">W</abbr></th>
+          <th scope="col" class="num"><abbr title="Gelijk">G</abbr></th>
+          <th scope="col" class="num"><abbr title="Verlies">V</abbr></th>
+          <th scope="col" class="num hide-sm"><abbr title="Doelpunten voor">DV</abbr></th>
+          <th scope="col" class="num hide-sm"><abbr title="Doelpunten tegen">DT</abbr></th>
+          <th scope="col" class="num"><abbr title="Doelsaldo">DS</abbr></th>
+          <th scope="col" class="num"><abbr title="Punten">PT</abbr></th>
         </tr>
       </thead>
       <tbody>
@@ -1658,16 +1874,21 @@ function renderStandingsTable(rows, finals) {
           const final = finalForPosition(finals, i + 1);
           return `
           <tr class="${t.is_own_team ? "is-own-team" : ""}">
-            <td class="pos${final ? ` pos--final finals-color--${escapeHtml(final.color)}` : ""}"${final ? ` title="${escapeHtml(final.name)}"` : ""}><span class="pos-badge">${i + 1}</span></td>
-            <td><span class="team-badge-row">${teamBadgeHtml(t.name, t.is_own_team)}<span class="team-badge-row__name">${escapeHtml(t.name)}</span></span></td>
+            <td>
+              <span class="team-cell">
+                <span class="pos-badge${final ? ` is-final finals-color--${escapeHtml(final.color)}` : ""}"${final ? ` title="${escapeHtml(final.name)}"` : ""}>${i + 1}</span>
+                ${avatarHtml(t.name, t.is_own_team, "avatar--sm")}
+                <span class="team-cell__name">${escapeHtml(t.name)}</span>
+              </span>
+            </td>
             <td class="num">${t.played}</td>
             <td class="num">${t.wins}</td>
             <td class="num">${t.draws}</td>
             <td class="num">${t.losses}</td>
-            <td class="num">${t.goals_for}</td>
-            <td class="num">${t.goals_against}</td>
+            <td class="num hide-sm">${t.goals_for}</td>
+            <td class="num hide-sm">${t.goals_against}</td>
             <td class="num">${t.goal_diff > 0 ? "+" : ""}${t.goal_diff}</td>
-            <td class="num">${t.points}</td>
+            <td class="num pts">${t.points}</td>
           </tr>
         `;
         }).join("")}
@@ -1689,26 +1910,17 @@ function renderStandingsGroups(groups) {
   const finals = !isTournament() && hasRows ? currentCompetition()?.finals : null;
   renderStandingsFinals(finals);
 
-  container.innerHTML = groups.map((g) => `
-    <div class="standings-group">
-      ${g.group_name ? `<h2 class="section-title">${escapeHtml(g.group_name)}</h2>` : ""}
-      <div class="player-table-wrap">
+  container.innerHTML = groups.filter((g) => g.standings.length > 0).map((g) => `
+    <div class="card standings-group">
+      <div class="card__head">
+        <h2 class="card__title">${g.group_name ? escapeHtml(g.group_name) : (isTournament() ? "Stand" : "Competitietabel")}</h2>
+      </div>
+      <div class="table-scroll">
         ${renderStandingsTable(g.standings, g.group_name ? null : finals)}
       </div>
     </div>
   `).join("");
-
-  syncStandingsStickyOffset();
 }
-
-function syncStandingsStickyOffset() {
-  document.querySelectorAll(".standings-table").forEach((table) => {
-    const firstHeaderCell = table.querySelector("thead th:first-child");
-    if (firstHeaderCell) table.style.setProperty("--pos-col-width", `${firstHeaderCell.getBoundingClientRect().width}px`);
-  });
-}
-
-window.addEventListener("resize", syncStandingsStickyOffset);
 
 /* ---------- Aanmelden ---------- */
 
@@ -1781,13 +1993,14 @@ function renderSignupRows(rows) {
   const tbody = document.getElementById("signup-rows");
   const empty = document.getElementById("empty-signups");
   empty.hidden = rows.length > 0;
+  document.getElementById("signup-count").textContent = String(rows.length);
   tbody.innerHTML = rows.map((r) => `
     <tr data-id="${r.id}">
-      <td>${escapeHtml(r.name)}</td>
+      <td><b>${escapeHtml(r.name)}</b></td>
       <td>${escapeHtml(r.unit)}</td>
-      <td>${fmtSignupDate(r.created_at)}</td>
+      <td class="mono">${fmtSignupDate(r.created_at)}</td>
       <td class="row-actions admin-only">
-        <button data-action="delete" title="Verwijderen" aria-label="Aanmelding verwijderen">🗑️</button>
+        <button class="icon-btn icon-btn--sm icon-btn--danger" data-action="delete" title="Verwijderen" aria-label="Aanmelding verwijderen">${ICON_TRASH}</button>
       </td>
     </tr>
   `).join("");

@@ -6,15 +6,16 @@
 <title>FC Caesar Salad — Programma, spelers &amp; statistieken</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=31">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Geist:wght@400..700&family=Geist+Mono:wght@400..600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=32">
 <link rel="icon" type="image/jpeg" href="logo.jpeg">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#101A2E">
+<meta name="theme-color" content="#F4F4EF" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0B1220" media="(prefers-color-scheme: dark)">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Caesar Salad">
 <script>
   /* Zet het thema meteen (vóór CSS/render) om een flits van het verkeerde
@@ -30,9 +31,9 @@
 <body>
 
 <header class="topbar">
-  <div class="topbar__inner">
+  <div class="topbar__inner wrap">
     <a class="brand" id="btn-brand-home" href="#wedstrijden" title="Naar programma & uitslagen" aria-label="Naar programma & uitslagen">
-      <img src="logo.jpeg" alt="FC Caesar Salad logo" class="brand__logo">
+      <span class="brand__tile"><img src="logo.jpeg" alt="" class="brand__logo"></span>
       <span class="brand__name">FC Caesar Salad</span>
     </a>
     <nav class="tabs" role="tablist" aria-label="Hoofdnavigatie">
@@ -41,201 +42,230 @@
       <button class="tab" data-tab="stand" role="tab" aria-selected="false">Stand</button>
       <button class="tab" data-tab="aanmelden" role="tab" aria-selected="false">Aanmelden<span class="tab-badge signup-badge admin-only" hidden></span></button>
     </nav>
-    <button class="theme-switch" id="theme-toggle" title="Donker thema aan/uit" aria-label="Wissel tussen licht en donker thema" aria-pressed="false">
-      <span class="theme-switch__icons">
-        <span class="theme-switch__sun">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M4.2 4.2l1.6 1.6M18.2 18.2l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.2 19.8l1.6-1.6M18.2 5.8l1.6-1.6"/></svg>
+    <div class="topbar__actions">
+      <button class="icon-btn theme-btn" id="theme-toggle" title="Donker thema aan/uit" aria-label="Wissel tussen licht en donker thema" aria-pressed="false">
+        <svg class="theme-btn__moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+        <svg class="theme-btn__sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+      </button>
+      <button class="icon-btn lock-btn" id="btn-lock" title="Bewerken ontgrendelen" aria-label="Bewerken ontgrendelen">
+        <span id="lock-icon" aria-hidden="true">
+          <svg class="lock-btn__closed" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+          <svg class="lock-btn__open" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 7.5-2"/></svg>
         </span>
-        <span class="theme-switch__moon">
-          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.6 15.2A8.6 8.6 0 1 1 8.8 3.4a7 7 0 0 0 11.8 11.8Z"/></svg>
-        </span>
-      </span>
-      <span class="theme-switch__knob">
-        <span class="theme-switch__knob-sun">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2.5v2.4M12 19.1v2.4M4.2 4.2l1.7 1.7M18.1 18.1l1.7 1.7M2.5 12h2.4M19.1 12h2.4M4.2 19.8l1.7-1.7M18.1 5.9l1.7-1.7"/></svg>
-        </span>
-        <span class="theme-switch__knob-moon">
-          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.6 15.2A8.6 8.6 0 1 1 8.8 3.4a7 7 0 0 0 11.8 11.8Z"/></svg>
-        </span>
-      </span>
-    </button>
-    <button class="lock-btn" id="btn-lock" title="Bewerken ontgrendelen" aria-label="Bewerken ontgrendelen">
-      <span id="lock-icon">🔒</span>
-    </button>
+      </button>
+    </div>
   </div>
-  <div class="competition-bar">
-    <select id="competition-select" aria-label="Actieve competitie"></select>
-    <span class="competition-bar__type" id="competition-type-badge"></span>
-    <button class="icon-btn admin-only" id="btn-edit-competition" title="Competitie bewerken/verwijderen" aria-label="Competitie bewerken of verwijderen">✏️</button>
-    <button class="btn btn--ghost btn--small admin-only" id="btn-new-competition">+ Competitie</button>
+  <div class="competition-bar wrap">
+    <label class="eyebrow competition-bar__label" for="competition-select">Competitie</label>
+    <span class="select-pill">
+      <select id="competition-select" aria-label="Actieve competitie"></select>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+    </span>
+    <span class="chip competition-bar__type" id="competition-type-badge"></span>
+    <span class="chip competition-bar__status" id="competition-status-badge"></span>
+    <button class="btn btn--soft admin-only" id="btn-edit-competition" title="Competitie bewerken/verwijderen" aria-label="Competitie bewerken of verwijderen">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg><span class="hide-sm">Bewerken</span>
+    </button>
+    <button class="btn btn--soft admin-only" id="btn-new-competition">+ Competitie</button>
+  </div>
+  <div class="admin-only">
+    <div class="edit-banner wrap">
+      <div class="edit-banner__inner">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
+        <span class="edit-banner__text">Bewerkmodus aan — je kunt spelers, wedstrijden en statistieken aanpassen.</span>
+        <button class="btn btn--soft btn--compact" id="btn-banner-lock" type="button">Vergrendelen</button>
+      </div>
+    </div>
   </div>
 </header>
 
-<main class="app">
+<main class="app wrap">
 
   <!-- WEDSTRIJDEN -->
   <section class="view is-active" id="view-wedstrijden">
     <div class="view__header">
-      <div>
+      <div class="view__title">
         <h1>Programma &amp; uitslagen</h1>
         <p class="view__sub" id="wedstrijden-sub">Schema en uitslagen van FC Caesar Salad.</p>
       </div>
       <button class="btn btn--primary admin-only" id="btn-new-match">+ Wedstrijd</button>
     </div>
 
-    <div class="hero-match" id="hero-next-match" hidden></div>
-    <div class="hero-result" id="hero-last-match" hidden></div>
+    <div class="hero hero-match" id="hero-next-match" hidden></div>
+    <div class="hero hero-result" id="hero-last-match" hidden></div>
 
-    <div class="match-group">
-      <h2 class="match-group__title">Aankomend</h2>
-      <div class="ticket-list" id="list-upcoming"></div>
-      <p class="empty-state" id="empty-upcoming" hidden>Nog geen wedstrijden gepland.</p>
-    </div>
+    <div class="split">
+      <div class="card list-card list-card--played">
+        <div class="card__head">
+          <h2 class="card__title">Gespeeld</h2>
+          <span class="chip" id="played-count" hidden></span>
+        </div>
+        <div class="match-list" id="list-played"></div>
+        <p class="empty-state" id="empty-played" hidden>Nog geen uitslagen ingevoerd.</p>
+      </div>
 
-    <div class="match-group">
-      <h2 class="match-group__title">Gespeeld</h2>
-      <div class="ticket-list" id="list-played"></div>
-      <p class="empty-state" id="empty-played" hidden>Nog geen uitslagen ingevoerd.</p>
+      <div class="card list-card list-card--upcoming">
+        <div class="card__head">
+          <h2 class="card__title">Aankomend</h2>
+          <span class="chip" id="upcoming-count" hidden></span>
+        </div>
+        <div class="match-list" id="list-upcoming"></div>
+        <p class="empty-state" id="empty-upcoming" hidden>Nog geen wedstrijden gepland.</p>
+      </div>
     </div>
   </section>
 
   <!-- SELECTIE & STATISTIEKEN -->
   <section class="view" id="view-statistieken">
     <div class="view__header">
-      <div>
+      <div class="view__title">
         <h1>Selectie &amp; statistieken</h1>
         <p class="view__sub" id="statistieken-sub">Spelers, teamvorm en statistieken van het seizoen.</p>
       </div>
+      <label class="switch-field" id="stats-alltime-wrap">
+        <input type="checkbox" class="switch" id="stats-alltime-toggle" role="switch">
+        <span><b>All-time</b> <span class="muted">(alle competities/toernooien samen)</span></span>
+      </label>
       <button class="btn btn--primary admin-only" id="btn-new-player">+ Speler</button>
     </div>
 
-    <label class="checkbox-field" id="stats-alltime-wrap">
-      <input type="checkbox" id="stats-alltime-toggle"> All-time (alle competities/toernooien samen)
-    </label>
-    <p class="stats-note">* Spelersstatistieken worden bijgehouden vanaf het Eindtoernooi maandag 5v5 Zomer 2026. Van de competities daarvóór staan de wedstrijden en uitslagen er wel in, maar is per speler niets vastgelegd.</p>
+    <div class="kpis" id="team-record"></div>
 
-    <div class="scoreboard" id="team-record"></div>
+    <div class="form-row" id="team-form-row" hidden></div>
 
-    <h2 class="section-title">Selectie &amp; statistieken</h2>
-    <div class="player-table-wrap">
-      <table class="player-table stats-table">
-        <thead>
-          <tr>
-            <th>Speler</th>
-            <th class="num">GS</th>
-            <th class="num">Doelp.</th>
-            <th class="num" title="Gekeept, in wedstrijden (½ = één helft)">🧤</th>
-            <th class="num">⭐ MVP</th>
-            <th class="col-actions admin-only"></th>
-          </tr>
-        </thead>
-        <tbody id="leaderboard-rows"></tbody>
-      </table>
+    <div class="highlights" id="stats-highlights"></div>
+
+    <div class="card table-card">
+      <div class="card__head card__head--wrap">
+        <h2 class="card__title">Selectie</h2>
+        <span class="card__hint">Klik op een kolom om te sorteren, op een speler voor alle stats</span>
+      </div>
+      <div class="table-scroll">
+        <table class="tbl stats-table">
+          <thead>
+            <tr>
+              <th scope="col">Speler</th>
+              <th scope="col" class="num" data-sort-col="matches_played"><button type="button" class="sort-btn" data-sort="matches_played"><abbr title="Gespeeld">GS</abbr><span class="sort-btn__arrow" aria-hidden="true"></span></button></th>
+              <th scope="col" class="num" data-sort-col="goals"><button type="button" class="sort-btn" data-sort="goals">Doelp.<span class="sort-btn__arrow" aria-hidden="true"></span></button></th>
+              <th scope="col" class="num" data-sort-col="keeper_halves"><button type="button" class="sort-btn" data-sort="keeper_halves" title="Gekeept, in wedstrijden (½ = één helft)">Gekeept<span class="sort-btn__arrow" aria-hidden="true"></span></button></th>
+              <th scope="col" class="num" data-sort-col="mvp_count"><button type="button" class="sort-btn" data-sort="mvp_count">MVP<span class="sort-btn__arrow" aria-hidden="true"></span></button></th>
+              <th class="col-actions admin-only"><span class="visually-hidden">Acties</span></th>
+            </tr>
+          </thead>
+          <tbody id="leaderboard-rows"></tbody>
+        </table>
+      </div>
       <p class="empty-state" id="empty-stats" hidden>Nog geen spelers toegevoegd.</p>
     </div>
+    <p class="stats-note">* Spelersstatistieken worden bijgehouden vanaf het Eindtoernooi maandag 5v5 Zomer 2026. Van de competities daarvóór staan de wedstrijden en uitslagen er wel in, maar is per speler niets vastgelegd.</p>
   </section>
 
   <!-- STAND -->
   <section class="view" id="view-stand">
     <div class="view__header">
-      <div>
+      <div class="view__title">
         <h1>Stand</h1>
         <p class="view__sub" id="stand-sub">Competitietabel van jullie poule.</p>
       </div>
     </div>
 
-    <div id="standings-finals" hidden></div>
-    <div id="standings-groups"></div>
+    <div class="finales" id="standings-finals" hidden></div>
+    <div class="standings-groups" id="standings-groups"></div>
     <p class="empty-state" id="empty-standings" hidden>Nog geen teams of uitslagen ingevoerd.</p>
 
-    <div class="view__header" style="margin-top: 28px;" id="bracket-header" hidden>
-      <h2 class="section-title" style="margin: 0;">Knockout</h2>
+    <div class="section-head" id="bracket-header" hidden>
+      <h2 class="section-title">Knockout</h2>
     </div>
-    <div class="bracket-wrap" id="bracket-wrap" hidden>
+    <div class="card bracket-wrap" id="bracket-wrap" hidden>
       <div class="bracket" id="bracket"></div>
     </div>
 
-    <div class="admin-only">
-      <h2 class="section-title">Teams beheren</h2>
-      <div class="team-chip-list" id="team-chip-list"></div>
-      <form id="team-quick-add" class="quick-add-form">
-        <input type="text" id="new-team-name" placeholder="Naam van team">
-        <label class="checkbox-field">
-          <input type="checkbox" id="new-team-own"> Ons team
-        </label>
-        <button type="submit" class="btn btn--ghost">+ Team</button>
-      </form>
-    </div>
-
-    <div class="view__header" style="margin-top: 28px;">
-      <h2 class="section-title" style="margin: 0;">Uitslagen</h2>
+    <div class="section-head">
+      <h2 class="section-title">Uitslagen</h2>
+      <button class="btn btn--soft" id="btn-toggle-rounds" type="button" hidden></button>
       <button class="btn btn--primary admin-only" id="btn-new-result">+ Uitslag</button>
     </div>
-    <div class="results-list" id="results-list"></div>
+    <div class="rounds" id="results-list"></div>
     <p class="empty-state" id="empty-results" hidden>Nog geen uitslagen ingevoerd.</p>
+
+    <div class="admin-only">
+      <div class="card manage-card">
+        <h2 class="card__title">Teams beheren</h2>
+        <div class="team-chip-list" id="team-chip-list"></div>
+        <form id="team-quick-add" class="quick-add-form">
+          <input type="text" id="new-team-name" placeholder="Naam van team" aria-label="Naam van team">
+          <label class="checkbox-field">
+            <input type="checkbox" id="new-team-own"> Ons team
+          </label>
+          <button type="submit" class="btn btn--primary">+ Team</button>
+        </form>
+      </div>
+    </div>
   </section>
 
   <!-- AANMELDEN -->
   <section class="view" id="view-aanmelden">
     <div class="view__header">
-      <div>
+      <div class="view__title">
         <h1>Aanmelden</h1>
         <p class="view__sub">Meld je aan voor FC Caesar Salad.</p>
       </div>
     </div>
 
-    <form id="signup-form" class="form-grid" style="max-width: 480px;">
-      <label class="field" style="grid-column: 1 / -1;">
-        <span>Naam</span>
-        <input type="text" id="signup-name" required placeholder="Voor- en achternaam" autocomplete="name">
-      </label>
-      <label class="field" style="grid-column: 1 / -1;">
-        <span>Unit</span>
-        <input type="text" id="signup-unit" required placeholder="Bijv. Unit Noord" autocomplete="off">
-      </label>
-      <div style="grid-column: 1 / -1;">
-        <button type="submit" class="btn btn--primary" id="signup-submit">Aanmelden</button>
-      </div>
-    </form>
+    <div class="split">
+      <form id="signup-form" class="card form-card">
+        <div class="form-grid">
+          <label class="field">
+            <span>Naam</span>
+            <input type="text" id="signup-name" required placeholder="Voor- en achternaam" autocomplete="name">
+          </label>
+          <label class="field">
+            <span>Unit</span>
+            <input type="text" id="signup-unit" required placeholder="Bijv. Unit Noord" autocomplete="off">
+          </label>
+        </div>
+        <div>
+          <button type="submit" class="btn btn--primary" id="signup-submit">Aanmelden</button>
+        </div>
+      </form>
 
-    <div class="admin-only" style="margin-top: 28px;">
-      <h2 class="section-title">Aanmeldingen</h2>
-      <div class="player-table-wrap">
-        <table class="player-table">
-          <thead>
-            <tr>
-              <th>Naam</th>
-              <th>Unit</th>
-              <th>Datum</th>
-              <th class="col-actions"></th>
-            </tr>
-          </thead>
-          <tbody id="signup-rows"></tbody>
-        </table>
+      <div class="card list-card">
+        <div class="card__head">
+          <h2 class="card__title">Aanmeldingen</h2>
+          <span class="chip admin-only" id="signup-count"></span>
+        </div>
+        <p class="card__note locked-only">Alleen zichtbaar na ontgrendelen.</p>
+        <div class="admin-only">
+          <div class="table-scroll">
+            <table class="tbl signup-table">
+              <thead>
+                <tr>
+                  <th scope="col">Naam</th>
+                  <th scope="col">Unit</th>
+                  <th scope="col">Datum</th>
+                  <th class="col-actions"><span class="visually-hidden">Acties</span></th>
+                </tr>
+              </thead>
+              <tbody id="signup-rows"></tbody>
+            </table>
+          </div>
+          <p class="card__note" id="empty-signups" hidden>Nog geen aanmeldingen.</p>
+        </div>
       </div>
-      <p class="empty-state" id="empty-signups" hidden>Nog geen aanmeldingen.</p>
     </div>
   </section>
 </main>
 
+<footer class="site-footer wrap">
+  <span>FC Caesar Salad · 5v5</span>
+  <span>Bekijken kan iedereen — bewerken met het slotje</span>
+</footer>
+
 <nav class="bottom-nav" role="tablist" aria-label="Hoofdnavigatie (mobiel)">
-  <button class="tab bottom-nav__item is-active" data-tab="wedstrijden" role="tab" aria-selected="true">
-    <svg class="bottom-nav__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="4.5" width="17" height="16" rx="2"/><path d="M3.5 9.5h17M8 3v3M16 3v3"/></svg>
-    <span class="bottom-nav__label">Programma</span>
-  </button>
-  <button class="tab bottom-nav__item" data-tab="statistieken" role="tab" aria-selected="false">
-    <svg class="bottom-nav__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 20V11M12 20V4M19 20v-7"/></svg>
-    <span class="bottom-nav__label">Statistieken</span>
-  </button>
-  <button class="tab bottom-nav__item" data-tab="stand" role="tab" aria-selected="false">
-    <svg class="bottom-nav__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v4a5 5 0 0 1-10 0V4Z"/><path d="M7 5H4a1 1 0 0 0-1 1c0 2.5 1.6 4.3 4 4.7M17 5h3a1 1 0 0 1 1 1c0 2.5-1.6 4.3-4 4.7"/></svg>
-    <span class="bottom-nav__label">Stand</span>
-  </button>
-  <button class="tab bottom-nav__item" data-tab="aanmelden" role="tab" aria-selected="false">
-    <svg class="bottom-nav__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4.5h6a1 1 0 0 1 1 1V6h1.5a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1h-13a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1H8v-.5a1 1 0 0 1 1-1Z"/><path d="M9 12.5l2 2 4-4.2"/></svg>
-    <span class="bottom-nav__label">Aanmelden</span>
-    <span class="tab-badge signup-badge admin-only bottom-nav__badge" hidden></span>
-  </button>
+  <button class="tab bottom-nav__item is-active" data-tab="wedstrijden" role="tab" aria-selected="true">Programma</button>
+  <button class="tab bottom-nav__item" data-tab="statistieken" role="tab" aria-selected="false">Statistieken</button>
+  <button class="tab bottom-nav__item" data-tab="stand" role="tab" aria-selected="false">Stand</button>
+  <button class="tab bottom-nav__item" data-tab="aanmelden" role="tab" aria-selected="false">Aanmelden<span class="tab-badge signup-badge admin-only bottom-nav__badge" hidden></span></button>
 </nav>
 
 <script>
@@ -269,7 +299,7 @@
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="match-modal-title">
     <div class="modal__header">
       <h2 id="match-modal-title">Wedstrijd</h2>
-      <button class="icon-btn" id="match-modal-close" aria-label="Sluiten">✕</button>
+      <button class="icon-btn" id="match-modal-close" aria-label="Sluiten"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
     </div>
     <div class="modal__body">
       <form id="match-form" class="form-grid">
@@ -321,7 +351,7 @@
           <input type="number" min="0" id="match-goals-against">
         </label>
         <label class="field" id="field-mvp" style="grid-column: 1 / -1;">
-          <span>⭐ MVP van de wedstrijd</span>
+          <span>MVP van de wedstrijd</span>
           <select id="match-mvp">
             <option value="">— Geen MVP gekozen —</option>
           </select>
@@ -338,16 +368,16 @@
 
       <div id="match-stats-block" hidden>
         <h3 class="section-title section-title--tight">Statistieken per speler</h3>
-        <div class="player-table-wrap">
-          <table class="player-table stats-input-table">
+        <div class="table-scroll table-scroll--boxed">
+          <table class="tbl stats-input-table">
             <thead>
               <tr>
                 <th>Speler</th>
                 <th class="num" id="col-present">Aanwezig</th>
                 <th class="num">Doelp.</th>
-                <th class="num" title="Gekeept: halve of hele wedstrijd">🧤</th>
-                <th class="num">🟨</th>
-                <th class="num">🟥</th>
+                <th class="num" title="Gekeept: halve of hele wedstrijd">Gekeept</th>
+                <th class="num">Geel</th>
+                <th class="num">Rood</th>
               </tr>
             </thead>
             <tbody id="match-stats-rows"></tbody>
@@ -371,7 +401,7 @@
   <div class="modal modal--small" role="dialog" aria-modal="true" aria-labelledby="player-modal-title">
     <div class="modal__header">
       <h2 id="player-modal-title">Speler</h2>
-      <button class="icon-btn" id="player-modal-close" aria-label="Sluiten">✕</button>
+      <button class="icon-btn" id="player-modal-close" aria-label="Sluiten"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
     </div>
     <div class="modal__body">
       <form id="player-form" class="form-grid">
@@ -395,11 +425,11 @@
   <div class="modal modal--small" role="dialog" aria-modal="true" aria-labelledby="player-detail-title">
     <div class="modal__header">
       <h2 id="player-detail-title">Speler</h2>
-      <button class="icon-btn" id="player-detail-close" aria-label="Sluiten">✕</button>
+      <button class="icon-btn" id="player-detail-close" aria-label="Sluiten"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
     </div>
     <div class="modal__body">
-      <div class="scoreboard" id="player-detail-record" style="margin-bottom: 14px;"></div>
-      <div class="scoreboard" id="player-detail-stats"></div>
+      <div class="player-record" id="player-detail-record"></div>
+      <div class="player-stats" id="player-detail-stats"></div>
     </div>
     <div class="modal__footer">
       <div class="modal__footer-right">
@@ -414,7 +444,7 @@
   <div class="modal modal--small" role="dialog" aria-modal="true" aria-labelledby="competition-modal-title">
     <div class="modal__header">
       <h2 id="competition-modal-title">Competitie</h2>
-      <button class="icon-btn" id="competition-modal-close" aria-label="Sluiten">✕</button>
+      <button class="icon-btn" id="competition-modal-close" aria-label="Sluiten"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
     </div>
     <div class="modal__body">
       <form id="competition-form" class="form-grid">
@@ -460,7 +490,7 @@
   <div class="modal modal--small" role="dialog" aria-modal="true" aria-labelledby="unlock-modal-title">
     <div class="modal__header">
       <h2 id="unlock-modal-title">Bewerken ontgrendelen</h2>
-      <button class="icon-btn" id="unlock-modal-close" aria-label="Sluiten">✕</button>
+      <button class="icon-btn" id="unlock-modal-close" aria-label="Sluiten"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
     </div>
     <div class="modal__body">
       <p class="modal__hint" id="unlock-hint">Vul het wachtwoord in om spelers, wedstrijden en statistieken te kunnen bewerken. Anderen kunnen de app blijven bekijken zonder wachtwoord.</p>
@@ -486,7 +516,7 @@
   <div class="modal modal--small" role="dialog" aria-modal="true" aria-labelledby="result-modal-title">
     <div class="modal__header">
       <h2 id="result-modal-title">Uitslag</h2>
-      <button class="icon-btn" id="result-modal-close" aria-label="Sluiten">✕</button>
+      <button class="icon-btn" id="result-modal-close" aria-label="Sluiten"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
     </div>
     <div class="modal__body">
       <form id="result-form" class="form-grid">
@@ -545,7 +575,7 @@
   <div class="modal modal--small" role="dialog" aria-modal="true" aria-labelledby="team-modal-title">
     <div class="modal__header">
       <h2 id="team-modal-title">Teamnaam wijzigen</h2>
-      <button class="icon-btn" id="team-modal-close" aria-label="Sluiten">✕</button>
+      <button class="icon-btn" id="team-modal-close" aria-label="Sluiten"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
     </div>
     <div class="modal__body">
       <p class="modal__hint">Alleen de naam verandert: de stand, uitslagen, wedstrijden en statistieken van dit team blijven precies zoals ze zijn.</p>
@@ -581,6 +611,6 @@
 
 <div class="toast" id="toast" hidden></div>
 
-<script src="app.js?v=28"></script>
+<script src="app.js?v=29"></script>
 </body>
 </html>
