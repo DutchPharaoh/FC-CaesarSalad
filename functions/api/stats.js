@@ -51,6 +51,31 @@ export async function onRequestGet({ request, env }) {
     return json(200, { leaderboard: leaderboard.results, record });
   }
 
+  // Wedstrijdhistorie van één speler (spelerspop-up): elke gespeelde
+  // wedstrijd waarin hij/zij een player_stats-rij heeft, nieuwste eerst, met
+  // de teamuitslag en wat de speler zelf deed. Zonder competition_id over
+  // alle competities heen (all-time).
+  const playerId = url.searchParams.get("player_id");
+  if (playerId) {
+    const competitionId = url.searchParams.get("competition_id") || null;
+    const { results } = await env.DB.prepare(
+      `SELECT
+         m.id AS match_id, m.match_date, m.opponent, m.pitch,
+         m.goals_for, m.goals_against, m.competition_id,
+         c.name AS competition_name,
+         s.goals, s.keeper_halves, s.yellow_cards, s.red_cards,
+         CASE WHEN m.mvp_player_id = s.player_id THEN 1 ELSE 0 END AS is_mvp
+       FROM player_stats s
+       JOIN matches m ON m.id = s.match_id
+       LEFT JOIN competitions c ON c.id = m.competition_id
+       WHERE s.player_id = ?
+         AND m.status = 'gespeeld'
+         AND (? IS NULL OR m.competition_id = ?)
+       ORDER BY m.match_date DESC, m.id DESC`
+    ).bind(playerId, competitionId, competitionId).all();
+    return json(200, results.map((r) => ({ ...r, is_mvp: !!r.is_mvp })));
+  }
+
   if (matchId) {
     const { results } = await env.DB.prepare(
       `SELECT s.*, p.name
@@ -62,7 +87,7 @@ export async function onRequestGet({ request, env }) {
     return json(200, results);
   }
 
-  return json(400, { error: "match_id of summary=true is verplicht" });
+  return json(400, { error: "match_id, player_id of summary=true is verplicht" });
 }
 
 export async function onRequestPost({ request, env }) {
