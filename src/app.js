@@ -157,7 +157,7 @@ function updateCompetitionContext() {
   const comp = currentCompetition();
   const badge = document.getElementById("competition-type-badge");
   badge.textContent = comp ? (comp.type === "toernooi" ? "Toernooi" : "Competitie") : "";
-  badge.className = `chip competition-bar__type ${comp?.type === "toernooi" ? "chip--lime" : "chip--ink"}`;
+  badge.className = `chip competition-bar__type ${comp?.type === "toernooi" ? "chip--gold" : "chip--ink"}`;
   const statusBadge = document.getElementById("competition-status-badge");
   statusBadge.textContent = comp ? (comp.status === "afgesloten" ? "Afgesloten" : "Actief") : "";
 
