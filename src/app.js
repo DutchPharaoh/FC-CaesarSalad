@@ -11,7 +11,14 @@ const ICON_X = svgIcon('<path d="M6 6l12 12M18 6L6 18"/>');
 const ICON_EDIT = svgIcon('<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/>');
 const ICON_TRASH = svgIcon('<path d="M4 7h16M10 11v6M14 11v6"/><path d="M6 7l1 13h10l1-13M9 7V4h6v3"/>');
 const ICON_TROPHY = svgIcon('<path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/>', 20);
-const ICON_STAR = '<svg width="13" height="13" viewBox="0 0 24 24" fill="#E3A008" stroke="#B7791F" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/></svg>';
+const ICON_STAR = '<svg class="ico ico--star" width="14" height="14" viewBox="0 0 24 24" fill="#F2B530" stroke="#B7791F" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/></svg>';
+const ICON_PIN = svgIcon('<path d="M12 21s-6.5-5.6-6.5-10.5a6.5 6.5 0 0 1 13 0C18.5 15.4 12 21 12 21z"/><circle cx="12" cy="10.5" r="2.3"/>', 14, ' class="ico"');
+const ICON_CLOCK = svgIcon('<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>', 14, ' class="ico"');
+const ICON_H2H = svgIcon('<path d="M4 8h14l-3.5-3.5M20 16H6l3.5 3.5"/>', 14, ' class="ico"');
+const ICON_BALL = svgIcon('<circle cx="12" cy="12" r="9"/><path d="M12 7.5l4 2.9-1.5 4.7h-5L8 10.4z"/><path d="M12 3v4.5M16 10.4l4.3-1.6M14.5 15.1l2.6 3.8M9.5 15.1l-2.6 3.8M8 10.4L3.7 8.8"/>', 14, ' class="ico"');
+const ICON_GLOVE = '<svg class="ico" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 12V6.5a1.5 1.5 0 0 1 3 0V11M10 10V5a1.5 1.5 0 0 1 3 0v5M13 10V6a1.5 1.5 0 0 1 3 0v5.5M16 11a1.5 1.5 0 0 1 3 0v3a7 7 0 0 1-7 7h-.6a5 5 0 0 1-4-2L4.6 15.6a1.6 1.6 0 0 1 2.4-2.1L7 13.6"/></svg>';
+const ICON_YELLOW = '<svg class="ico ico--card" width="11" height="14" viewBox="0 0 11 14" aria-hidden="true"><rect x=".75" y=".75" width="9.5" height="12.5" rx="2" fill="#F5C518" stroke="rgba(0,0,0,.18)" stroke-width="1"/></svg>';
+const ICON_RED = '<svg class="ico ico--card" width="11" height="14" viewBox="0 0 11 14" aria-hidden="true"><rect x=".75" y=".75" width="9.5" height="12.5" rx="2" fill="#D9363E" stroke="rgba(0,0,0,.18)" stroke-width="1"/></svg>';
 
 /* ---------- Thema (licht/donker) ---------- */
 // De <head> zet data-theme al meteen bij het laden (voorkomt een flits van
@@ -564,7 +571,7 @@ function renderLastResult(played, quiet = false) {
         <span class="hero__comp">${fmtDate(last.match_date)}${last.pitch ? ` · ${escapeHtml(last.pitch)}` : ""}</span>
       </div>
       ${heroTeamsHtml(last.opponent)}
-      ${mvp ? `<div class="hero__chips"><span class="hero__chip">⭐ MVP: <b>${escapeHtml(mvp.name)}</b></span></div>` : ""}
+      ${mvp ? `<div class="hero__chips"><span class="hero__chip">${ICON_STAR}<span>MVP: <b>${escapeHtml(mvp.name)}</b></span></span></div>` : ""}
     </div>
     <div class="hero__score-wrap">
       <span class="hero__score">${last.goals_for} – ${last.goals_against}</span>
@@ -618,8 +625,8 @@ function renderHeroMatch(upcoming) {
       </div>
       ${heroTeamsHtml(next.opponent)}
       <div class="hero__chips">
-        <span class="hero__chip">${dateLabel} · Aftrap ${timeLabel}</span>
-        ${next.pitch ? `<span class="hero__chip">${escapeHtml(next.pitch)}</span>` : ""}
+        <span class="hero__chip">${ICON_CLOCK}${dateLabel} · Aftrap ${timeLabel}</span>
+        ${next.pitch ? `<span class="hero__chip">${ICON_PIN}${escapeHtml(next.pitch)}</span>` : ""}
         <span class="hero__chip hero__h2h" hidden></span>
       </div>
     </div>
@@ -671,14 +678,14 @@ async function renderHeroH2h(hero, opponent) {
     if (!el.isConnected) return;
 
     if (!h.played) {
-      el.textContent = "Eerste ontmoeting";
+      el.innerHTML = `${ICON_H2H}Eerste ontmoeting`;
     } else {
       const last = h.recent[0];
       const uitkomst = last
         ? (last.goals_for > last.goals_against ? "W" : last.goals_for < last.goals_against ? "V" : "G")
         : "";
-      el.innerHTML = `Onderling: <b>${h.wins}W ${h.draws}G ${h.losses}V</b> · ${h.goals_for}–${h.goals_against}`
-        + (last ? ` · laatst ${last.goals_for}–${last.goals_against} (${uitkomst})` : "");
+      el.innerHTML = `${ICON_H2H}<span>Onderling: <b>${h.wins}W ${h.draws}G ${h.losses}V</b> · ${h.goals_for}–${h.goals_against}`
+        + (last ? ` · laatst ${last.goals_for}–${last.goals_against} (${uitkomst})` : "") + "</span>";
     }
     el.hidden = false;
   } catch {
@@ -732,7 +739,8 @@ function renderPlayedList(list) {
     const p = matchDateParts(m.match_date);
     const res = matchOutcome(m);
     const mvp = m.mvp_player_id ? players.find((pl) => pl.id === m.mvp_player_id) : null;
-    const meta = [p.time, m.pitch ? escapeHtml(m.pitch) : ""].filter(Boolean).join(" · ");
+    const meta = `<span class="meta-item">${ICON_CLOCK}${p.time}</span>`
+      + (m.pitch ? `<span class="meta-item">${ICON_PIN}${escapeHtml(m.pitch)}</span>` : "");
     return `
       <div class="match-row" data-id="${m.id}" role="button" tabindex="0" aria-label="Wedstrijd tegen ${escapeHtml(m.opponent)}">
         <div class="match-row__date">
@@ -744,7 +752,7 @@ function renderPlayedList(list) {
         <div class="match-row__main">
           <span class="match-row__opp">vs. ${escapeHtml(m.opponent)}</span>
           <span class="match-row__meta">
-            <span>${meta}</span>
+            ${meta}
             ${mvp ? `<span class="match-row__mvp">${ICON_STAR}MVP: ${escapeHtml(mvp.name)}</span>` : ""}
           </span>
         </div>
@@ -764,7 +772,8 @@ function renderUpcomingList(list) {
 
   el.innerHTML = list.map((m) => {
     const cancelled = m.status === "afgelast";
-    const meta = [fmtDate(m.match_date), m.pitch ? escapeHtml(m.pitch) : ""].filter(Boolean).join(" · ");
+    const meta = `<span class="meta-item">${ICON_CLOCK}${fmtDate(m.match_date)}</span>`
+      + (m.pitch ? `<span class="meta-item">${ICON_PIN}${escapeHtml(m.pitch)}</span>` : "");
     return `
       <div class="match-row${cancelled ? " is-cancelled" : ""}" data-id="${m.id}" role="button" tabindex="0" aria-label="Wedstrijd tegen ${escapeHtml(m.opponent)}">
         ${avatarHtml(m.opponent)}
@@ -1130,7 +1139,6 @@ function renderHighlights(rows) {
   const goals = leaders("goals");
   const keep = leaders("keeper_halves");
   const mvp = leaders("mvp_count");
-  const totalMvp = rows.reduce((s, r) => s + (Number(r.mvp_count) || 0), 0);
 
   let goalsSub = "Nog geen doelpunten";
   if (goals.who.length === 1) {
@@ -1144,12 +1152,14 @@ function renderHighlights(rows) {
   const cards = [
     {
       label: "Topscorer",
+      icon: ICON_BALL,
       who: whoLabel(goals.who),
       val: goals.max,
       sub: goalsSub,
     },
     {
       label: "Meest gekeept",
+      icon: ICON_GLOVE,
       who: whoLabel(keep.who),
       val: keep.max ? fmtKeeper(keep.max) : "0",
       sub: keep.who.length > 1
@@ -1158,17 +1168,18 @@ function renderHighlights(rows) {
     },
     {
       label: "Meeste MVP’s",
+      icon: ICON_STAR,
       who: whoLabel(mvp.who),
       val: mvp.max,
       sub: mvp.who.length > 1
         ? `${joinNames(mvp.who)} — elk ${mvp.max}×`
-        : mvp.who.length ? `${totalMvp} MVP-verkiezing${totalMvp === 1 ? "" : "en"} in totaal` : "Nog geen MVP gekozen",
+        : mvp.who.length ? `keer gekozen tot MVP van de wedstrijd` : "Nog geen MVP gekozen",
     },
   ];
 
   el.innerHTML = rows.length === 0 ? "" : cards.map((c) => `
     <div class="card highlight">
-      <span class="eyebrow">${c.label}</span>
+      <span class="eyebrow eyebrow--ico">${c.icon}${c.label}</span>
       <div class="highlight__row">
         <span class="highlight__who">${escapeHtml(c.who)}</span>
         <span class="highlight__val">${c.val}</span>
@@ -1259,14 +1270,14 @@ function openPlayerDetailModal(r) {
   document.getElementById("player-detail-stats").innerHTML = [
     ["Doelpunten", r.goals],
     ["Per wedstrijd", perMatch],
-    ["Gekeept", fmtKeeper(r.keeper_halves)],
-    ["MVP", r.mvp_count || "—"],
-    ["Geel", r.yellow_cards],
-    ["Rood", r.red_cards],
-  ].map(([label, value]) => `
+    ["Gekeept", fmtKeeper(r.keeper_halves), ICON_GLOVE],
+    ["MVP", r.mvp_count || "—", ICON_STAR],
+    ["Geel", r.yellow_cards, ICON_YELLOW],
+    ["Rood", r.red_cards, ICON_RED],
+  ].map(([label, value, icon = ""]) => `
     <div class="player-stats__cell">
       <span class="player-stats__value">${value}</span>
-      <span class="eyebrow">${label}</span>
+      <span class="eyebrow eyebrow--ico">${icon}${label}</span>
     </div>
   `).join("");
 

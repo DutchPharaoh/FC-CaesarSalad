@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Geist:wght@400..700&family=Geist+Mono:wght@400..600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=34">
+<link rel="stylesheet" href="style.css?v=35">
 <link rel="icon" type="image/jpeg" href="logo.jpeg">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="manifest" href="manifest.json">
@@ -147,8 +147,8 @@
               <th scope="col">Speler</th>
               <th scope="col" class="num" data-sort-col="matches_played"><button type="button" class="sort-btn" data-sort="matches_played"><abbr title="Gespeeld">GS</abbr><span class="sort-btn__arrow" aria-hidden="true"></span></button></th>
               <th scope="col" class="num" data-sort-col="goals"><button type="button" class="sort-btn" data-sort="goals">Doelp.<span class="sort-btn__arrow" aria-hidden="true"></span></button></th>
-              <th scope="col" class="num" data-sort-col="keeper_halves"><button type="button" class="sort-btn" data-sort="keeper_halves" title="Gekeept, in wedstrijden (½ = één helft)">Gekeept<span class="sort-btn__arrow" aria-hidden="true"></span></button></th>
-              <th scope="col" class="num" data-sort-col="mvp_count"><button type="button" class="sort-btn" data-sort="mvp_count">MVP<span class="sort-btn__arrow" aria-hidden="true"></span></button></th>
+              <th scope="col" class="num" data-sort-col="keeper_halves"><button type="button" class="sort-btn" data-sort="keeper_halves" title="Gekeept, in wedstrijden (½ = één helft)" aria-label="Gekeept"><svg class="ico" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 12V6.5a1.5 1.5 0 0 1 3 0V11M10 10V5a1.5 1.5 0 0 1 3 0v5M13 10V6a1.5 1.5 0 0 1 3 0v5.5M16 11a1.5 1.5 0 0 1 3 0v3a7 7 0 0 1-7 7h-.6a5 5 0 0 1-4-2L4.6 15.6a1.6 1.6 0 0 1 2.4-2.1L7 13.6"/></svg><span class="lbl">Gekeept</span><span class="sort-btn__arrow" aria-hidden="true"></span></button></th>
+              <th scope="col" class="num" data-sort-col="mvp_count"><button type="button" class="sort-btn" data-sort="mvp_count" aria-label="MVP"><svg class="ico ico--star" width="14" height="14" viewBox="0 0 24 24" fill="#F2B530" stroke="#B7791F" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/></svg><span class="lbl">MVP</span><span class="sort-btn__arrow" aria-hidden="true"></span></button></th>
               <th class="col-actions admin-only"><span class="visually-hidden">Acties</span></th>
             </tr>
           </thead>
@@ -256,10 +256,6 @@
   </section>
 </main>
 
-<footer class="site-footer wrap">
-  <span>FC Caesar Salad · 5v5</span>
-  <span>Bekijken kan iedereen — bewerken met het slotje</span>
-</footer>
 
 <nav class="bottom-nav" role="tablist" aria-label="Hoofdnavigatie (mobiel)">
   <button class="tab bottom-nav__item is-active" data-tab="wedstrijden" role="tab" aria-selected="true">Programma</button>
@@ -351,7 +347,7 @@
           <input type="number" min="0" id="match-goals-against">
         </label>
         <label class="field" id="field-mvp" style="grid-column: 1 / -1;">
-          <span>MVP van de wedstrijd</span>
+          <span class="label-ico"><svg class="ico ico--star" width="14" height="14" viewBox="0 0 24 24" fill="#F2B530" stroke="#B7791F" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/></svg>MVP van de wedstrijd</span>
           <select id="match-mvp">
             <option value="">— Geen MVP gekozen —</option>
           </select>
@@ -375,9 +371,9 @@
                 <th>Speler</th>
                 <th class="num" id="col-present">Aanwezig</th>
                 <th class="num">Doelp.</th>
-                <th class="num" title="Gekeept: halve of hele wedstrijd">Gekeept</th>
-                <th class="num">Geel</th>
-                <th class="num">Rood</th>
+                <th class="num" title="Gekeept: halve of hele wedstrijd" aria-label="Gekeept"><svg class="ico" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 12V6.5a1.5 1.5 0 0 1 3 0V11M10 10V5a1.5 1.5 0 0 1 3 0v5M13 10V6a1.5 1.5 0 0 1 3 0v5.5M16 11a1.5 1.5 0 0 1 3 0v3a7 7 0 0 1-7 7h-.6a5 5 0 0 1-4-2L4.6 15.6a1.6 1.6 0 0 1 2.4-2.1L7 13.6"/></svg><span class="lbl">Gekeept</span></th>
+                <th class="num" title="Gele kaarten" aria-label="Geel"><svg class="ico ico--card" width="11" height="14" viewBox="0 0 11 14" aria-hidden="true"><rect x=".75" y=".75" width="9.5" height="12.5" rx="2" fill="#F5C518" stroke="rgba(0,0,0,.18)" stroke-width="1"/></svg><span class="lbl">Geel</span></th>
+                <th class="num" title="Rode kaarten" aria-label="Rood"><svg class="ico ico--card" width="11" height="14" viewBox="0 0 11 14" aria-hidden="true"><rect x=".75" y=".75" width="9.5" height="12.5" rx="2" fill="#D9363E" stroke="rgba(0,0,0,.18)" stroke-width="1"/></svg><span class="lbl">Rood</span></th>
               </tr>
             </thead>
             <tbody id="match-stats-rows"></tbody>
@@ -611,6 +607,6 @@
 
 <div class="toast" id="toast" hidden></div>
 
-<script src="app.js?v=30"></script>
+<script src="app.js?v=31"></script>
 </body>
 </html>

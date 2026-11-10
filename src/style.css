@@ -352,7 +352,7 @@ body.is-unlocked .lock-btn { background: var(--win-bg); color: var(--win); borde
 
 .app {
   padding-top: 40px;
-  padding-bottom: 0;
+  padding-bottom: 64px;
   min-height: 50vh;
 }
 .view { display: none; }
@@ -420,18 +420,23 @@ body.is-unlocked .lock-btn { background: var(--win-bg); color: var(--win); borde
 .empty-state { margin: 0; padding: 20px 24px; color: var(--muted); }
 .view > .empty-state { padding: 0; }
 
-.site-footer {
-  margin-top: 64px;
-  padding-top: 24px;
-  padding-bottom: 24px;
-  border-top: 1px solid var(--line);
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  justify-content: space-between;
-  font-size: 13px;
-  color: var(--muted);
-}
+
+/* ---------- Iconen ---------- */
+
+.ico { flex: none; display: inline-block; vertical-align: -2px; }
+.ico--card { vertical-align: -2px; }
+.meta-item,
+.hero__chip,
+.label-ico,
+.eyebrow--ico,
+.match-row__mvp { display: inline-flex; align-items: center; gap: 5px; }
+.hero__chip { gap: 7px; }
+.hero__chip .ico { opacity: .85; }
+.match-row__meta .ico { color: var(--muted); }
+.eyebrow--ico .ico:not(.ico--star):not(.ico--card) { color: var(--accent); }
+th .ico { margin-right: 5px; }
+th .ico:not(.ico--star):not(.ico--card) { color: var(--muted); }
+.sort-btn .ico { margin-right: 1px; }
 
 /* ---------- Avatars ---------- */
 
@@ -1411,6 +1416,9 @@ body.modal-open { overflow: hidden; }
   .row-btn { gap: 8px; }
   .row-btn__rank { width: 16px; font-size: 12px; }
   .stats-table .avatar { display: none; }
+  /* Kolomkoppen met icoon: op mobiel alleen het icoon (uitleg via title/aria-label). */
+  th .ico + .lbl { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  th .ico { margin-right: 0; width: 16px; height: 16px; }
   .stats-table th, .stats-table td { padding-left: 5px; padding-right: 5px; }
   .stats-table th:first-child, .stats-table td:first-child { padding-left: 14px; }
   .stats-table th:last-child, .stats-table td:last-child { padding-right: 14px; }
@@ -1476,7 +1484,7 @@ body.modal-open { overflow: hidden; }
   .bottom-nav__item.is-active { background: var(--highlight); color: var(--highlight-ink); }
   .bottom-nav__badge { position: absolute; top: 4px; right: 6px; margin-left: 0; }
 
-  .site-footer { margin-top: 40px; padding-bottom: calc(96px + var(--nav-safe-area)); flex-direction: column; gap: 4px; }
+  .app { padding-bottom: calc(104px + var(--nav-safe-area)); }
   .toast { bottom: calc(88px + var(--nav-safe-area)); border-radius: 16px; }
 }
 
