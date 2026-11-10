@@ -841,7 +841,15 @@ th .ico:not(.ico--star):not(.ico--card) { color: var(--muted); }
   min-height: 32px;
 }
 .sort-btn:hover, .sort-btn.is-on { color: var(--ink); }
-.sort-btn__arrow { display: inline-block; min-width: .7em; }
+/* Het pijltje zweeft rechts naast de kop en telt niet mee voor de breedte:
+   zo staat de kop precies gecentreerd boven de cijfers, met of zonder pijl. */
+.sort-btn { position: relative; }
+.sort-btn__arrow { position: absolute; left: 100%; top: 50%; transform: translateY(-50%); margin-left: 3px; }
+
+/* Cijferkolommen van de selectie gecentreerd onder hun (icoon)kop. */
+.stats-table th.num,
+.stats-table td.num { text-align: center; }
+.stats-table th[data-sort-col] { padding-left: 18px; padding-right: 18px; }
 
 .row-btn {
   appearance: none;
@@ -1420,6 +1428,7 @@ body.modal-open { overflow: hidden; }
   th .ico + .lbl { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   th .ico { margin-right: 0; width: 16px; height: 16px; }
   .stats-table th, .stats-table td { padding-left: 5px; padding-right: 5px; }
+  .stats-table th[data-sort-col] { padding-left: 10px; padding-right: 10px; }
   .stats-table th:first-child, .stats-table td:first-child { padding-left: 14px; }
   .stats-table th:last-child, .stats-table td:last-child { padding-right: 14px; }
   .stats-table th { letter-spacing: .02em; }
