@@ -1283,8 +1283,124 @@ function openPlayerDetailModal(r) {
 
   playerDetailModal.hidden = false;
   lockBodyScroll();
+  playerDetailModal.querySelector(".modal__body").scrollTop = 0;
+  loadPlayerHistory(r);
 }
 function closePlayerDetailModal() { playerDetailModal.hidden = true; unlockBodyScroll(); }
+
+/* ---------- Wedstrijdhistorie in de spelerspop-up ---------- */
+
+// Los opgehaald bij het openen, zodat de pagina zelf er niet trager van
+// wordt. Volgt de All-time-schakelaar, net als de totalen erboven.
+const HISTORY_COLLAPSED = 5;
+let playerHistoryRequest = 0;
+
+async function loadPlayerHistory(player) {
+  const el = document.getElementById("player-detail-history");
+  const requestId = ++playerHistoryRequest;
+  el.innerHTML = '<p class="player-history__note">Wedstrijden laden\u2026</p>';
+  const alltime = statsAlltimeToggle.checked;
+  const query = !alltime && currentCompetitionId ? `&competition_id=${currentCompetitionId}` : "";
+  try {
+    const rows = await api(`/stats?player_id=${player.id}${query}`);
+    // Tussendoor een andere speler geopend: dit antwoord is verouderd.
+    if (requestId !== playerHistoryRequest) return;
+    renderPlayerHistory(el, rows, alltime, false);
+  } catch {
+    if (requestId !== playerHistoryRequest) return;
+    el.innerHTML = '<p class="player-history__note">Kon de wedstrijden niet laden.</p>';
+  }
+}
+
+// Reeks: doelpunten in opeenvolgende wedstrijden. De lopende reeks (vanaf de
+// nieuwste wedstrijd) gaat voor; is die er niet, dan de langste ooit.
+function scoringStreak(rows) {
+  let current = 0;
+  for (const r of rows) { if (r.goals > 0) current++; else break; }
+  let longest = 0, run = 0;
+  for (const r of rows) { run = r.goals > 0 ? run + 1 : 0; longest = Math.max(longest, run); }
+  if (current >= 2) return `Scoorde in ${current} wedstrijden op rij`;
+  if (longest >= 2) return `Langste scoorreeks: ${longest} wedstrijden op rij`;
+  return "";
+}
+
+function playerChipsHtml(r) {
+  const chips = [];
+  if (r.goals > 0) chips.push(`<span class="ph-chip" title="${r.goals} ${r.goals === 1 ? "doelpunt" : "doelpunten"}">${ICON_BALL}${r.goals}</span>`);
+  if (r.keeper_halves > 0) chips.push(`<span class="ph-chip" title="Gekeept">${ICON_GLOVE}${r.keeper_halves >= 2 ? "heel" : "\u00bd"}</span>`);
+  if (r.is_mvp) chips.push(`<span class="ph-chip ph-chip--mvp" title="MVP van de wedstrijd">${ICON_STAR}MVP</span>`);
+  for (let i = 0; i < r.yellow_cards; i++) chips.push(`<span class="ph-chip ph-chip--card" title="Gele kaart">${ICON_YELLOW}</span>`);
+  for (let i = 0; i < r.red_cards; i++) chips.push(`<span class="ph-chip ph-chip--card" title="Rode kaart">${ICON_RED}</span>`);
+  return chips.length ? chips.join("") : '<span class="ph-none" aria-label="Geen doelpunten of bijzonderheden">\u2014</span>';
+}
+
+function renderPlayerHistory(el, rows, alltime, expanded) {
+  if (rows.length === 0) {
+    el.innerHTML = `
+      <div class="player-history__head"><h3 class="player-history__title">Wedstrijden</h3></div>
+      <p class="player-history__note">Nog geen wedstrijden met statistieken.</p>`;
+    return;
+  }
+
+  const outcome = (r) => matchOutcome({ status: "gespeeld", goals_for: r.goals_for, goals_against: r.goals_against });
+  const form = rows.filter(outcome).slice(0, 5).reverse();
+  const streak = scoringStreak(rows);
+  const shown = expanded ? rows : rows.slice(0, HISTORY_COLLAPSED);
+
+  el.innerHTML = `
+    <div class="player-history__head">
+      <h3 class="player-history__title">Wedstrijden</h3>
+      <span class="chip">${rows.length} gespeeld</span>
+    </div>
+    ${form.length ? `
+      <div class="player-history__form">
+        <span class="eyebrow">Vorm</span>
+        <span class="form-row__pills">${form.map((r) => {
+          const o = outcome(r);
+          return `<span class="res res--${o}" title="${OUTCOME_LABEL[o]} tegen ${escapeHtml(r.opponent)} (${r.goals_for}\u2013${r.goals_against})" aria-label="${OUTCOME_LABEL[o]} tegen ${escapeHtml(r.opponent)}">${o.toUpperCase()}</span>`;
+        }).join("")}</span>
+        <span class="form-row__note">laatste ${form.length}, nieuwste rechts</span>
+      </div>` : ""}
+    ${streak ? `<p class="player-history__streak">${ICON_BALL}${streak}</p>` : ""}
+    <div class="player-history__list">
+      ${shown.map((r) => {
+        const p = matchDateParts(r.match_date);
+        const o = outcome(r);
+        const clickable = matches.some((m) => m.id === r.match_id);
+        return `
+          <div class="ph-row${clickable ? " is-clickable" : ""}" data-match-id="${r.match_id}"${clickable ? ' role="button" tabindex="0"' : ""}>
+            <div class="ph-row__date"><span>${p.dow}</span><b>${p.day}</b><span>${p.mon}</span></div>
+            ${avatarHtml(r.opponent, false, "avatar--sm")}
+            <div class="ph-row__main">
+              <span class="ph-row__opp">vs. ${escapeHtml(r.opponent)}</span>
+              ${alltime && r.competition_name ? `<span class="ph-row__comp">${escapeHtml(r.competition_name)}</span>` : ""}
+              <span class="ph-row__chips">${playerChipsHtml(r)}</span>
+            </div>
+            ${o ? `<span class="ph-row__score">${r.goals_for} \u2013 ${r.goals_against}</span>
+                   <span class="res res--${o}" title="${OUTCOME_LABEL[o]}" aria-label="${OUTCOME_LABEL[o]}">${o.toUpperCase()}</span>` : ""}
+          </div>`;
+      }).join("")}
+    </div>
+    ${rows.length > HISTORY_COLLAPSED ? `
+      <button type="button" class="btn btn--soft player-history__toggle">${expanded ? "Toon minder" : `Alle ${rows.length} wedstrijden`}</button>` : ""}
+  `;
+
+  el.querySelector(".player-history__toggle")?.addEventListener("click", () => renderPlayerHistory(el, rows, alltime, !expanded));
+  // Wedstrijden van de gekozen competitie openen in de wedstrijdpop-up;
+  // die van andere competities (bij All-time) zijn niet geladen.
+  el.querySelectorAll(".ph-row.is-clickable").forEach((row) => {
+    const open = () => {
+      const match = matches.find((m) => m.id === Number(row.dataset.matchId));
+      if (!match) return;
+      closePlayerDetailModal();
+      openMatchModal(match);
+    };
+    row.addEventListener("click", open);
+    row.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(); }
+    });
+  });
+}
 document.getElementById("player-detail-close").addEventListener("click", closePlayerDetailModal);
 document.getElementById("player-detail-close-btn").addEventListener("click", closePlayerDetailModal);
 
