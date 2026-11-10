@@ -1,29 +1,30 @@
 /* FC Caesar Salad — vormgeving
-   Kleuren uit de huisstijl van caesar.nl: Caesar-donkerblauw (#07277C) voor
-   de donkere blokken en de menubalk, Caesar-blauw (#224F82) voor knoppen,
-   Caesar-groen (#82CDCD) als markeerkleur voor wat er nu toe doet
-   (eerstvolgende wedstrijd, aftelling, actieve tab op mobiel), geel
-   (#FFC857) en rood (#E9575B) als steunkleuren. Lettertypes: Bricolage
-   Grotesque voor koppen, Geist voor tekst, Geist Mono voor cijfers. */
+   Kleuren van julius.nl (personeelsvereniging, zelfde Caesar-palet maar
+   warmer): crème papier, Caesar-blauw (#224F82) voor de donkere blokken,
+   knoppen en de menubalk, Caesar-geel (#FFC857) als markeerkleur voor wat er
+   nu toe doet (eerstvolgende wedstrijd, aftelling, actieve tab op mobiel),
+   turquoise (#82CDCD) voor winst en ons team, wijnrood (#E9575B) voor
+   verlies. Lettertypes: Bricolage Grotesque voor koppen, Geist voor tekst,
+   Geist Mono voor cijfers. */
 
 :root {
-  --bg: #F2F5F8;
+  --bg: #FAF1DF;              /* crème */
   --surface: #FFFFFF;
-  --soft: #E7EDF3;
-  --ink: #0A1F44;
-  --muted: #55617A;
-  --line: #DCE3EB;
+  --soft: #F3E6C9;
+  --ink: #1A1410;
+  --muted: #6F6452;
+  --line: #EADCBF;
   --accent: #224F82;          /* Caesar-blauw */
   --accent-ink: #FFFFFF;
-  --win: #2E6E6E;             /* donker Caesar-groen, leesbaar op wit */
-  --win-bg: #DDF0F0;
-  --loss: #B8383D;            /* donker Caesar-rood, leesbaar op wit */
-  --loss-bg: #FBE4E4;
-  --hero: #07277C;            /* Caesar-donkerblauw */
-  --highlight: #82CDCD;       /* Caesar-groen */
-  --highlight-ink: #07277C;
-  --gold: #FFC857;            /* Caesar-geel */
-  --gold-ink: #3A2A00;
+  --win: #3F6F6D;             /* donker turquoise, leesbaar op wit */
+  --win-bg: #E0F1F0;
+  --loss: #A43D41;            /* wijnrood */
+  --loss-bg: #FBE3E1;
+  --hero: #224F82;
+  --highlight: #FFC857;       /* Caesar-geel */
+  --highlight-ink: #1A1410;
+  --gold: #FFC857;
+  --gold-ink: #1A1410;
 
   /* Vast licht op de altijd donkere hero-blokken, los van het thema. */
   --on-hero: #F2F4F7;
@@ -42,19 +43,19 @@
 }
 
 [data-theme="dark"] {
-  --bg: #06112B;
-  --surface: #0C1C40;
-  --soft: #142855;
-  --ink: #EEF2F8;
-  --muted: #A7B4CD;
-  --line: #1E3466;
-  --accent: #82CDCD;
-  --accent-ink: #07277C;
+  --bg: #091926;              /* nachtblauw */
+  --surface: #0F2536;
+  --soft: #16344A;
+  --ink: #FAF1DF;
+  --muted: #A7BCCD;
+  --line: #244B66;
+  --accent: #FFC857;
+  --accent-ink: #1A1410;
   --win: #82CDCD;
   --win-bg: rgba(130, 205, 205, .14);
   --loss: #F28B8E;
   --loss-bg: rgba(233, 87, 91, .16);
-  --hero: #0D2E80;
+  --hero: #1B3E68;
   color-scheme: dark;
 }
 
@@ -486,7 +487,7 @@ body.is-unlocked .lock-btn { background: var(--win-bg); color: var(--win); borde
   padding: 6px 12px;
   border-radius: 999px;
 }
-.hero__pill--grey { background: #E6E9EF; }
+.hero__pill--grey { background: #FAF1DF; }
 .hero__pill-dot { width: 8px; height: 8px; border-radius: 999px; background: var(--highlight-ink); }
 .hero__comp {
   font-size: 12px;
@@ -589,10 +590,10 @@ body.is-unlocked .lock-btn { background: var(--win-bg); color: var(--win); borde
   text-transform: uppercase;
   padding: 8px 14px;
   border-radius: 999px;
-  color: #07277C;
+  color: #1A1410;
   background: #E6E9EF;
 }
-.hero__outcome--win { background: var(--highlight); }
+.hero__outcome--win { background: #82CDCD; }
 .hero__outcome--loss { background: #F4A3A5; }
 
 /* Lichte variant: laatste uitslag onder het donkere blok van de
@@ -1208,7 +1209,7 @@ body.modal-open { overflow: hidden; }
   position: fixed;
   inset: 0;
   z-index: 50;
-  background: rgba(4, 14, 40, .55);
+  background: rgba(9, 25, 38, .55);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1458,7 +1459,7 @@ body.modal-open { overflow: hidden; }
     gap: 4px;
     border-radius: 24px;
     background: var(--hero);
-    box-shadow: 0 12px 30px -10px rgba(4, 14, 40, .45);
+    box-shadow: 0 12px 30px -10px rgba(9, 25, 38, .45);
   }
   .bottom-nav__item {
     position: relative;
@@ -1469,7 +1470,7 @@ body.modal-open { overflow: hidden; }
     justify-content: center;
     border-radius: 18px;
     font-size: 13px;
-    color: #EEF2F8;
+    color: #FAF1DF;
   }
   .bottom-nav__item:hover { color: #fff; }
   .bottom-nav__item.is-active { background: var(--highlight); color: var(--highlight-ink); }
