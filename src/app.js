@@ -474,6 +474,7 @@ async function loadMatches() {
   // tegenstandersnaam opleveren: beide caches hier laten vervallen.
   h2hCache.clear();
   knownOpponents = null;
+  otherCompetitionMatches.clear();
   if (!currentCompetitionId) { matches = []; renderMatches(); return; }
   matches = await api(`/matches?competition_id=${currentCompetitionId}`);
   renderMatches();
@@ -824,8 +825,18 @@ function toLocalInputValue(iso) {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
+// De competitie waar de geopende wedstrijd bij hoort. Meestal de gekozen
+// competitie, maar vanuit de spelershistorie (All-time) kan het ook een
+// andere zijn: dan moeten fase/groep en het opslaan díe competitie volgen,
+// anders zou de wedstrijd bij opslaan naar de gekozen competitie verhuizen.
+let matchModalCompetitionId = null;
+function matchModalIsTournament() {
+  return competitions.find((c) => c.id === matchModalCompetitionId)?.type === "toernooi";
+}
+
 async function openMatchModal(match = null) {
   const unlocked = isUnlocked();
+  matchModalCompetitionId = match?.competition_id ?? currentCompetitionId;
   document.getElementById("match-modal-title").textContent = match
     ? (unlocked ? "Wedstrijd bewerken" : "Wedstrijddetails")
     : "Wedstrijd toevoegen";
@@ -841,7 +852,7 @@ async function openMatchModal(match = null) {
 
   document.querySelectorAll("#match-form input, #match-form select").forEach((el) => { el.disabled = !unlocked; });
 
-  const tournament = isTournament();
+  const tournament = matchModalIsTournament();
   document.getElementById("match-phase-block").hidden = !tournament;
   if (tournament) {
     document.getElementById("match-phase").value = match?.phase === "knockout" ? "knockout" : "groep";
@@ -981,10 +992,10 @@ document.getElementById("match-save").addEventListener("click", async () => {
     mvp_player_id: isPlayed && document.getElementById("match-mvp").value ? Number(document.getElementById("match-mvp").value) : null,
     opponent_own_goals: isPlayed ? Number(document.getElementById("match-own-goals").value || 0) : 0,
     unknown_goals: isPlayed ? Number(document.getElementById("match-unknown-goals").value || 0) : 0,
-    competition_id: currentCompetitionId,
+    competition_id: matchModalCompetitionId,
   };
 
-  if (isTournament()) {
+  if (matchModalIsTournament()) {
     payload.phase = document.getElementById("match-phase").value;
     payload.group_name = payload.phase === "groep" ? (document.getElementById("match-group").value.trim() || null) : null;
     payload.round_name = payload.phase === "knockout" ? (document.getElementById("match-round").value.trim() || null) : null;
@@ -1290,6 +1301,16 @@ function closePlayerDetailModal() { playerDetailModal.hidden = true; unlockBodyS
 
 /* ---------- Wedstrijdhistorie in de spelerspop-up ---------- */
 
+// Wedstrijden van een andere competitie dan de gekozen, voor het openen
+// vanuit de historie. Kort bewaard; loadMatches() leegt dit na elke wijziging.
+const otherCompetitionMatches = new Map();
+async function matchesOfCompetition(compId) {
+  if (!otherCompetitionMatches.has(compId)) {
+    otherCompetitionMatches.set(compId, await api(`/matches?competition_id=${compId}`));
+  }
+  return otherCompetitionMatches.get(compId);
+}
+
 // Los opgehaald bij het openen, zodat de pagina zelf er niet trager van
 // wordt. Volgt de All-time-schakelaar, net als de totalen erboven.
 const HISTORY_COLLAPSED = 5;
@@ -1366,9 +1387,8 @@ function renderPlayerHistory(el, rows, alltime, expanded) {
       ${shown.map((r) => {
         const p = matchDateParts(r.match_date);
         const o = outcome(r);
-        const clickable = matches.some((m) => m.id === r.match_id);
         return `
-          <div class="ph-row${clickable ? " is-clickable" : ""}" data-match-id="${r.match_id}"${clickable ? ' role="button" tabindex="0"' : ""}>
+          <div class="ph-row is-clickable" data-match-id="${r.match_id}" data-competition-id="${r.competition_id}" role="button" tabindex="0" aria-label="Wedstrijd tegen ${escapeHtml(r.opponent)} openen">
             <div class="ph-row__date"><span>${p.dow}</span><b>${p.day}</b><span>${p.mon}</span></div>
             ${avatarHtml(r.opponent, false, "avatar--sm")}
             <div class="ph-row__main">
@@ -1386,12 +1406,20 @@ function renderPlayerHistory(el, rows, alltime, expanded) {
   `;
 
   el.querySelector(".player-history__toggle")?.addEventListener("click", () => renderPlayerHistory(el, rows, alltime, !expanded));
-  // Wedstrijden van de gekozen competitie openen in de wedstrijdpop-up;
-  // die van andere competities (bij All-time) zijn niet geladen.
+  // Elke wedstrijd opent in de wedstrijdpop-up. Hoort hij bij een andere
+  // competitie dan de gekozen (All-time), dan halen we die wedstrijden even
+  // op; de pop-up werkt daarna met de competitie van de wedstrijd zelf.
   el.querySelectorAll(".ph-row.is-clickable").forEach((row) => {
-    const open = () => {
-      const match = matches.find((m) => m.id === Number(row.dataset.matchId));
-      if (!match) return;
+    const open = async () => {
+      const id = Number(row.dataset.matchId);
+      const compId = Number(row.dataset.competitionId);
+      let match = matches.find((m) => m.id === id);
+      if (!match) {
+        try {
+          match = (await matchesOfCompetition(compId)).find((m) => m.id === id);
+        } catch (e) { showToast(e.message); return; }
+      }
+      if (!match) { showToast("Kon deze wedstrijd niet vinden"); return; }
       closePlayerDetailModal();
       openMatchModal(match);
     };
