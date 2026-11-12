@@ -864,6 +864,7 @@ async function openMatchModal(match = null) {
 
   if (teamsLoadedForCompetition !== currentCompetitionId) await loadTeams();
   await populateOpponentDatalist();
+  await setupOpponentPicker(match?.opponent || "");
 
   await toggleStatsBlock();
   document.getElementById("match-status").onchange = toggleStatsBlock;
@@ -1609,6 +1610,73 @@ async function populateOpponentDatalist() {
   }
   const names = knownOpponents ?? teams.filter((t) => !t.is_own_team).map((t) => t.name);
   datalist.innerHTML = names.map((n) => `<option value="${escapeHtml(n)}"></option>`).join("");
+}
+
+/* ---------- Tegenstander kiezen uit de teams van de competitie ---------- */
+
+// Teams die al bij "Stand → Teams beheren" zijn toegevoegd, staan als
+// dropdown klaar, zodat je ze bij een nieuwe wedstrijd niet opnieuw hoeft te
+// typen. "Ander team (typen)…" toont het vrije tekstveld (met suggesties uit
+// alle competities). Het tekstveld blijft de bron voor het opslaan; de
+// dropdown vult het alleen in.
+const OPPONENT_OTHER = "__other__";
+
+async function teamsForMatchModal() {
+  if (matchModalCompetitionId === currentCompetitionId) return teams;
+  try {
+    return await api(`/teams?competition_id=${matchModalCompetitionId}`);
+  } catch {
+    return [];
+  }
+}
+
+async function setupOpponentPicker(currentName) {
+  const select = document.getElementById("match-opponent-select");
+  const input = document.getElementById("match-opponent");
+  const label = document.getElementById("match-opponent-label");
+  const opponents = (await teamsForMatchModal())
+    .filter((t) => !t.is_own_team)
+    .sort((a, b) => a.name.localeCompare(b.name, "nl"));
+
+  if (opponents.length === 0) {
+    select.hidden = true;
+    input.hidden = false;
+    label.htmlFor = "match-opponent";
+    return;
+  }
+
+  const key = (n) => n.trim().toLowerCase().replace(/\s+/g, " ");
+  const known = opponents.find((t) => key(t.name) === key(currentName));
+
+  select.innerHTML = '<option value="">\u2014 Kies een team \u2014</option>'
+    + opponents.map((t) => `<option value="${escapeHtml(t.name)}">${escapeHtml(t.name)}</option>`).join("")
+    + `<option value="${OPPONENT_OTHER}">Ander team (typen)\u2026</option>`;
+  select.hidden = false;
+  label.htmlFor = "match-opponent-select";
+
+  if (known) {
+    select.value = known.name;
+    input.value = known.name;
+    input.hidden = true;
+  } else if (currentName) {
+    select.value = OPPONENT_OTHER;
+    input.hidden = false;
+  } else {
+    select.value = "";
+    input.value = "";
+    input.hidden = true;
+  }
+
+  select.onchange = () => {
+    if (select.value === OPPONENT_OTHER) {
+      input.value = "";
+      input.hidden = false;
+      input.focus();
+    } else {
+      input.value = select.value;
+      input.hidden = true;
+    }
+  };
 }
 
 function populateGroupNameList() {

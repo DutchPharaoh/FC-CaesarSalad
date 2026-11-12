@@ -304,11 +304,12 @@
           <span>Datum &amp; tijd</span>
           <input type="datetime-local" id="match-date" required>
         </label>
-        <label class="field">
-          <span>Tegenstander</span>
-          <input type="text" id="match-opponent" required placeholder="Bijv. FC Almere" list="opponent-list" autocomplete="off">
+        <div class="field">
+          <label for="match-opponent-select" id="match-opponent-label">Tegenstander</label>
+          <select id="match-opponent-select" hidden></select>
+          <input type="text" id="match-opponent" required placeholder="Bijv. FC Almere" list="opponent-list" autocomplete="off" aria-labelledby="match-opponent-label">
           <datalist id="opponent-list"></datalist>
-        </label>
+        </div>
         <label class="field">
           <span>Status</span>
           <select id="match-status">
@@ -608,6 +609,6 @@
 
 <div class="toast" id="toast" hidden></div>
 
-<script src="app.js?v=32"></script>
+<script src="app.js?v=33"></script>
 </body>
 </html>
