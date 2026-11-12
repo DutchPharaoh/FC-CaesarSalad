@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Geist:wght@400..700&family=Geist+Mono:wght@400..600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=36">
+<link rel="stylesheet" href="style.css?v=37">
 <link rel="icon" type="image/jpeg" href="logo.jpeg">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="manifest" href="manifest.json">
@@ -320,7 +320,10 @@
         </label>
         <label class="field">
           <span>Veld</span>
-          <input type="text" id="match-pitch" placeholder="Bijv. Veld 5" autocomplete="off">
+          <span class="input-prefix">
+            <span class="input-prefix__text" aria-hidden="true">Veld</span>
+            <input type="text" id="match-pitch" inputmode="numeric" placeholder="Nummer, bijv. 5" autocomplete="off" aria-label="Veldnummer">
+          </span>
         </label>
         <div id="match-phase-block" hidden style="display: contents;">
           <label class="field">
@@ -609,6 +612,6 @@
 
 <div class="toast" id="toast" hidden></div>
 
-<script src="app.js?v=33"></script>
+<script src="app.js?v=34"></script>
 </body>
 </html>

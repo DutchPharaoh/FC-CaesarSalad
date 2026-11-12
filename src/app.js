@@ -121,6 +121,26 @@ async function api(path, options = {}) {
   return res.json();
 }
 
+/* ---------- Veld ---------- */
+
+// In de pop-up vul je alleen het veldnummer in; opgeslagen en getoond wordt
+// "Veld 5", zoals de bestaande wedstrijden en de geïmporteerde data al
+// hebben. Iets anders dan een nummer (bijv. "Kunstgras") blijft zoals het is.
+function pitchFromInput(raw) {
+  const v = String(raw || "").trim().replace(/^veld\s*/i, "");
+  if (!v) return null;
+  return /^\d+$/.test(v) ? `Veld ${Number(v)}` : v;
+}
+function pitchInputValue(pitch) {
+  if (!pitch) return "";
+  const m = String(pitch).trim().match(/^(?:veld\s*)?(\d+)$/i);
+  return m ? m[1] : pitch;
+}
+// Ook oudere wedstrijden waar alleen "5" is ingevuld tonen als "Veld 5".
+function fmtPitch(pitch) {
+  return /^\d+$/.test(String(pitch).trim()) ? `Veld ${String(pitch).trim()}` : pitch;
+}
+
 function fmtDate(iso) {
   const d = new Date(iso);
   return d.toLocaleDateString("nl-NL", { weekday: "short", day: "numeric", month: "short" }) +
@@ -569,7 +589,7 @@ function renderLastResult(played, quiet = false) {
     <div class="hero__info">
       <div class="hero__eyebrow">
         <span class="hero__pill hero__pill--grey">Laatste uitslag</span>
-        <span class="hero__comp">${fmtDate(last.match_date)}${last.pitch ? ` · ${escapeHtml(last.pitch)}` : ""}</span>
+        <span class="hero__comp">${fmtDate(last.match_date)}${last.pitch ? ` · ${escapeHtml(fmtPitch(last.pitch))}` : ""}</span>
       </div>
       ${heroTeamsHtml(last.opponent)}
       ${mvp ? `<div class="hero__chips"><span class="hero__chip">${ICON_STAR}<span>MVP: <b>${escapeHtml(mvp.name)}</b></span></span></div>` : ""}
@@ -627,7 +647,7 @@ function renderHeroMatch(upcoming) {
       ${heroTeamsHtml(next.opponent)}
       <div class="hero__chips">
         <span class="hero__chip">${ICON_CLOCK}${dateLabel} · Aftrap ${timeLabel}</span>
-        ${next.pitch ? `<span class="hero__chip">${ICON_PIN}${escapeHtml(next.pitch)}</span>` : ""}
+        ${next.pitch ? `<span class="hero__chip">${ICON_PIN}${escapeHtml(fmtPitch(next.pitch))}</span>` : ""}
         <span class="hero__chip hero__h2h" hidden></span>
       </div>
     </div>
@@ -741,7 +761,7 @@ function renderPlayedList(list) {
     const res = matchOutcome(m);
     const mvp = m.mvp_player_id ? players.find((pl) => pl.id === m.mvp_player_id) : null;
     const meta = `<span class="meta-item">${ICON_CLOCK}${p.time}</span>`
-      + (m.pitch ? `<span class="meta-item">${ICON_PIN}${escapeHtml(m.pitch)}</span>` : "");
+      + (m.pitch ? `<span class="meta-item">${ICON_PIN}${escapeHtml(fmtPitch(m.pitch))}</span>` : "");
     return `
       <div class="match-row" data-id="${m.id}" role="button" tabindex="0" aria-label="Wedstrijd tegen ${escapeHtml(m.opponent)}">
         <div class="match-row__date">
@@ -774,7 +794,7 @@ function renderUpcomingList(list) {
   el.innerHTML = list.map((m) => {
     const cancelled = m.status === "afgelast";
     const meta = `<span class="meta-item">${ICON_CLOCK}${fmtDate(m.match_date)}</span>`
-      + (m.pitch ? `<span class="meta-item">${ICON_PIN}${escapeHtml(m.pitch)}</span>` : "");
+      + (m.pitch ? `<span class="meta-item">${ICON_PIN}${escapeHtml(fmtPitch(m.pitch))}</span>` : "");
     return `
       <div class="match-row${cancelled ? " is-cancelled" : ""}" data-id="${m.id}" role="button" tabindex="0" aria-label="Wedstrijd tegen ${escapeHtml(m.opponent)}">
         ${avatarHtml(m.opponent)}
@@ -844,7 +864,7 @@ async function openMatchModal(match = null) {
   document.getElementById("match-date").value = match ? toLocalInputValue(match.match_date) : "";
   document.getElementById("match-opponent").value = match?.opponent || "";
   document.getElementById("match-status").value = match?.status || "gepland";
-  document.getElementById("match-pitch").value = match?.pitch || "";
+  document.getElementById("match-pitch").value = pitchInputValue(match?.pitch);
   document.getElementById("match-goals-for").value = match?.goals_for ?? "";
   document.getElementById("match-goals-against").value = match?.goals_against ?? "";
   document.getElementById("match-delete").hidden = !match || !unlocked;
@@ -987,7 +1007,7 @@ document.getElementById("match-save").addEventListener("click", async () => {
     match_date: new Date(dateVal).toISOString(),
     opponent,
     status,
-    pitch: document.getElementById("match-pitch").value.trim() || null,
+    pitch: pitchFromInput(document.getElementById("match-pitch").value),
     goals_for: isPlayed && document.getElementById("match-goals-for").value !== "" ? Number(document.getElementById("match-goals-for").value) : null,
     goals_against: isPlayed && document.getElementById("match-goals-against").value !== "" ? Number(document.getElementById("match-goals-against").value) : null,
     mvp_player_id: isPlayed && document.getElementById("match-mvp").value ? Number(document.getElementById("match-mvp").value) : null,

@@ -1176,6 +1176,25 @@ body.is-unlocked .round-game { grid-template-columns: minmax(0, 1fr) auto minmax
   min-width: 0;
 }
 .field select { cursor: pointer; }
+
+/* Invoerveld met een vast woord ervoor, bijv. "Veld [5]". */
+.input-prefix {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--bg);
+  color: var(--ink);
+  font-weight: 400;
+  font-size: 15px;
+  overflow: hidden;
+}
+.input-prefix:focus-within { outline: 2px solid var(--accent); outline-offset: 1px; }
+.input-prefix__text { padding: 0 2px 0 14px; color: var(--muted); font-weight: 600; }
+.field .input-prefix input { border: 0; border-radius: 0; background: transparent; padding-left: 8px; min-height: 42px; }
+.field .input-prefix input:focus { outline: none; }
+.field .input-prefix:has(input:disabled) { background: var(--soft); }
 .field input:focus,
 .field select:focus,
 .player-name-input:focus,
