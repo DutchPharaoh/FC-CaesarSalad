@@ -61,6 +61,7 @@ export async function onRequestGet({ request, env }) {
     const { results } = await env.DB.prepare(
       `SELECT
          m.id AS match_id, m.match_date, m.opponent, m.pitch,
+         m.phase, m.group_name, m.round_name,
          m.goals_for, m.goals_against, m.competition_id,
          c.name AS competition_name,
          s.goals, s.keeper_halves, s.yellow_cards, s.red_cards,

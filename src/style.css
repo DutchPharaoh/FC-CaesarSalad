@@ -438,6 +438,17 @@ th .ico { margin-right: 5px; }
 th .ico:not(.ico--star):not(.ico--card) { color: var(--muted); }
 .sort-btn .ico { margin-right: 1px; }
 
+/* Toernooifase in de meta-regel. Knock-out valt op met een geel label. */
+.meta-break { display: none; }
+.meta-phase--ko {
+  padding: 1px 8px 1px 6px;
+  border-radius: 999px;
+  background: var(--highlight);
+  color: var(--highlight-ink);
+  font-weight: 600;
+}
+.match-row__meta .meta-phase--ko .ico { color: currentColor; }
+
 /* ---------- Avatars ---------- */
 
 .avatar {
@@ -1372,7 +1383,9 @@ body.modal-open { overflow: hidden; }
 .ph-row__date b { font-family: var(--font-display); font-size: 17px; font-weight: 800; color: var(--ink); letter-spacing: 0; }
 .ph-row__main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
 .ph-row__opp { font-weight: 600; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.ph-row__comp { font-size: 12px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ph-row__comp { font-size: 12px; color: var(--muted); display: flex; gap: 4px; min-width: 0; white-space: nowrap; }
+.ph-row__compname { overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.ph-row__phase { flex: none; font-weight: 600; color: var(--ink); }
 .ph-row__chips { display: flex; flex-wrap: wrap; gap: 4px; }
 .ph-row__score { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-weight: 600; font-size: 14px; white-space: nowrap; }
 .ph-row .res { min-width: 26px; height: 26px; font-size: 12px; border-radius: 8px; }
@@ -1493,6 +1506,8 @@ body.modal-open { overflow: hidden; }
   .match-row__day { font-size: 18px; }
   .match-row .avatar { width: 34px; height: 34px; border-radius: 10px; font-size: 12px; }
   .match-row__score { font-size: 16px; }
+  /* Fase op een eigen regel onder tijd en veld. */
+  .match-row__meta .meta-break { display: block; flex-basis: 100%; height: 0; }
 
   .kpi { padding: 14px 12px; }
   .kpi__value { font-size: 26px; }

@@ -14,6 +14,8 @@ const ICON_TROPHY = svgIcon('<path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"/
 const ICON_STAR = '<svg class="ico ico--star" width="14" height="14" viewBox="0 0 24 24" fill="#F2B530" stroke="#B7791F" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/></svg>';
 const ICON_PIN = svgIcon('<path d="M12 21s-6.5-5.6-6.5-10.5a6.5 6.5 0 0 1 13 0C18.5 15.4 12 21 12 21z"/><circle cx="12" cy="10.5" r="2.3"/>', 14, ' class="ico"');
 const ICON_CLOCK = svgIcon('<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>', 14, ' class="ico"');
+const ICON_GROUP = svgIcon('<rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.5"/>', 14, ' class="ico"');
+const ICON_CUP = svgIcon('<path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/>', 14, ' class="ico"');
 const ICON_H2H = svgIcon('<path d="M4 8h14l-3.5-3.5M20 16H6l3.5 3.5"/>', 14, ' class="ico"');
 const ICON_BALL = svgIcon('<circle cx="12" cy="12" r="9"/><path d="M12 7.5l4 2.9-1.5 4.7h-5L8 10.4z"/><path d="M12 3v4.5M16 10.4l4.3-1.6M14.5 15.1l2.6 3.8M9.5 15.1l-2.6 3.8M8 10.4L3.7 8.8"/>', 14, ' class="ico"');
 const ICON_GLOVE = '<svg class="ico" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 12V6.5a1.5 1.5 0 0 1 3 0V11M10 10V5a1.5 1.5 0 0 1 3 0v5M13 10V6a1.5 1.5 0 0 1 3 0v5.5M16 11a1.5 1.5 0 0 1 3 0v3a7 7 0 0 1-7 7h-.6a5 5 0 0 1-4-2L4.6 15.6a1.6 1.6 0 0 1 2.4-2.1L7 13.6"/></svg>';
@@ -119,6 +121,29 @@ async function api(path, options = {}) {
   }
   if (res.status === 204) return null;
   return res.json();
+}
+
+/* ---------- Toernooifase ---------- */
+
+// Bij toernooien: in welke fase een wedstrijd valt. Groep → "Groep B" (ook
+// als alleen "B" is ingevuld), knock-out → de ronde ("Halve finale").
+// Gewone competitiewedstrijden krijgen niets.
+function phaseLabel(m) {
+  if (m.phase === "groep") {
+    const g = (m.group_name || "").trim();
+    if (!g) return "Groepsfase";
+    return /^groep\b/i.test(g) ? g : `Groep ${g}`;
+  }
+  if (m.phase === "knockout") return (m.round_name || "").trim() || "Knock-out";
+  return "";
+}
+// Als stukje in de meta-regel van de wedstrijdlijsten. De onzichtbare
+// regelbreuk ervoor zet de fase op mobiel op een eigen regel.
+function phaseMetaHtml(m) {
+  const label = phaseLabel(m);
+  if (!label) return "";
+  const ko = m.phase === "knockout";
+  return `<span class="meta-break" aria-hidden="true"></span><span class="meta-item meta-phase${ko ? " meta-phase--ko" : ""}">${ko ? ICON_CUP : ICON_GROUP}${escapeHtml(label)}</span>`;
 }
 
 /* ---------- Veld ---------- */
@@ -589,7 +614,7 @@ function renderLastResult(played, quiet = false) {
     <div class="hero__info">
       <div class="hero__eyebrow">
         <span class="hero__pill hero__pill--grey">Laatste uitslag</span>
-        <span class="hero__comp">${fmtDate(last.match_date)}${last.pitch ? ` · ${escapeHtml(fmtPitch(last.pitch))}` : ""}</span>
+        <span class="hero__comp">${fmtDate(last.match_date)}${last.pitch ? ` · ${escapeHtml(fmtPitch(last.pitch))}` : ""}${phaseLabel(last) ? ` · ${escapeHtml(phaseLabel(last))}` : ""}</span>
       </div>
       ${heroTeamsHtml(last.opponent)}
       ${mvp ? `<div class="hero__chips"><span class="hero__chip">${ICON_STAR}<span>MVP: <b>${escapeHtml(mvp.name)}</b></span></span></div>` : ""}
@@ -648,6 +673,7 @@ function renderHeroMatch(upcoming) {
       <div class="hero__chips">
         <span class="hero__chip">${ICON_CLOCK}${dateLabel} · Aftrap ${timeLabel}</span>
         ${next.pitch ? `<span class="hero__chip">${ICON_PIN}${escapeHtml(fmtPitch(next.pitch))}</span>` : ""}
+        ${phaseLabel(next) ? `<span class="hero__chip">${next.phase === "knockout" ? ICON_CUP : ICON_GROUP}${escapeHtml(phaseLabel(next))}</span>` : ""}
         <span class="hero__chip hero__h2h" hidden></span>
       </div>
     </div>
@@ -761,7 +787,8 @@ function renderPlayedList(list) {
     const res = matchOutcome(m);
     const mvp = m.mvp_player_id ? players.find((pl) => pl.id === m.mvp_player_id) : null;
     const meta = `<span class="meta-item">${ICON_CLOCK}${p.time}</span>`
-      + (m.pitch ? `<span class="meta-item">${ICON_PIN}${escapeHtml(fmtPitch(m.pitch))}</span>` : "");
+      + (m.pitch ? `<span class="meta-item">${ICON_PIN}${escapeHtml(fmtPitch(m.pitch))}</span>` : "")
+      + phaseMetaHtml(m);
     return `
       <div class="match-row" data-id="${m.id}" role="button" tabindex="0" aria-label="Wedstrijd tegen ${escapeHtml(m.opponent)}">
         <div class="match-row__date">
@@ -794,7 +821,8 @@ function renderUpcomingList(list) {
   el.innerHTML = list.map((m) => {
     const cancelled = m.status === "afgelast";
     const meta = `<span class="meta-item">${ICON_CLOCK}${fmtDate(m.match_date)}</span>`
-      + (m.pitch ? `<span class="meta-item">${ICON_PIN}${escapeHtml(fmtPitch(m.pitch))}</span>` : "");
+      + (m.pitch ? `<span class="meta-item">${ICON_PIN}${escapeHtml(fmtPitch(m.pitch))}</span>` : "")
+      + phaseMetaHtml(m);
     return `
       <div class="match-row${cancelled ? " is-cancelled" : ""}" data-id="${m.id}" role="button" tabindex="0" aria-label="Wedstrijd tegen ${escapeHtml(m.opponent)}">
         ${avatarHtml(m.opponent)}
@@ -1414,7 +1442,13 @@ function renderPlayerHistory(el, rows, alltime, expanded) {
             ${avatarHtml(r.opponent, false, "avatar--sm")}
             <div class="ph-row__main">
               <span class="ph-row__opp">vs. ${escapeHtml(r.opponent)}</span>
-              ${alltime && r.competition_name ? `<span class="ph-row__comp">${escapeHtml(r.competition_name)}</span>` : ""}
+              ${(() => {
+                // Competitienaam mag worden ingekort, de fase nooit.
+                const comp = alltime && r.competition_name ? r.competition_name : "";
+                const phase = phaseLabel(r);
+                if (!comp && !phase) return "";
+                return `<span class="ph-row__comp">${comp ? `<span class="ph-row__compname">${escapeHtml(comp)}</span>` : ""}${phase ? `<span class="ph-row__phase">${comp ? "\u00b7 " : ""}${escapeHtml(phase)}</span>` : ""}</span>`;
+              })()}
               <span class="ph-row__chips">${playerChipsHtml(r)}</span>
             </div>
             ${o ? `<span class="ph-row__score">${r.goals_for} \u2013 ${r.goals_against}</span>
